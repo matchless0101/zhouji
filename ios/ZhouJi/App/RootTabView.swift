@@ -24,6 +24,12 @@ struct RootTabView: View {
                     Label("目标", systemImage: "scope")
                 }
 
+            FocusView()
+                .tag(AppTab.focus)
+                .tabItem {
+                    Label("专注", systemImage: "timer")
+                }
+
             RecordsView()
                 .tag(AppTab.records)
                 .tabItem {
@@ -54,5 +60,6 @@ struct RootTabView: View {
 private enum AppTab: String, Hashable {
     case today
     case goals
+    case focus
     case records
 }

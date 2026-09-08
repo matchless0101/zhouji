@@ -11,7 +11,32 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["添加任务"].exists)
         XCTAssertTrue(app.tabBars.buttons["今天"].isSelected)
         XCTAssertTrue(app.tabBars.buttons["目标"].exists)
+        XCTAssertTrue(app.tabBars.buttons["专注"].exists)
         XCTAssertTrue(app.tabBars.buttons["记录"].exists)
+    }
+
+    @MainActor
+    func testFocusTabStartsAndFinishesARealTaskTimer() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals"]
+        app.launch()
+
+        createGoal(named: "练习 SwiftUI", in: app)
+        app.staticTexts["练习 SwiftUI"].tap()
+        createTask(named: "完成一个页面", in: app)
+
+        app.tabBars.buttons["专注"].tap()
+        XCTAssertTrue(app.staticTexts["专注"].firstMatch.waitForExistence(timeout: 2))
+
+        let startButton = app.buttons["开始专注，完成一个页面"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 2))
+        startButton.tap()
+
+        XCTAssertTrue(app.staticTexts["正在专注"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.otherElements["focus.timer"].exists)
+        app.buttons["结束"].tap()
+        XCTAssertTrue(startButton.waitForExistence(timeout: 2))
     }
 
     @MainActor
