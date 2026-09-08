@@ -42,6 +42,11 @@ enum ZJTheme {
         dark: UIColor(red: 0.105, green: 0.230, blue: 0.410, alpha: 1)
     )
 
+    static let onAccent = Color.dynamic(
+        light: UIColor(red: 0.985, green: 0.992, blue: 1.000, alpha: 1),
+        dark: UIColor(red: 0.035, green: 0.055, blue: 0.090, alpha: 1)
+    )
+
     static let success = Color.dynamic(
         light: UIColor(red: 0.390, green: 0.445, blue: 0.555, alpha: 1),
         dark: UIColor(red: 0.560, green: 0.630, blue: 0.745, alpha: 1)

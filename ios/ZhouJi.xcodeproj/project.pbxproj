@@ -37,6 +37,7 @@
 		E52C7A415BA6BB4CDFFC8656 /* GoalCareer.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D57249F85F726C34F1777E6 /* GoalCareer.png */; };
 		E9DB91015B2E08B16C43D69C /* GoalDigital.png in Resources */ = {isa = PBXBuildFile; fileRef = F563F5E85F82688888ED00FA /* GoalDigital.png */; };
 		EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3602CC160CF15F9EE8A7EA /* TaskService.swift */; };
+		F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */; };
 		F46FC5A56CBF92CF7D38C5EA /* TodayJourney.png in Resources */ = {isa = PBXBuildFile; fileRef = E6C07800FED59A353B4EDCF1 /* TodayJourney.png */; };
 /* End PBXBuildFile section */
 
@@ -87,6 +88,7 @@
 		D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiV2UITests.swift; sourceTree = "<group>"; };
 		DF369424D165E148281CB11E /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerController.swift; sourceTree = "<group>"; };
+		E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewTaskView.swift; sourceTree = "<group>"; };
 		E1E1DC75DF0AB63875968F45 /* TimingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimingSession.swift; sourceTree = "<group>"; };
 		E6C07800FED59A353B4EDCF1 /* TodayJourney.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TodayJourney.png; sourceTree = "<group>"; };
 		F563F5E85F82688888ED00FA /* GoalDigital.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalDigital.png; sourceTree = "<group>"; };
@@ -184,6 +186,7 @@
 		8070094BA722FCB41DAF355A /* Today */ = {
 			isa = PBXGroup;
 			children = (
+				E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */,
 				A5FC5312C02A40C4E425D029 /* TaskRow.swift */,
 				9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */,
 				DF369424D165E148281CB11E /* TodayView.swift */,
@@ -395,6 +398,7 @@
 				9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */,
 				34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */,
 				D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */,
+				F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */,
 				D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */,
 				23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */,
 				84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */,

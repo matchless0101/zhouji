@@ -14,22 +14,12 @@ struct TodayView: View {
     )
     private var visibleTasks: [TodoTask]
 
-    @Query(
-        filter: #Predicate<Goal> { $0.deletedAt == nil },
-        sort: \Goal.createdAt
-    )
-    private var visibleGoals: [Goal]
-
-    @State private var isAddingTask = false
-    @State private var draftTitle = ""
-    @State private var selectedGoal: Goal?
     @State private var isTimerPresented = false
     @State private var pendingTimerTask: TodoTask?
     @State private var undoCandidate: TodoTask?
     @State private var undoDismissTask: Task<Void, Never>?
     @State private var presentedError: String?
     @State private var referenceDate = Date.now
-    @FocusState private var isTaskFieldFocused: Bool
 
     private var incompleteTasks: [TodoTask] {
         visibleTasks.filter { !$0.isCompleted }
@@ -196,123 +186,27 @@ struct TodayView: View {
                 activeTimerBar
             }
 
-            if isAddingTask {
-                addTaskField
-            } else {
-                Button {
-                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
-                        isAddingTask = true
-                    }
-                    isTaskFieldFocused = true
-                } label: {
-                    Label {
-                        Text("添加任务")
-                            .foregroundStyle(ZJTheme.secondaryInk)
-                    } icon: {
-                        Image(systemName: "plus")
-                            .foregroundStyle(ZJTheme.accent)
-                    }
-                    .font(.headline)
-                    .padding(.horizontal, 22)
-                    .frame(minHeight: ZJTheme.controlHeight)
+            NavigationLink {
+                NewTaskView()
+            } label: {
+                Label {
+                    Text("添加任务")
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                } icon: {
+                    Image(systemName: "plus")
+                        .foregroundStyle(ZJTheme.accent)
                 }
-                .buttonStyle(.zjSecondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, ZJTheme.pagePadding)
+                .font(.headline)
+                .padding(.horizontal, 22)
+                .frame(minHeight: ZJTheme.controlHeight)
             }
+            .buttonStyle(.zjSecondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, ZJTheme.pagePadding)
         }
         .padding(.top, 8)
         .padding(.bottom, 8)
         .background(ZJTheme.background.opacity(0.96))
-    }
-
-    private var addTaskField: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
-                TextField("今天要做什么？", text: $draftTitle)
-                    .textFieldStyle(.plain)
-                    .font(.body)
-                    .foregroundStyle(ZJTheme.ink)
-                    .submitLabel(.done)
-                    .focused($isTaskFieldFocused)
-                    .onSubmit(createTask)
-                    .padding(.horizontal, 14)
-                    .frame(minHeight: ZJTheme.controlHeight)
-                    .background(ZJTheme.background, in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
-
-                Button("取消") {
-                    cancelAddingTask()
-                }
-                .foregroundStyle(ZJTheme.secondaryInk)
-
-                Button("添加") {
-                    createTask()
-                }
-                .fontWeight(.semibold)
-                .foregroundStyle(normalizedDraftTitle.isEmpty ? ZJTheme.secondaryInk.opacity(0.45) : ZJTheme.accent)
-                .disabled(normalizedDraftTitle.isEmpty)
-            }
-
-            if !visibleGoals.isEmpty {
-                goalPicker
-            }
-        }
-        .padding(12)
-        .zjCard()
-        .padding(.horizontal, ZJTheme.pagePadding)
-    }
-
-    private var goalPicker: some View {
-        Menu {
-            Button {
-                selectedGoal = nil
-            } label: {
-                if selectedGoal == nil {
-                    Label("无目标", systemImage: "checkmark")
-                } else {
-                    Text("无目标")
-                }
-            }
-
-            Divider()
-
-            ForEach(visibleGoals) { goal in
-                Button {
-                    selectedGoal = goal
-                } label: {
-                    if selectedGoal?.id == goal.id {
-                        Label(goal.name, systemImage: "checkmark")
-                    } else {
-                        Text(goal.name)
-                    }
-                }
-            }
-        } label: {
-            HStack(spacing: 10) {
-                Label("归属目标", systemImage: "scope")
-                    .foregroundStyle(ZJTheme.secondaryInk)
-
-                Spacer(minLength: 12)
-
-                Text(selectedGoal?.name ?? "无目标")
-                    .foregroundStyle(selectedGoal == nil ? ZJTheme.secondaryInk : ZJTheme.ink)
-                    .lineLimit(1)
-
-                Image(systemName: "chevron.up.chevron.down")
-                    .font(.caption)
-                    .foregroundStyle(ZJTheme.secondaryInk)
-            }
-            .font(.subheadline)
-            .padding(.horizontal, 14)
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .background(ZJTheme.mutedSurface, in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("today.goalPicker")
-        .accessibilityLabel("归属目标")
-        .accessibilityValue(selectedGoal?.name ?? "无目标")
-        .accessibilityHint("选择这个任务所属的目标")
     }
 
     private var activeTimerBar: some View {
@@ -356,29 +250,6 @@ struct TodayView: View {
         .accessibilityLabel("查看当前计时")
         .zjCard()
         .padding(.horizontal, ZJTheme.pagePadding)
-    }
-
-    private var normalizedDraftTitle: String {
-        draftTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private func createTask() {
-        do {
-            _ = try TaskService.create(title: draftTitle, goal: selectedGoal, in: modelContext)
-            draftTitle = ""
-            selectedGoal = nil
-            isAddingTask = false
-            isTaskFieldFocused = false
-        } catch {
-            presentedError = error.localizedDescription
-        }
-    }
-
-    private func cancelAddingTask() {
-        draftTitle = ""
-        selectedGoal = nil
-        isAddingTask = false
-        isTaskFieldFocused = false
     }
 
     private func toggleCompletion(of task: TodoTask) {
