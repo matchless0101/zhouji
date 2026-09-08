@@ -1,0 +1,53 @@
+name: ZhouJi
+options:
+  bundleIdPrefix: com.matchless
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    DEVELOPMENT_TEAM: ""
+targets:
+  ZhouJi:
+    type: application
+    platform: iOS
+    sources:
+      - path: ZhouJi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matchless.ZhouJi
+        PRODUCT_NAME: ZhouJi
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: 粥记
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+    scheme:
+      testTargets:
+        - ZhouJiTests
+        - ZhouJiUITests
+  ZhouJiTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ZhouJiTests
+    dependencies:
+      - target: ZhouJi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matchless.ZhouJiTests
+        GENERATE_INFOPLIST_FILE: YES
+  ZhouJiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: ZhouJiUITests
+    dependencies:
+      - target: ZhouJi
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.matchless.ZhouJiUITests
+        GENERATE_INFOPLIST_FILE: YES

@@ -1,0 +1,684 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		058C856465F14C4EEEBDB0E1 /* TimerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */; };
+		07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409B7EA59769107E561759AD /* ElapsedTimeText.swift */; };
+		23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739BFA8892AE674A65737C96 /* RootTabView.swift */; };
+		23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763FEDE98326909204980EF0 /* TodoTask.swift */; };
+		28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */; };
+		34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6168DF05F9358B91A840E301 /* GoalService.swift */; };
+		35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */; };
+		392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */; };
+		39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */; };
+		447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */; };
+		69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */; };
+		719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */; };
+		7C9C2A21E5E8869E5A2B01CF /* TimingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E1DC75DF0AB63875968F45 /* TimingSession.swift */; };
+		84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D99CBCADD2F9116441ACEF /* StatisticsService.swift */; };
+		8BC6BBF9C67A9E4BF59FA4EA /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D74816771A9FD9CCE4D7B9 /* Goal.swift */; };
+		9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B2295B64B5F7D07702E701 /* GoalDetailView.swift */; };
+		9C032EB942FFBFE5639CD65D /* TimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8200A7EA922F71B190159019 /* TimerSheet.swift */; };
+		9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */; };
+		AB2404F9D508EBD1AF51DF52 /* TimerMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18CD865EF12BEF475370DF2B /* TimerMath.swift */; };
+		ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FC5312C02A40C4E425D029 /* TaskRow.swift */; };
+		AF6738630FD3D445014B99DE /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF369424D165E148281CB11E /* TodayView.swift */; };
+		D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091F10FDB6775FD2CAF673D6 /* RecordsView.swift */; };
+		D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9FE7B80BB92D300651E1455 /* ZJTheme.swift */; };
+		D342FF3A7D844027F62D25A7 /* ZhouJiV2UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */; };
+		D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */; };
+		DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */; };
+		EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3602CC160CF15F9EE8A7EA /* TaskService.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1D47B652FA07A678D8AE6E0F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 54A0923D04206A55B81E0FE6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6153DB4F6632572815F56D51;
+			remoteInfo = ZhouJi;
+		};
+		D90797E86D3AE8CF4D7FB448 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 54A0923D04206A55B81E0FE6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6153DB4F6632572815F56D51;
+			remoteInfo = ZhouJi;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		091F10FDB6775FD2CAF673D6 /* RecordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordsView.swift; sourceTree = "<group>"; };
+		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
+		180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskServiceTests.swift; sourceTree = "<group>"; };
+		18CD865EF12BEF475370DF2B /* TimerMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMath.swift; sourceTree = "<group>"; };
+		2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundaries.swift; sourceTree = "<group>"; };
+		329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundariesTests.swift; sourceTree = "<group>"; };
+		409B7EA59769107E561759AD /* ElapsedTimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeText.swift; sourceTree = "<group>"; };
+		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
+		5E3602CC160CF15F9EE8A7EA /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
+		6168DF05F9358B91A840E301 /* GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalService.swift; sourceTree = "<group>"; };
+		6AD198BF41F57BCC38DF3E7C /* ZhouJiUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		709622E12C4C4BAB9D0C062B /* ZhouJi.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ZhouJi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		739BFA8892AE674A65737C96 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
+		763FEDE98326909204980EF0 /* TodoTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTask.swift; sourceTree = "<group>"; };
+		8200A7EA922F71B190159019 /* TimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSheet.swift; sourceTree = "<group>"; };
+		829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiApp.swift; sourceTree = "<group>"; };
+		8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerControllerTests.swift; sourceTree = "<group>"; };
+		99D99CBCADD2F9116441ACEF /* StatisticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsService.swift; sourceTree = "<group>"; };
+		9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskUndoToast.swift; sourceTree = "<group>"; };
+		A5FC5312C02A40C4E425D029 /* TaskRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRow.swift; sourceTree = "<group>"; };
+		A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
+		B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalAndStatisticsTests.swift; sourceTree = "<group>"; };
+		CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMathTests.swift; sourceTree = "<group>"; };
+		D4D74816771A9FD9CCE4D7B9 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
+		D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiV2UITests.swift; sourceTree = "<group>"; };
+		DF369424D165E148281CB11E /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerController.swift; sourceTree = "<group>"; };
+		E1E1DC75DF0AB63875968F45 /* TimingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimingSession.swift; sourceTree = "<group>"; };
+		F9FE7B80BB92D300651E1455 /* ZJTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJTheme.swift; sourceTree = "<group>"; };
+		FF801AF1512F4520691A5C32 /* ZhouJiTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		19F7118A380D4CC2370370CA /* Records */ = {
+			isa = PBXGroup;
+			children = (
+				091F10FDB6775FD2CAF673D6 /* RecordsView.swift */,
+			);
+			path = Records;
+			sourceTree = "<group>";
+		};
+		20E4D179AF395F4E09108692 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				A06B25A349A8D19657298D98 /* Models */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		2FBD4BAB996290A8A484C6DB /* ZhouJi */ = {
+			isa = PBXGroup;
+			children = (
+				5407A086F29986A1274E57F3 /* App */,
+				7E39E7F1972DF249CBD97343 /* Core */,
+				20E4D179AF395F4E09108692 /* Data */,
+				F101C6E92A5158C82E2DA999 /* Domain */,
+				C7183091907532DB0B4520B0 /* Features */,
+			);
+			path = ZhouJi;
+			sourceTree = "<group>";
+		};
+		4C1DCDD978533A27FD116B74 /* Design */ = {
+			isa = PBXGroup;
+			children = (
+				F9FE7B80BB92D300651E1455 /* ZJTheme.swift */,
+			);
+			path = Design;
+			sourceTree = "<group>";
+		};
+		5407A086F29986A1274E57F3 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				739BFA8892AE674A65737C96 /* RootTabView.swift */,
+				829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		5B0558F37DF439A3B391659F /* ZhouJiTests */ = {
+			isa = PBXGroup;
+			children = (
+				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
+				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
+				180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */,
+				8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */,
+				CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */,
+				0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */,
+			);
+			path = ZhouJiTests;
+			sourceTree = "<group>";
+		};
+		67840E368AF64B88D4DA74CF /* ZhouJiUITests */ = {
+			isa = PBXGroup;
+			children = (
+				D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */,
+			);
+			path = ZhouJiUITests;
+			sourceTree = "<group>";
+		};
+		7E39E7F1972DF249CBD97343 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				4C1DCDD978533A27FD116B74 /* Design */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		8070094BA722FCB41DAF355A /* Today */ = {
+			isa = PBXGroup;
+			children = (
+				A5FC5312C02A40C4E425D029 /* TaskRow.swift */,
+				9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */,
+				DF369424D165E148281CB11E /* TodayView.swift */,
+			);
+			path = Today;
+			sourceTree = "<group>";
+		};
+		A06B25A349A8D19657298D98 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				D4D74816771A9FD9CCE4D7B9 /* Goal.swift */,
+				E1E1DC75DF0AB63875968F45 /* TimingSession.swift */,
+				763FEDE98326909204980EF0 /* TodoTask.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		A0B74C63A9648AB09CB81656 = {
+			isa = PBXGroup;
+			children = (
+				2FBD4BAB996290A8A484C6DB /* ZhouJi */,
+				5B0558F37DF439A3B391659F /* ZhouJiTests */,
+				67840E368AF64B88D4DA74CF /* ZhouJiUITests */,
+				A6FFA7A16CC9EA58553AED56 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A6FFA7A16CC9EA58553AED56 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				709622E12C4C4BAB9D0C062B /* ZhouJi.app */,
+				FF801AF1512F4520691A5C32 /* ZhouJiTests.xctest */,
+				6AD198BF41F57BCC38DF3E7C /* ZhouJiUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C7183091907532DB0B4520B0 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				CBA62C795A495F781D67B119 /* Goals */,
+				19F7118A380D4CC2370370CA /* Records */,
+				E44E1C47E6A03AF56E8CB604 /* Timing */,
+				8070094BA722FCB41DAF355A /* Today */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		CBA62C795A495F781D67B119 /* Goals */ = {
+			isa = PBXGroup;
+			children = (
+				53B2295B64B5F7D07702E701 /* GoalDetailView.swift */,
+				A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */,
+			);
+			path = Goals;
+			sourceTree = "<group>";
+		};
+		E44E1C47E6A03AF56E8CB604 /* Timing */ = {
+			isa = PBXGroup;
+			children = (
+				8200A7EA922F71B190159019 /* TimerSheet.swift */,
+			);
+			path = Timing;
+			sourceTree = "<group>";
+		};
+		F101C6E92A5158C82E2DA999 /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */,
+				409B7EA59769107E561759AD /* ElapsedTimeText.swift */,
+				6168DF05F9358B91A840E301 /* GoalService.swift */,
+				99D99CBCADD2F9116441ACEF /* StatisticsService.swift */,
+				5E3602CC160CF15F9EE8A7EA /* TaskService.swift */,
+				E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */,
+				18CD865EF12BEF475370DF2B /* TimerMath.swift */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2C58CB1C2DCD5AFEBBC301BB /* ZhouJiTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C169C91BF2C132239FC81C50 /* Build configuration list for PBXNativeTarget "ZhouJiTests" */;
+			buildPhases = (
+				E56A2C7F906062A7AD7ADB8B /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DBB583D2F7DDD99E0B9C8788 /* PBXTargetDependency */,
+			);
+			name = ZhouJiTests;
+			packageProductDependencies = (
+			);
+			productName = ZhouJiTests;
+			productReference = FF801AF1512F4520691A5C32 /* ZhouJiTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		6153DB4F6632572815F56D51 /* ZhouJi */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A4F14414FD2353C9B67E2B6 /* Build configuration list for PBXNativeTarget "ZhouJi" */;
+			buildPhases = (
+				5015E9D28937055087D35184 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ZhouJi;
+			packageProductDependencies = (
+			);
+			productName = ZhouJi;
+			productReference = 709622E12C4C4BAB9D0C062B /* ZhouJi.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CDF204EBF181E7C014F96C7D /* ZhouJiUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4BF4613625943FF46DFBB1FC /* Build configuration list for PBXNativeTarget "ZhouJiUITests" */;
+			buildPhases = (
+				4D8EFE7C745DC0AD9E33543F /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				389D32B0574F42A27B640CF2 /* PBXTargetDependency */,
+			);
+			name = ZhouJiUITests;
+			packageProductDependencies = (
+			);
+			productName = ZhouJiUITests;
+			productReference = 6AD198BF41F57BCC38DF3E7C /* ZhouJiUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		54A0923D04206A55B81E0FE6 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					2C58CB1C2DCD5AFEBBC301BB = {
+						DevelopmentTeam = "";
+					};
+					6153DB4F6632572815F56D51 = {
+						DevelopmentTeam = "";
+					};
+					CDF204EBF181E7C014F96C7D = {
+						DevelopmentTeam = "";
+						TestTargetID = 6153DB4F6632572815F56D51;
+					};
+				};
+			};
+			buildConfigurationList = FA922B0F11D1221C1F317B73 /* Build configuration list for PBXProject "ZhouJi" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A0B74C63A9648AB09CB81656;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = A6FFA7A16CC9EA58553AED56 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				6153DB4F6632572815F56D51 /* ZhouJi */,
+				2C58CB1C2DCD5AFEBBC301BB /* ZhouJiTests */,
+				CDF204EBF181E7C014F96C7D /* ZhouJiUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		4D8EFE7C745DC0AD9E33543F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D342FF3A7D844027F62D25A7 /* ZhouJiV2UITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5015E9D28937055087D35184 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */,
+				07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */,
+				8BC6BBF9C67A9E4BF59FA4EA /* Goal.swift in Sources */,
+				9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */,
+				34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */,
+				D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */,
+				D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */,
+				23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */,
+				84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */,
+				ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */,
+				EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */,
+				69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */,
+				058C856465F14C4EEEBDB0E1 /* TimerController.swift in Sources */,
+				AB2404F9D508EBD1AF51DF52 /* TimerMath.swift in Sources */,
+				9C032EB942FFBFE5639CD65D /* TimerSheet.swift in Sources */,
+				7C9C2A21E5E8869E5A2B01CF /* TimingSession.swift in Sources */,
+				AF6738630FD3D445014B99DE /* TodayView.swift in Sources */,
+				23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */,
+				D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */,
+				28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E56A2C7F906062A7AD7ADB8B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
+				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
+				392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */,
+				39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */,
+				447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */,
+				719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		389D32B0574F42A27B640CF2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6153DB4F6632572815F56D51 /* ZhouJi */;
+			targetProxy = D90797E86D3AE8CF4D7FB448 /* PBXContainerItemProxy */;
+		};
+		DBB583D2F7DDD99E0B9C8788 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6153DB4F6632572815F56D51 /* ZhouJi */;
+			targetProxy = 1D47B652FA07A678D8AE6E0F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0130823B2444C13BDE81DCF4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		0DE85B20B067C4A0E45E081A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matchless.ZhouJiTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ZhouJi.app/ZhouJi";
+			};
+			name = Debug;
+		};
+		7E6E846CBC1AE11C36103551 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "粥记";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matchless.ZhouJi;
+				PRODUCT_NAME = ZhouJi;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		80FFAC41E26C0ECE49EBCEED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		822A67AA858836EF9119C959 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "粥记";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matchless.ZhouJi;
+				PRODUCT_NAME = ZhouJi;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		8B8B47B6A91C3821B84E3FFE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matchless.ZhouJiUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ZhouJi;
+			};
+			name = Release;
+		};
+		A274056E092B7F9C9FC03849 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matchless.ZhouJiTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ZhouJi.app/ZhouJi";
+			};
+			name = Release;
+		};
+		C0F1CC9084A5AB2B208688EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.matchless.ZhouJiUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = ZhouJi;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A4F14414FD2353C9B67E2B6 /* Build configuration list for PBXNativeTarget "ZhouJi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E6E846CBC1AE11C36103551 /* Debug */,
+				822A67AA858836EF9119C959 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4BF4613625943FF46DFBB1FC /* Build configuration list for PBXNativeTarget "ZhouJiUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C0F1CC9084A5AB2B208688EE /* Debug */,
+				8B8B47B6A91C3821B84E3FFE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		C169C91BF2C132239FC81C50 /* Build configuration list for PBXNativeTarget "ZhouJiTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0DE85B20B067C4A0E45E081A /* Debug */,
+				A274056E092B7F9C9FC03849 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FA922B0F11D1221C1F317B73 /* Build configuration list for PBXProject "ZhouJi" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				80FFAC41E26C0ECE49EBCEED /* Debug */,
+				0130823B2444C13BDE81DCF4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 54A0923D04206A55B81E0FE6 /* Project object */;
+}
