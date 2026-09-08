@@ -1,6 +1,9 @@
 import SwiftUI
 
 struct TaskRow: View {
+    @ScaledMetric(relativeTo: .body) private var completionSize = 25.0
+    @ScaledMetric(relativeTo: .body) private var timerButtonSize = 38.0
+
     let task: TodoTask
     let isActivelyTimed: Bool
     var showsGoal = true
@@ -16,12 +19,12 @@ struct TaskRow: View {
                             task.isCompleted ? ZJTheme.success : ZJTheme.secondaryInk,
                             lineWidth: 1.5
                         )
-                        .frame(width: 25, height: 25)
+                        .frame(width: completionSize, height: completionSize)
 
                     if task.isCompleted {
                         Circle()
                             .fill(ZJTheme.success)
-                            .frame(width: 25, height: 25)
+                            .frame(width: completionSize, height: completionSize)
                         Image(systemName: "checkmark")
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(ZJTheme.surface)
@@ -78,7 +81,7 @@ struct TaskRow: View {
                         Image(systemName: "play.fill")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(ZJTheme.accent)
-                            .frame(width: 38, height: 38)
+                            .frame(width: timerButtonSize, height: timerButtonSize)
                             .background(ZJTheme.accentSoft, in: Circle())
                     }
                 }

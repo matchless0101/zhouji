@@ -5,7 +5,7 @@ struct GoalDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(TimerController.self) private var timer
-    @Bindable var goal: Goal
+    let goal: Goal
 
     @State private var draftTitle = ""
     @State private var isTimerPresented = false
@@ -35,15 +35,21 @@ struct GoalDetailView: View {
             ZJTheme.background.ignoresSafeArea()
 
             List {
-                progressHeader
+                GoalProgressHeader(progress: progress)
+                    .padding(18)
+                    .zjCard()
                     .listRowInsets(EdgeInsets(top: 14, leading: ZJTheme.pagePadding, bottom: 24, trailing: ZJTheme.pagePadding))
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
 
                 if visibleTasks.isEmpty {
-                    Text("从一个今天能完成的小任务开始。")
-                        .font(.body)
-                        .foregroundStyle(ZJTheme.secondaryInk)
+                    ZJEmptyState(
+                        title: "把目标变成下一步",
+                        message: "从一个今天能完成的小任务开始。",
+                        systemImage: "checklist"
+                    )
+                        .padding(18)
+                        .zjCard()
                         .listRowInsets(EdgeInsets(top: 30, leading: ZJTheme.pagePadding, bottom: 30, trailing: ZJTheme.pagePadding))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
@@ -132,25 +138,6 @@ struct GoalDetailView: View {
         }
         .onDisappear {
             undoDismissTask?.cancel()
-        }
-    }
-
-    private var progressHeader: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("目标进度")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                Spacer()
-                Text("\(progress.percentage)%")
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(ZJTheme.accent)
-            }
-            ProgressView(value: progress.fraction)
-                .tint(ZJTheme.accent)
-            Text("已完成 \(progress.completed) 件，共 \(progress.total) 件")
-                .font(.caption)
-                .foregroundStyle(ZJTheme.secondaryInk)
         }
     }
 
@@ -406,8 +393,10 @@ private struct GoalSettingsView: View {
                         RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous)
                             .stroke(selectedIcon == icon ? ZJTheme.accent.opacity(0.55) : ZJTheme.divider, lineWidth: 1)
                     }
+                    .compositingGroup()
                     .clipShape(RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous))
                     .accessibilityIdentifier("goal.icon.\(icon.rawValue)")
+                    .accessibilityLabel(icon.title)
                     .accessibilityAddTraits(selectedIcon == icon ? .isSelected : [])
                 }
             }
@@ -417,12 +406,8 @@ private struct GoalSettingsView: View {
     private var saveBar: some View {
         Button("保存设置", action: save)
             .font(.headline)
-            .foregroundStyle(ZJTheme.surface)
             .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
-            .background(
-                isSaveDisabled ? ZJTheme.secondaryInk.opacity(0.35) : ZJTheme.accent,
-                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-            )
+            .buttonStyle(.zjPrimary)
             .disabled(isSaveDisabled)
             .padding(.horizontal, ZJTheme.pagePadding)
             .padding(.vertical, 8)
@@ -449,6 +434,36 @@ private struct GoalSettingsView: View {
             dismiss()
         } catch {
             presentedError = error.localizedDescription
+        }
+    }
+}
+
+private struct GoalProgressHeader: View {
+    let progress: GoalProgress
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("目标进度")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(ZJTheme.secondaryInk)
+
+                Spacer(minLength: 12)
+
+                Text(progress.percentage, format: .percent.scale(1))
+                    .font(.title2.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(ZJTheme.accent)
+            }
+
+            ProgressView(value: progress.fraction)
+                .tint(ZJTheme.accent)
+                .accessibilityLabel("目标进度")
+                .accessibilityValue("百分之 \(progress.percentage)")
+
+            Text("已完成 \(progress.completed) 件，共 \(progress.total) 件")
+                .font(.caption)
+                .foregroundStyle(ZJTheme.secondaryInk)
         }
     }
 }

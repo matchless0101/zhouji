@@ -3,7 +3,6 @@ import SwiftUI
 struct TimerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(TimerController.self) private var timer
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationStack {
@@ -11,7 +10,7 @@ struct TimerSheet: View {
                 ZJTheme.background.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    Spacer(minLength: 44)
+                    Spacer(minLength: 30)
 
                     Text(timer.activeSession?.taskTitleSnapshot ?? "本次计时")
                         .font(.system(.title2, design: .default, weight: .semibold))
@@ -19,20 +18,19 @@ struct TimerSheet: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 28)
 
-                    Text(timer.isRunning ? "正在投入" : "已经暂停")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .padding(.top, 9)
+                    Label(
+                        timer.isRunning ? "正在投入" : "已经暂停",
+                        systemImage: timer.isRunning ? "circle.fill" : "pause.fill"
+                    )
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(timer.isRunning ? ZJTheme.accent : ZJTheme.secondaryInk)
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 32)
+                    .background(ZJTheme.accentSoft, in: Capsule())
+                    .padding(.top, 12)
 
-                    TimelineView(.periodic(from: .now, by: 1)) { context in
-                        Text(TimerMath.formattedDuration(timer.elapsed(at: context.date)))
-                            .font(.system(size: 52, weight: .light, design: .rounded))
-                            .monospacedDigit()
-                            .foregroundStyle(ZJTheme.ink)
-                            .contentTransition(reduceMotion ? .identity : .numericText())
-                            .padding(.top, 28)
-                            .accessibilityLabel("已计时 \(TimerMath.formattedDuration(timer.elapsed(at: context.date)))")
-                    }
+                    TimerDial()
+                        .padding(.top, 26)
 
                     Spacer()
 
@@ -51,22 +49,18 @@ struct TimerSheet: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
                         }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(ZJTheme.surface)
-                        .background(ZJTheme.accent, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
+                        .buttonStyle(.zjPrimary)
 
                         Button {
                             if timer.finishActiveSession() {
                                 dismiss()
                             }
                         } label: {
-                            Text("结束计时")
+                            Label("结束计时", systemImage: "stop.fill")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
                         }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(ZJTheme.ink)
-                        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
+                        .buttonStyle(.zjSecondary)
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
                     .padding(.bottom, 24)
@@ -94,6 +88,51 @@ struct TimerSheet: View {
             }
         } message: {
             Text(timer.errorMessage ?? "请稍后重试。")
+        }
+    }
+}
+
+private struct TimerDial: View {
+    @Environment(TimerController.self) private var timer
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @ScaledMetric(relativeTo: .largeTitle) private var timerFontSize = 48.0
+    @ScaledMetric(relativeTo: .body) private var ringWidth = 10.0
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { context in
+            let elapsedText = TimerMath.formattedDuration(timer.elapsed(at: context.date))
+
+            ZStack {
+                Circle()
+                    .fill(ZJTheme.surface)
+                    .shadow(color: ZJTheme.ink.opacity(0.045), radius: 18, x: 0, y: 8)
+
+                Circle()
+                    .stroke(ZJTheme.accentSoft, lineWidth: ringWidth)
+
+                VStack(spacing: 8) {
+                    Text(elapsedText)
+                        .font(.system(size: timerFontSize, weight: .light, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(ZJTheme.ink)
+                        .minimumScaleFactor(0.62)
+                        .lineLimit(1)
+                        .contentTransition(reduceMotion ? .identity : .numericText())
+
+                    Text("本次投入")
+                        .font(.caption)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                }
+                .padding(28)
+            }
+            .containerRelativeFrame(.horizontal) { length, _ in
+                min(length * 0.72, 310)
+            }
+            .aspectRatio(1, contentMode: .fit)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("本次投入")
+            .accessibilityValue(elapsedText)
         }
     }
 }

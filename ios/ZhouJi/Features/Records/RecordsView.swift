@@ -2,7 +2,6 @@ import SwiftData
 import SwiftUI
 
 struct RecordsView: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Query private var tasks: [TodoTask]
     @Query private var sessions: [TimingSession]
     @Query private var goals: [Goal]
@@ -19,41 +18,89 @@ struct RecordsView: View {
                     sessions: sessions,
                     now: context.date
                 )
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 28) {
-                        pageHeader
-
-                        periodSection(
-                            title: "今天",
-                            dateText: dayText(for: context.date),
-                            completed: statistics.completedToday,
-                            seconds: statistics.secondsToday,
-                            identifier: "today"
-                        )
-
-                        periodSection(
-                            title: "本周",
-                            dateText: weekText(for: context.date),
-                            completed: statistics.completedThisWeek,
-                            seconds: statistics.secondsThisWeek,
-                            identifier: "week"
-                        )
-
-                        goalSection(statistics.goalTimesThisWeek)
-                    }
-                    .padding(.horizontal, ZJTheme.pagePadding)
-                    .padding(.top, 12)
-                    .padding(.bottom, 44)
+                let goalIcons = goals.reduce(into: [UUID: GoalIcon]()) { result, goal in
+                    result[goal.id] = goal.icon
                 }
-                .background(ZJTheme.background)
+
+                RecordsContent(
+                    date: context.date,
+                    statistics: statistics,
+                    goalIcons: goalIcons
+                )
             }
             .toolbar(.hidden, for: .navigationBar)
             .background(ZJTheme.background.ignoresSafeArea())
         }
     }
+}
 
-    private var pageHeader: some View {
+private struct RecordsContent: View {
+    let date: Date
+    let statistics: StatisticsSnapshot
+    let goalIcons: [UUID: GoalIcon]
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                RecordsHeader()
+
+                RecordsPeriodSection(
+                    title: "今天",
+                    dateText: Self.dayText(for: date),
+                    completed: statistics.completedToday,
+                    seconds: statistics.secondsToday,
+                    identifier: "today"
+                )
+
+                RecordsPeriodSection(
+                    title: "本周",
+                    dateText: Self.weekText(for: date),
+                    completed: statistics.completedThisWeek,
+                    seconds: statistics.secondsThisWeek,
+                    identifier: "week"
+                )
+
+                RecordsGoalSection(
+                    summaries: statistics.goalTimesThisWeek,
+                    goalIcons: goalIcons
+                )
+            }
+            .padding(.horizontal, ZJTheme.pagePadding)
+            .padding(.top, 12)
+            .padding(.bottom, 44)
+        }
+        .background(ZJTheme.background)
+    }
+
+    @MainActor
+    private static let dayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "M月d日 EEE"
+        return formatter
+    }()
+
+    @MainActor
+    private static let shortDayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "M月d日"
+        return formatter
+    }()
+
+    private static func dayText(for date: Date) -> String {
+        dayFormatter.string(from: date)
+    }
+
+    private static func weekText(for date: Date) -> String {
+        let week = DateBoundaries.mondayWeek(containing: date)
+        let inclusiveEnd = week.end.addingTimeInterval(-1)
+        return "\(shortDayFormatter.string(from: week.start)) 至 \(shortDayFormatter.string(from: inclusiveEnd))"
+    }
+}
+
+private struct RecordsHeader: View {
+    var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             ZJBrandHeader(
                 subtitle: "记录每一份投入，看见持续的进步。",
@@ -65,70 +112,71 @@ struct RecordsView: View {
                 .foregroundStyle(ZJTheme.ink)
         }
     }
+}
 
-    private func periodSection(
-        title: String,
-        dateText: String,
-        completed: Int,
-        seconds: TimeInterval,
-        identifier: String
-    ) -> some View {
+private struct RecordsPeriodSection: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    let title: String
+    let dateText: String
+    let completed: Int
+    let seconds: TimeInterval
+    let identifier: String
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline, spacing: 10) {
                 Text(title)
                     .font(.title3.weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
+
                 Text(dateText)
                     .font(.subheadline)
                     .foregroundStyle(ZJTheme.secondaryInk)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
 
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(spacing: 12) {
-                    completedCard(completed, identifier: identifier)
-                    durationCard(seconds, identifier: identifier)
+                    completedCard
+                    durationCard
                 }
             } else {
                 HStack(alignment: .top, spacing: 12) {
-                    completedCard(completed, identifier: identifier)
-                    durationCard(seconds, identifier: identifier)
+                    completedCard
+                    durationCard
                 }
             }
         }
     }
 
-    private func completedCard(_ completed: Int, identifier: String) -> some View {
-        metricCard(
+    private var completedCard: some View {
+        RecordsMetricCard(
             title: "完成任务数",
+            value: "\(completed) 件",
             symbol: "checkmark",
             identifier: "records.\(identifier).completed"
-        ) {
-            Text("\(completed) 件")
-                .font(.system(.title, design: .rounded, weight: .bold))
-                .monospacedDigit()
-        }
+        )
     }
 
-    private func durationCard(_ seconds: TimeInterval, identifier: String) -> some View {
-        metricCard(
+    private var durationCard: some View {
+        RecordsMetricCard(
             title: "有效计时时长",
+            value: ElapsedTimeText.string(for: seconds),
             symbol: "clock",
             identifier: "records.\(identifier).duration"
-        ) {
-            Text(ElapsedTimeText.string(for: seconds))
-                .font(.system(.title3, design: .rounded, weight: .bold))
-                .monospacedDigit()
-                .minimumScaleFactor(0.78)
-                .lineLimit(1)
-        }
+        )
     }
+}
 
-    private func metricCard<Content: View>(
-        title: String,
-        symbol: String,
-        identifier: String,
-        @ViewBuilder value: () -> Content
-    ) -> some View {
+private struct RecordsMetricCard: View {
+    let title: String
+    let value: String
+    let symbol: String
+    let identifier: String
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Label {
                 Text(title)
@@ -138,70 +186,57 @@ struct RecordsView: View {
                 Image(systemName: symbol)
                     .font(.caption.weight(.bold))
                     .foregroundStyle(ZJTheme.surface)
-                    .frame(width: 22, height: 22)
+                    .frame(width: 24, height: 24)
                     .background(ZJTheme.accent.opacity(0.72), in: Circle())
             }
 
-            value()
+            Text(value)
+                .font(.system(.title2, design: .rounded, weight: .bold))
+                .monospacedDigit()
                 .foregroundStyle(ZJTheme.ink)
+                .minimumScaleFactor(0.76)
+                .lineLimit(1)
                 .accessibilityIdentifier(identifier)
         }
         .frame(maxWidth: .infinity, minHeight: 112, alignment: .topLeading)
         .padding(16)
         .zjCard()
     }
+}
 
-    @ViewBuilder
-    private func goalSection(_ summaries: [GoalTimeSummary]) -> some View {
+private struct RecordsGoalSection: View {
+    let summaries: [GoalTimeSummary]
+    let goalIcons: [UUID: GoalIcon]
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text("目标投入")
-                    .font(.title3.weight(.bold))
-                    .foregroundStyle(ZJTheme.ink)
-                Text("本周各目标的有效计时时长")
-                    .font(.caption)
-                    .foregroundStyle(ZJTheme.secondaryInk)
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    sectionTitle
+                    sectionDescription
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    sectionTitle
+                    sectionDescription
+                }
             }
 
             if summaries.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("还没有目标投入")
-                        .font(.headline)
-                        .foregroundStyle(ZJTheme.ink)
-                    Text("为目标任务结束一次计时后，会在这里留下记录。")
-                        .font(.subheadline)
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                ZJEmptyState(
+                    title: "还没有目标投入",
+                    message: "为目标任务结束一次计时后，会在这里留下记录。",
+                    systemImage: "clock.arrow.circlepath"
+                )
                 .padding(18)
                 .zjCard()
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(summaries.enumerated()), id: \.element.id) { index, summary in
-                        HStack(spacing: 12) {
-                            Image(systemName: goalIcon(for: summary.id).rawValue)
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(ZJTheme.accent)
-                                .frame(width: 36, height: 36)
-                                .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                                .accessibilityLabel("目标图标，\(goalIcon(for: summary.id).title)")
-
-                            Text(summary.name)
-                                .font(.body.weight(.medium))
-                                .foregroundStyle(ZJTheme.ink)
-                                .lineLimit(2)
-
-                            Spacer(minLength: 12)
-
-                            Text(ElapsedTimeText.string(for: summary.seconds))
-                                .font(.subheadline.weight(.semibold))
-                                .foregroundStyle(ZJTheme.ink)
-                                .monospacedDigit()
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("\(summary.name)，本周投入 \(ElapsedTimeText.string(for: summary.seconds))")
+                        GoalTimeRow(
+                            summary: summary,
+                            icon: goalIcons[summary.id] ?? .scope
+                        )
 
                         if index < summaries.count - 1 {
                             Divider()
@@ -215,23 +250,48 @@ struct RecordsView: View {
         }
     }
 
-    private func dayText(for date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日 EEE"
-        return formatter.string(from: date)
+    private var sectionTitle: some View {
+        Text("目标投入")
+            .font(.title3.weight(.bold))
+            .foregroundStyle(ZJTheme.ink)
     }
 
-    private func weekText(for date: Date) -> String {
-        let week = DateBoundaries.mondayWeek(containing: date)
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日"
-        let inclusiveEnd = week.end.addingTimeInterval(-1)
-        return "\(formatter.string(from: week.start)) 至 \(formatter.string(from: inclusiveEnd))"
+    private var sectionDescription: some View {
+        Text("本周各目标的有效计时时长")
+            .font(.caption)
+            .foregroundStyle(ZJTheme.secondaryInk)
     }
+}
 
-    private func goalIcon(for id: UUID) -> GoalIcon {
-        goals.first { $0.id == id }?.icon ?? .scope
+private struct GoalTimeRow: View {
+    let summary: GoalTimeSummary
+    let icon: GoalIcon
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon.rawValue)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(ZJTheme.accent)
+                .frame(width: 36, height: 36)
+                .background(
+                    ZJTheme.accentSoft,
+                    in: RoundedRectangle(cornerRadius: 11, style: .continuous)
+                )
+                .accessibilityHidden(true)
+
+            Text(summary.name)
+                .font(.body.weight(.medium))
+                .foregroundStyle(ZJTheme.ink)
+                .lineLimit(2)
+
+            Spacer(minLength: 12)
+
+            Text(ElapsedTimeText.string(for: summary.seconds))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(ZJTheme.ink)
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 }

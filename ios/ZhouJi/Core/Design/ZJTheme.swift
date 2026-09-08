@@ -52,6 +52,7 @@ enum ZJTheme {
     static let controlHeight: CGFloat = 48
     static let cornerRadius: CGFloat = 18
     static let compactCornerRadius: CGFloat = 12
+    static let hairlineOpacity = 0.7
 }
 
 struct ZJBrandHeader: View {
@@ -100,7 +101,111 @@ private struct ZJCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
-            .shadow(color: ZJTheme.ink.opacity(0.045), radius: 16, x: 0, y: 6)
+            .overlay {
+                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+                    .stroke(ZJTheme.divider.opacity(ZJTheme.hairlineOpacity), lineWidth: 0.5)
+            }
+            .shadow(color: ZJTheme.ink.opacity(0.04), radius: 14, x: 0, y: 5)
+    }
+}
+
+struct ZJPrimaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isEnabled ? ZJTheme.accent : ZJTheme.secondaryInk)
+            .background(
+                isEnabled ? ZJTheme.accentSoft : ZJTheme.mutedSurface,
+                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+                    .stroke(isEnabled ? ZJTheme.accent.opacity(0.22) : ZJTheme.divider, lineWidth: 1)
+            }
+            .opacity(configuration.isPressed ? 0.82 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+struct ZJSecondaryButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isEnabled ? ZJTheme.ink : ZJTheme.secondaryInk)
+            .background(
+                ZJTheme.surface,
+                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+                    .stroke(ZJTheme.divider, lineWidth: 1)
+            }
+            .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1 : 0.55))
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+struct ZJSectionHeader: View {
+    let title: String
+    let count: Int
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(ZJTheme.ink)
+
+            Text(count, format: .number)
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(ZJTheme.mutedSurface, in: Capsule())
+
+            Spacer(minLength: 0)
+        }
+        .textCase(nil)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(title)，\(count) 项")
+    }
+}
+
+struct ZJEmptyState: View {
+    let title: String
+    let message: String
+    let systemImage: String
+
+    @ScaledMetric(relativeTo: .title3) private var symbolSize = 20.0
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            Image(systemName: systemImage)
+                .font(.system(size: symbolSize, weight: .semibold))
+                .foregroundStyle(ZJTheme.accent)
+                .frame(width: 42, height: 42)
+                .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text(title)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(ZJTheme.ink)
+
+                Text(message)
+                    .font(.body)
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -108,6 +213,14 @@ extension View {
     func zjCard() -> some View {
         modifier(ZJCardModifier())
     }
+}
+
+extension ButtonStyle where Self == ZJPrimaryButtonStyle {
+    static var zjPrimary: ZJPrimaryButtonStyle { .init() }
+}
+
+extension ButtonStyle where Self == ZJSecondaryButtonStyle {
+    static var zjSecondary: ZJSecondaryButtonStyle { .init() }
 }
 
 private extension Color {

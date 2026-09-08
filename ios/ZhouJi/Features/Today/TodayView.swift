@@ -8,11 +8,17 @@ struct TodayView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(TimerController.self) private var timer
 
-    @Query(sort: \TodoTask.createdAt)
-    private var allTasks: [TodoTask]
+    @Query(
+        filter: #Predicate<TodoTask> { $0.deletedAt == nil },
+        sort: \TodoTask.createdAt
+    )
+    private var visibleTasks: [TodoTask]
 
-    @Query(sort: \Goal.createdAt)
-    private var allGoals: [Goal]
+    @Query(
+        filter: #Predicate<Goal> { $0.deletedAt == nil },
+        sort: \Goal.createdAt
+    )
+    private var visibleGoals: [Goal]
 
     @State private var isAddingTask = false
     @State private var draftTitle = ""
@@ -25,16 +31,8 @@ struct TodayView: View {
     @State private var referenceDate = Date.now
     @FocusState private var isTaskFieldFocused: Bool
 
-    private var visibleTasks: [TodoTask] {
-        allTasks.filter { $0.deletedAt == nil }
-    }
-
     private var incompleteTasks: [TodoTask] {
         visibleTasks.filter { !$0.isCompleted }
-    }
-
-    private var visibleGoals: [Goal] {
-        allGoals.filter { $0.deletedAt == nil }
     }
 
     private var completedTodayTasks: [TodoTask] {
@@ -55,13 +53,17 @@ struct TodayView: View {
                 ZJTheme.background.ignoresSafeArea()
 
                 List {
-                    header
+                    TodayHeader(date: referenceDate)
                         .listRowInsets(EdgeInsets(top: 12, leading: 4, bottom: 12, trailing: 4))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
                     if incompleteTasks.isEmpty {
-                        emptyState
+                        ZJEmptyState(
+                            title: completedTodayTasks.isEmpty ? "今天想做点什么？" : "今天的事都完成了",
+                            message: completedTodayTasks.isEmpty ? "记下一件小事，然后开始。" : "辛苦了，新的任务随时可以再记。",
+                            systemImage: completedTodayTasks.isEmpty ? "pencil.line" : "checkmark"
+                        )
                             .padding(18)
                             .zjCard()
                             .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
@@ -69,7 +71,7 @@ struct TodayView: View {
                             .listRowBackground(Color.clear)
                     } else {
                         Section {
-                            sectionHeader("未完成", count: incompleteTasks.count)
+                            ZJSectionHeader(title: "未完成", count: incompleteTasks.count)
                                 .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
                                 .listRowSeparator(.hidden)
 
@@ -81,7 +83,7 @@ struct TodayView: View {
 
                     if !completedTodayTasks.isEmpty {
                         Section {
-                            sectionHeader("已完成", count: completedTodayTasks.count)
+                            ZJSectionHeader(title: "已完成", count: completedTodayTasks.count)
                                 .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
                                 .listRowSeparator(.hidden)
 
@@ -160,61 +162,6 @@ struct TodayView: View {
         }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            ZJBrandHeader(
-                subtitle: "把普通的日子，过成值得的生活。",
-                systemImage: "calendar"
-            )
-
-            HStack(alignment: .bottom, spacing: 16) {
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("今天")
-                        .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                        .foregroundStyle(ZJTheme.ink)
-
-                    Text(formattedToday)
-                        .font(.subheadline)
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                }
-
-                Spacer(minLength: 16)
-
-                Text("专注当下，\n一件件完成吧。")
-                    .font(.caption)
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                    .multilineTextAlignment(.trailing)
-                    .fixedSize(horizontal: true, vertical: true)
-            }
-        }
-    }
-
-    private var emptyState: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(completedTodayTasks.isEmpty ? "今天想做点什么？" : "今天的事都完成了")
-                .font(.system(.title3, design: .default, weight: .semibold))
-                .foregroundStyle(ZJTheme.ink)
-
-            Text(completedTodayTasks.isEmpty ? "记下一件小事，然后开始。" : "辛苦了，新的任务随时可以再记。")
-                .font(.body)
-                .foregroundStyle(ZJTheme.secondaryInk)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func sectionHeader(_ title: String, count: Int) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(title)
-                .font(.headline)
-                .foregroundStyle(ZJTheme.ink)
-            Text("\(count)")
-                .font(.subheadline)
-                .foregroundStyle(ZJTheme.secondaryInk)
-            Spacer()
-        }
-        .textCase(nil)
-    }
-
     private func row(for task: TodoTask) -> some View {
         TaskRow(
             task: task,
@@ -262,13 +209,7 @@ struct TodayView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                        .stroke(ZJTheme.divider, lineWidth: 1)
-                }
+                .buttonStyle(.zjPrimary)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
         }
@@ -405,19 +346,12 @@ struct TodayView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("查看当前计时")
-        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
+        .zjCard()
         .padding(.horizontal, ZJTheme.pagePadding)
     }
 
     private var normalizedDraftTitle: String {
         draftTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private var formattedToday: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日 EEE"
-        return formatter.string(from: referenceDate)
     }
 
     private func createTask() {
@@ -498,7 +432,7 @@ struct TodayView: View {
     private func scheduleUndoDismissal() {
         undoDismissTask?.cancel()
         undoDismissTask = Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
+            try? await Task.sleep(for: .seconds(5))
             guard !Task.isCancelled else { return }
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
                 undoCandidate = nil
@@ -510,6 +444,60 @@ struct TodayView: View {
         guard let message = timer.errorMessage else { return }
         presentedError = message
         timer.clearError()
+    }
+}
+
+private struct TodayHeader: View {
+    let date: Date
+
+    @MainActor
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.dateFormat = "M月d日 EEE"
+        return formatter
+    }()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            ZJBrandHeader(
+                subtitle: "把普通的日子，过成值得的生活。",
+                systemImage: "calendar"
+            )
+
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .bottom, spacing: 16) {
+                    titleAndDate
+                    Spacer(minLength: 16)
+                    encouragement
+                        .multilineTextAlignment(.trailing)
+                }
+
+                VStack(alignment: .leading, spacing: 10) {
+                    titleAndDate
+                    encouragement
+                }
+            }
+        }
+    }
+
+    private var titleAndDate: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text("今天")
+                .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                .foregroundStyle(ZJTheme.ink)
+
+            Text(Self.dateFormatter.string(from: date))
+                .font(.subheadline)
+                .foregroundStyle(ZJTheme.secondaryInk)
+        }
+    }
+
+    private var encouragement: some View {
+        Text("专注当下，\n一件件完成吧。")
+            .font(.caption)
+            .foregroundStyle(ZJTheme.secondaryInk)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 

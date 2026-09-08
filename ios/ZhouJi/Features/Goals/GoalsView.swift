@@ -4,9 +4,13 @@ import SwiftUI
 struct GoalsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    @Query(sort: \Goal.createdAt)
-    private var allGoals: [Goal]
+    @Query(
+        filter: #Predicate<Goal> { $0.deletedAt == nil },
+        sort: \Goal.createdAt
+    )
+    private var visibleGoals: [Goal]
 
     @State private var isAddingGoal = false
     @State private var draftName = ""
@@ -14,10 +18,6 @@ struct GoalsView: View {
     @State private var presentedError: String?
     @State private var selectedFilter: GoalFilter = .all
     @FocusState private var isGoalFieldFocused: Bool
-
-    private var visibleGoals: [Goal] {
-        allGoals.filter { $0.deletedAt == nil }
-    }
 
     private var inProgressGoals: [Goal] {
         visibleGoals.filter { goal in
@@ -61,14 +61,11 @@ struct GoalsView: View {
                         .listRowBackground(Color.clear)
 
                     if filteredGoals.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(visibleGoals.isEmpty ? "想持续推进什么？" : "这里还没有目标")
-                                .font(.title3.weight(.semibold))
-                                .foregroundStyle(ZJTheme.ink)
-                            Text(visibleGoals.isEmpty ? "先写下一个目标，再用每天的小任务慢慢靠近。" : "换个分类看看，或继续推进现有目标。")
-                                .font(.body)
-                                .foregroundStyle(ZJTheme.secondaryInk)
-                        }
+                        ZJEmptyState(
+                            title: visibleGoals.isEmpty ? "想持续推进什么？" : "这里还没有目标",
+                            message: visibleGoals.isEmpty ? "先写下一个目标，再用每天的小任务慢慢靠近。" : "换个分类看看，或继续推进现有目标。",
+                            systemImage: visibleGoals.isEmpty ? "scope" : "line.3.horizontal.decrease"
+                        )
                         .padding(18)
                         .zjCard()
                         .listRowInsets(EdgeInsets(top: 8, leading: ZJTheme.pagePadding, bottom: 8, trailing: ZJTheme.pagePadding))
@@ -150,13 +147,22 @@ struct GoalsView: View {
     }
 
     private var filterBar: some View {
-        HStack(spacing: 4) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 4))
+            : AnyLayout(HStackLayout(spacing: 4))
+
+        return layout {
             filterButton(.all, count: visibleGoals.count)
             filterButton(.inProgress, count: inProgressGoals.count)
             filterButton(.completed, count: completedGoals.count)
         }
         .padding(4)
-        .background(ZJTheme.mutedSurface, in: Capsule())
+        .background(
+            ZJTheme.mutedSurface,
+            in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+        )
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("目标筛选")
     }
 
     private func filterButton(_ filter: GoalFilter, count: Int) -> some View {
@@ -172,6 +178,8 @@ struct GoalsView: View {
                 .background(selectedFilter == filter ? ZJTheme.surface : Color.clear, in: Capsule())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(filter.title)
+        .accessibilityValue("\(count) 个目标")
         .accessibilityAddTraits(selectedFilter == filter ? .isSelected : [])
     }
 
@@ -206,9 +214,7 @@ struct GoalsView: View {
                         .font(.headline)
                         .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .background(ZJTheme.mutedSurface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
+                .buttonStyle(.zjPrimary)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
         }
@@ -285,7 +291,7 @@ private struct GoalRow: View {
                     .foregroundStyle(ZJTheme.accent)
                     .frame(width: 44, height: 44)
                     .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
-                    .accessibilityLabel("目标图标，\(goal.icon.title)")
+                    .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(goal.name)
@@ -305,6 +311,8 @@ private struct GoalRow: View {
 
                 ProgressView(value: progress.fraction)
                     .tint(ZJTheme.accent)
+                    .accessibilityLabel("目标进度")
+                    .accessibilityValue("百分之 \(progress.percentage)")
 
                 Text("\(progress.completed) / \(progress.total)")
                     .font(.caption)
