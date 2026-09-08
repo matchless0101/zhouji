@@ -510,53 +510,29 @@ private struct TodayHeader: View {
 
 private struct TodaySkyWindow: View {
     var body: some View {
-        ZStack(alignment: .bottom) {
-            UnevenRoundedRectangle(
-                topLeadingRadius: 56,
-                bottomLeadingRadius: 14,
-                bottomTrailingRadius: 14,
-                topTrailingRadius: 56,
-                style: .continuous
-            )
-            .fill(
-                LinearGradient(
-                    colors: [ZJTheme.accentSoft, ZJTheme.surface],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+        let shape = UnevenRoundedRectangle(
+            topLeadingRadius: 56,
+            bottomLeadingRadius: 14,
+            bottomTrailingRadius: 14,
+            topTrailingRadius: 56,
+            style: .continuous
+        )
 
-            Circle()
-                .fill(ZJTheme.timerSoft)
-                .frame(width: 44, height: 44)
-                .offset(x: 27, y: -80)
-
-            HStack(alignment: .bottom, spacing: -7) {
-                Circle().frame(width: 27, height: 27)
-                Circle().frame(width: 39, height: 39)
-                Circle().frame(width: 24, height: 24)
-            }
-            .foregroundStyle(ZJTheme.surface.opacity(0.92))
-            .offset(x: -18, y: -38)
-
-            VStack(alignment: .trailing, spacing: 0) {
-                ForEach(0..<4, id: \.self) { step in
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(ZJTheme.surface.opacity(0.92))
-                        .frame(width: CGFloat(22 + step * 12), height: 11)
+        if let illustration = UIImage(named: "TodayJourney") {
+            Image(uiImage: illustration)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 116, height: 156)
+                .scaleEffect(1.08)
+                .compositingGroup()
+                .clipShape(shape)
+                .overlay {
+                    shape.stroke(ZJTheme.surface.opacity(0.9), lineWidth: 2)
                 }
-            }
-            .offset(x: 16, y: -7)
+                .frame(width: 116, height: 156)
+                .shadow(color: ZJTheme.accent.opacity(0.12), radius: 18, x: 0, y: 8)
+                .accessibilityHidden(true)
         }
-        .frame(width: 116, height: 156)
-        .overlay(alignment: .bottomTrailing) {
-            Image(systemName: "leaf.fill")
-                .font(.system(size: 34, weight: .light))
-                .foregroundStyle(ZJTheme.goalAccent(for: "leaf").opacity(0.55))
-                .offset(x: 12, y: 3)
-        }
-        .shadow(color: ZJTheme.accent.opacity(0.12), radius: 18, x: 0, y: 8)
-        .accessibilityHidden(true)
     }
 }
 

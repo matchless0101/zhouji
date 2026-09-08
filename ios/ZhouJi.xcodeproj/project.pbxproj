@@ -11,6 +11,7 @@
 		07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409B7EA59769107E561759AD /* ElapsedTimeText.swift */; };
 		23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739BFA8892AE674A65737C96 /* RootTabView.swift */; };
 		23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763FEDE98326909204980EF0 /* TodoTask.swift */; };
+		283DFB2464B4A6C5775A5497 /* GoalWriting.png in Resources */ = {isa = PBXBuildFile; fileRef = 1646A004151B67E5335956D1 /* GoalWriting.png */; };
 		28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */; };
 		34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6168DF05F9358B91A840E301 /* GoalService.swift */; };
 		35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */; };
@@ -33,7 +34,10 @@
 		D342FF3A7D844027F62D25A7 /* ZhouJiV2UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */; };
 		D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */; };
 		DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */; };
+		E52C7A415BA6BB4CDFFC8656 /* GoalCareer.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D57249F85F726C34F1777E6 /* GoalCareer.png */; };
+		E9DB91015B2E08B16C43D69C /* GoalDigital.png in Resources */ = {isa = PBXBuildFile; fileRef = F563F5E85F82688888ED00FA /* GoalDigital.png */; };
 		EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3602CC160CF15F9EE8A7EA /* TaskService.swift */; };
+		F46FC5A56CBF92CF7D38C5EA /* TodayJourney.png in Resources */ = {isa = PBXBuildFile; fileRef = E6C07800FED59A353B4EDCF1 /* TodayJourney.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,12 +60,14 @@
 /* Begin PBXFileReference section */
 		091F10FDB6775FD2CAF673D6 /* RecordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordsView.swift; sourceTree = "<group>"; };
 		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
+		1646A004151B67E5335956D1 /* GoalWriting.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalWriting.png; sourceTree = "<group>"; };
 		180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskServiceTests.swift; sourceTree = "<group>"; };
 		18CD865EF12BEF475370DF2B /* TimerMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMath.swift; sourceTree = "<group>"; };
 		2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundaries.swift; sourceTree = "<group>"; };
 		329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundariesTests.swift; sourceTree = "<group>"; };
 		409B7EA59769107E561759AD /* ElapsedTimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeText.swift; sourceTree = "<group>"; };
 		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
+		5D57249F85F726C34F1777E6 /* GoalCareer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalCareer.png; sourceTree = "<group>"; };
 		5E3602CC160CF15F9EE8A7EA /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
 		6168DF05F9358B91A840E301 /* GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalService.swift; sourceTree = "<group>"; };
 		6AD198BF41F57BCC38DF3E7C /* ZhouJiUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,6 +88,8 @@
 		DF369424D165E148281CB11E /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerController.swift; sourceTree = "<group>"; };
 		E1E1DC75DF0AB63875968F45 /* TimingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimingSession.swift; sourceTree = "<group>"; };
+		E6C07800FED59A353B4EDCF1 /* TodayJourney.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TodayJourney.png; sourceTree = "<group>"; };
+		F563F5E85F82688888ED00FA /* GoalDigital.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalDigital.png; sourceTree = "<group>"; };
 		F9FE7B80BB92D300651E1455 /* ZJTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJTheme.swift; sourceTree = "<group>"; };
 		FF801AF1512F4520691A5C32 /* ZhouJiTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -111,8 +119,20 @@
 				20E4D179AF395F4E09108692 /* Data */,
 				F101C6E92A5158C82E2DA999 /* Domain */,
 				C7183091907532DB0B4520B0 /* Features */,
+				408DC4476E9C699B8B43594F /* Resources */,
 			);
 			path = ZhouJi;
+			sourceTree = "<group>";
+		};
+		408DC4476E9C699B8B43594F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5D57249F85F726C34F1777E6 /* GoalCareer.png */,
+				F563F5E85F82688888ED00FA /* GoalDigital.png */,
+				1646A004151B67E5335956D1 /* GoalWriting.png */,
+				E6C07800FED59A353B4EDCF1 /* TodayJourney.png */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		4C1DCDD978533A27FD116B74 /* Design */ = {
@@ -269,6 +289,7 @@
 			buildConfigurationList = 1A4F14414FD2353C9B67E2B6 /* Build configuration list for PBXNativeTarget "ZhouJi" */;
 			buildPhases = (
 				5015E9D28937055087D35184 /* Sources */,
+				E8513E43259482BD433C50D6 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -340,6 +361,20 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E8513E43259482BD433C50D6 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E52C7A415BA6BB4CDFFC8656 /* GoalCareer.png in Resources */,
+				E9DB91015B2E08B16C43D69C /* GoalDigital.png in Resources */,
+				283DFB2464B4A6C5775A5497 /* GoalWriting.png in Resources */,
+				F46FC5A56CBF92CF7D38C5EA /* TodayJourney.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		4D8EFE7C745DC0AD9E33543F /* Sources */ = {

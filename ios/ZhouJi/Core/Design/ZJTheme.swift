@@ -77,6 +77,7 @@ enum ZJTheme {
         case "book.closed": goalOrange
         case "graduationcap": goalIndigo
         case "briefcase": accent
+        case "iphone": goalPurple
         case "figure.run": goalCyan
         case "heart": goalRose
         case "paintpalette": goalPurple

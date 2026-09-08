@@ -1,5 +1,6 @@
 import SwiftData
 import SwiftUI
+import UIKit
 
 struct GoalsView: View {
     @Environment(\.modelContext) private var modelContext
@@ -298,10 +299,26 @@ private enum GoalFilter: CaseIterable {
 }
 
 private struct GoalRow: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     let goal: Goal
 
     private var progress: GoalProgress {
         GoalService.progress(for: goal)
+    }
+
+    private var illustrationAssetName: String? {
+        switch goal.icon {
+        case .book, .study:
+            "GoalWriting"
+        case .work:
+            "GoalCareer"
+        case .digital:
+            "GoalDigital"
+        default:
+            nil
+        }
     }
 
     var body: some View {
@@ -328,6 +345,12 @@ private struct GoalRow: View {
 
                 Spacer(minLength: 8)
 
+                if let illustrationAssetName,
+                   colorScheme == .light,
+                   !dynamicTypeSize.isAccessibilitySize {
+                    GoalIllustration(assetName: illustrationAssetName)
+                }
+
                 Image(systemName: "chevron.right")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(ZJTheme.secondaryInk)
@@ -353,11 +376,32 @@ private struct GoalRow: View {
         .padding(18)
         .zjCard()
         .overlay(alignment: .topTrailing) {
-            Image(systemName: goal.displayIconName)
-                .font(.system(size: 54, weight: .light))
-                .foregroundStyle(goalColor.opacity(0.06))
-                .rotationEffect(.degrees(-10))
-                .offset(x: -34, y: 18)
+            if illustrationAssetName == nil || colorScheme == .dark || dynamicTypeSize.isAccessibilitySize {
+                Image(systemName: goal.displayIconName)
+                    .font(.system(size: 54, weight: .light))
+                    .foregroundStyle(goalColor.opacity(0.06))
+                    .rotationEffect(.degrees(-10))
+                    .offset(x: -34, y: 18)
+                    .accessibilityHidden(true)
+            }
+        }
+    }
+}
+
+private struct GoalIllustration: View {
+    let assetName: String
+
+    var body: some View {
+        if let illustration = UIImage(named: assetName) {
+            Image(uiImage: illustration)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 76, height: 64)
+                .scaleEffect(1.18)
+                .blendMode(.multiply)
+                .compositingGroup()
+                .clipShape(.rect(cornerRadius: 12))
+                .allowsHitTesting(false)
                 .accessibilityHidden(true)
         }
     }
