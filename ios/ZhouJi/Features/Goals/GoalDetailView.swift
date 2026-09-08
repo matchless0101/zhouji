@@ -32,10 +32,10 @@ struct GoalDetailView: View {
 
     var body: some View {
         ZStack {
-            ZJTheme.background.ignoresSafeArea()
+            ZJTheme.pageBackground.ignoresSafeArea()
 
             List {
-                GoalProgressHeader(progress: progress)
+                GoalProgressHeader(progress: progress, iconName: goal.displayIconName)
                     .padding(18)
                     .zjCard()
                     .listRowInsets(EdgeInsets(top: 14, leading: ZJTheme.pagePadding, bottom: 24, trailing: ZJTheme.pagePadding))
@@ -80,7 +80,7 @@ struct GoalDetailView: View {
         }
         .navigationTitle(goal.name)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(ZJTheme.background, for: .navigationBar)
+        .toolbarBackground(ZJTheme.surface.opacity(0.96), for: .navigationBar)
         .toolbar(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -297,7 +297,7 @@ private struct GoalSettingsView: View {
             .padding(.bottom, 36)
         }
         .scrollDismissesKeyboard(.interactively)
-        .background(ZJTheme.background.ignoresSafeArea())
+        .background(ZJTheme.pageBackground.ignoresSafeArea())
         .navigationTitle("目标设置")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(ZJTheme.background, for: .navigationBar)
@@ -318,12 +318,14 @@ private struct GoalSettingsView: View {
     }
 
     private var preview: some View {
-        HStack(spacing: 16) {
+        let iconColor = ZJTheme.goalAccent(for: selectedIcon.rawValue)
+
+        return HStack(spacing: 16) {
             Image(systemName: selectedIcon.rawValue)
                 .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(ZJTheme.accent)
+                .foregroundStyle(iconColor)
                 .frame(width: 58, height: 58)
-                .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+                .background(ZJTheme.goalSoft(for: selectedIcon.rawValue), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
                 .accessibilityIdentifier("goal.settings.previewIcon")
                 .accessibilityLabel("当前图标，\(selectedIcon.title)")
 
@@ -373,6 +375,8 @@ private struct GoalSettingsView: View {
 
             LazyVGrid(columns: iconColumns, spacing: 10) {
                 ForEach(GoalIcon.allCases) { icon in
+                    let iconColor = ZJTheme.goalAccent(for: icon.rawValue)
+
                     Button {
                         selectedIcon = icon
                     } label: {
@@ -383,15 +387,15 @@ private struct GoalSettingsView: View {
                                 .font(.caption)
                                 .lineLimit(1)
                         }
-                        .foregroundStyle(selectedIcon == icon ? ZJTheme.accent : ZJTheme.secondaryInk)
+                        .foregroundStyle(selectedIcon == icon ? iconColor : ZJTheme.secondaryInk)
                         .frame(maxWidth: .infinity, minHeight: 70)
-                        .background(selectedIcon == icon ? ZJTheme.accentSoft : Color.clear)
+                        .background(selectedIcon == icon ? ZJTheme.goalSoft(for: icon.rawValue) : Color.clear)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .overlay {
                         RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous)
-                            .stroke(selectedIcon == icon ? ZJTheme.accent.opacity(0.55) : ZJTheme.divider, lineWidth: 1)
+                            .stroke(selectedIcon == icon ? iconColor.opacity(0.55) : ZJTheme.divider, lineWidth: 1)
                     }
                     .compositingGroup()
                     .clipShape(RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous))
@@ -440,24 +444,27 @@ private struct GoalSettingsView: View {
 
 private struct GoalProgressHeader: View {
     let progress: GoalProgress
+    let iconName: String
 
     var body: some View {
+        let goalColor = ZJTheme.goalAccent(for: iconName)
+
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("目标进度")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(ZJTheme.secondaryInk)
+                Label("目标进度", systemImage: iconName)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(goalColor)
 
                 Spacer(minLength: 12)
 
                 Text(progress.percentage, format: .percent.scale(1))
                     .font(.title2.weight(.semibold))
                     .monospacedDigit()
-                    .foregroundStyle(ZJTheme.accent)
+                    .foregroundStyle(goalColor)
             }
 
             ProgressView(value: progress.fraction)
-                .tint(ZJTheme.accent)
+                .tint(goalColor)
                 .accessibilityLabel("目标进度")
                 .accessibilityValue("百分之 \(progress.percentage)")
 

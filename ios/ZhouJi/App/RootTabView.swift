@@ -15,7 +15,7 @@ struct RootTabView: View {
             TodayView()
                 .tag(AppTab.today)
                 .tabItem {
-                    Label("今天", systemImage: "checkmark.circle")
+                    Label("今天", systemImage: "house")
                 }
 
             GoalsView()
@@ -27,10 +27,10 @@ struct RootTabView: View {
             RecordsView()
                 .tag(AppTab.records)
                 .tabItem {
-                    Label("记录", systemImage: "chart.bar.xaxis")
+                    Label("记录", systemImage: "chart.bar")
                 }
         }
-        .toolbarBackground(ZJTheme.surface, for: .tabBar)
+        .toolbarBackground(ZJTheme.surface.opacity(0.97), for: .tabBar)
         .toolbarBackground(.visible, for: .tabBar)
         .task {
             timer.configure(with: modelContext)

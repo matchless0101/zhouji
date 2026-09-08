@@ -7,7 +7,7 @@ struct TimerSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ZJTheme.background.ignoresSafeArea()
+                ZJTheme.pageBackground.ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     Spacer(minLength: 30)
@@ -23,10 +23,10 @@ struct TimerSheet: View {
                         systemImage: timer.isRunning ? "circle.fill" : "pause.fill"
                     )
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(timer.isRunning ? ZJTheme.accent : ZJTheme.secondaryInk)
+                    .foregroundStyle(timer.isRunning ? ZJTheme.timerAccent : ZJTheme.secondaryInk)
                     .padding(.horizontal, 12)
                     .frame(minHeight: 32)
-                    .background(ZJTheme.accentSoft, in: Capsule())
+                    .background(ZJTheme.timerSoft, in: Capsule())
                     .padding(.top, 12)
 
                     TimerDial()
@@ -49,7 +49,7 @@ struct TimerSheet: View {
                             .font(.headline)
                             .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
                         }
-                        .buttonStyle(.zjPrimary)
+                        .buttonStyle(.zjTimer)
 
                         Button {
                             if timer.finishActiveSession() {
@@ -109,7 +109,15 @@ private struct TimerDial: View {
                     .shadow(color: ZJTheme.ink.opacity(0.045), radius: 18, x: 0, y: 8)
 
                 Circle()
-                    .stroke(ZJTheme.accentSoft, lineWidth: ringWidth)
+                    .stroke(ZJTheme.timerSoft, lineWidth: ringWidth)
+
+                Circle()
+                    .trim(from: 0, to: timer.isRunning ? 0.78 : 0.22)
+                    .stroke(
+                        ZJTheme.timerAccent,
+                        style: StrokeStyle(lineWidth: ringWidth, lineCap: .round)
+                    )
+                    .rotationEffect(.degrees(-90))
 
                 VStack(spacing: 8) {
                     Text(elapsedText)

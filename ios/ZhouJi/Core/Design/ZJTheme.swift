@@ -3,56 +3,116 @@ import UIKit
 
 enum ZJTheme {
     static let background = Color.dynamic(
-        light: UIColor(red: 0.978, green: 0.969, blue: 0.953, alpha: 1),
-        dark: UIColor(red: 0.090, green: 0.086, blue: 0.078, alpha: 1)
+        light: UIColor(red: 0.965, green: 0.976, blue: 0.993, alpha: 1),
+        dark: UIColor(red: 0.055, green: 0.070, blue: 0.100, alpha: 1)
     )
 
     static let surface = Color.dynamic(
-        light: UIColor(red: 0.996, green: 0.991, blue: 0.982, alpha: 1),
-        dark: UIColor(red: 0.140, green: 0.132, blue: 0.118, alpha: 1)
+        light: UIColor(red: 0.995, green: 0.997, blue: 1.000, alpha: 1),
+        dark: UIColor(red: 0.095, green: 0.118, blue: 0.165, alpha: 1)
     )
 
     static let mutedSurface = Color.dynamic(
-        light: UIColor(red: 0.950, green: 0.932, blue: 0.902, alpha: 1),
-        dark: UIColor(red: 0.190, green: 0.176, blue: 0.151, alpha: 1)
+        light: UIColor(red: 0.925, green: 0.946, blue: 0.980, alpha: 1),
+        dark: UIColor(red: 0.135, green: 0.160, blue: 0.215, alpha: 1)
     )
 
     static let ink = Color.dynamic(
-        light: UIColor(red: 0.115, green: 0.106, blue: 0.094, alpha: 1),
-        dark: UIColor(red: 0.925, green: 0.898, blue: 0.847, alpha: 1)
+        light: UIColor(red: 0.055, green: 0.078, blue: 0.125, alpha: 1),
+        dark: UIColor(red: 0.925, green: 0.945, blue: 0.980, alpha: 1)
     )
 
     static let secondaryInk = Color.dynamic(
-        light: UIColor(red: 0.440, green: 0.414, blue: 0.376, alpha: 1),
-        dark: UIColor(red: 0.690, green: 0.659, blue: 0.600, alpha: 1)
+        light: UIColor(red: 0.350, green: 0.405, blue: 0.515, alpha: 1),
+        dark: UIColor(red: 0.635, green: 0.690, blue: 0.790, alpha: 1)
     )
 
     static let divider = Color.dynamic(
-        light: UIColor(red: 0.895, green: 0.875, blue: 0.838, alpha: 1),
-        dark: UIColor(red: 0.270, green: 0.255, blue: 0.220, alpha: 1)
+        light: UIColor(red: 0.850, green: 0.885, blue: 0.940, alpha: 1),
+        dark: UIColor(red: 0.205, green: 0.245, blue: 0.330, alpha: 1)
     )
 
     static let accent = Color.dynamic(
-        light: UIColor(red: 0.620, green: 0.333, blue: 0.154, alpha: 1),
-        dark: UIColor(red: 0.850, green: 0.570, blue: 0.355, alpha: 1)
+        light: UIColor(red: 0.055, green: 0.445, blue: 0.950, alpha: 1),
+        dark: UIColor(red: 0.340, green: 0.650, blue: 1.000, alpha: 1)
     )
 
     static let accentSoft = Color.dynamic(
-        light: UIColor(red: 0.965, green: 0.910, blue: 0.838, alpha: 1),
-        dark: UIColor(red: 0.245, green: 0.187, blue: 0.135, alpha: 1)
+        light: UIColor(red: 0.875, green: 0.930, blue: 1.000, alpha: 1),
+        dark: UIColor(red: 0.105, green: 0.230, blue: 0.410, alpha: 1)
     )
 
     static let success = Color.dynamic(
-        light: UIColor(red: 0.275, green: 0.447, blue: 0.314, alpha: 1),
-        dark: UIColor(red: 0.490, green: 0.690, blue: 0.525, alpha: 1)
+        light: UIColor(red: 0.390, green: 0.445, blue: 0.555, alpha: 1),
+        dark: UIColor(red: 0.560, green: 0.630, blue: 0.745, alpha: 1)
     )
 
-    static let pagePadding: CGFloat = 20
-    static let rowVerticalPadding: CGFloat = 13
+    static let timerAccent = Color.dynamic(
+        light: UIColor(red: 0.985, green: 0.545, blue: 0.060, alpha: 1),
+        dark: UIColor(red: 1.000, green: 0.660, blue: 0.250, alpha: 1)
+    )
+
+    static let timerSoft = Color.dynamic(
+        light: UIColor(red: 1.000, green: 0.940, blue: 0.825, alpha: 1),
+        dark: UIColor(red: 0.310, green: 0.205, blue: 0.075, alpha: 1)
+    )
+
+    static let pagePadding: CGFloat = 18
+    static let rowVerticalPadding: CGFloat = 12
     static let controlHeight: CGFloat = 48
-    static let cornerRadius: CGFloat = 18
-    static let compactCornerRadius: CGFloat = 12
-    static let hairlineOpacity = 0.7
+    static let cornerRadius: CGFloat = 22
+    static let compactCornerRadius: CGFloat = 14
+    static let hairlineOpacity = 0.62
+
+    static var pageBackground: LinearGradient {
+        LinearGradient(
+            colors: [background, mutedSurface.opacity(0.36), background],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static func goalAccent(for iconName: String) -> Color {
+        switch iconName {
+        case "book.closed": goalOrange
+        case "graduationcap": goalIndigo
+        case "briefcase": accent
+        case "figure.run": goalCyan
+        case "heart": goalRose
+        case "paintpalette": goalPurple
+        case "leaf": goalGreen
+        default: accent
+        }
+    }
+
+    static func goalSoft(for iconName: String) -> Color {
+        goalAccent(for: iconName).opacity(0.13)
+    }
+
+    private static let goalOrange = Color.dynamic(
+        light: UIColor(red: 0.995, green: 0.555, blue: 0.055, alpha: 1),
+        dark: UIColor(red: 1.000, green: 0.680, blue: 0.260, alpha: 1)
+    )
+    private static let goalIndigo = Color.dynamic(
+        light: UIColor(red: 0.345, green: 0.430, blue: 0.960, alpha: 1),
+        dark: UIColor(red: 0.555, green: 0.625, blue: 1.000, alpha: 1)
+    )
+    private static let goalCyan = Color.dynamic(
+        light: UIColor(red: 0.035, green: 0.650, blue: 0.810, alpha: 1),
+        dark: UIColor(red: 0.250, green: 0.790, blue: 0.920, alpha: 1)
+    )
+    private static let goalRose = Color.dynamic(
+        light: UIColor(red: 0.880, green: 0.330, blue: 0.470, alpha: 1),
+        dark: UIColor(red: 1.000, green: 0.525, blue: 0.650, alpha: 1)
+    )
+    private static let goalPurple = Color.dynamic(
+        light: UIColor(red: 0.470, green: 0.300, blue: 0.940, alpha: 1),
+        dark: UIColor(red: 0.675, green: 0.535, blue: 1.000, alpha: 1)
+    )
+    private static let goalGreen = Color.dynamic(
+        light: UIColor(red: 0.180, green: 0.650, blue: 0.420, alpha: 1),
+        dark: UIColor(red: 0.370, green: 0.800, blue: 0.565, alpha: 1)
+    )
 }
 
 struct ZJBrandHeader: View {
@@ -65,7 +125,7 @@ struct ZJBrandHeader: View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("粥记")
-                    .font(.system(.title2, design: .rounded, weight: .bold))
+                    .font(.system(.title2, design: .default, weight: .bold))
                     .foregroundStyle(ZJTheme.ink)
 
                 Text(subtitle)
@@ -80,9 +140,13 @@ struct ZJBrandHeader: View {
                 Button(action: action) {
                     Image(systemName: systemImage)
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .foregroundStyle(ZJTheme.accent)
                         .frame(width: 44, height: 44)
                         .background(ZJTheme.surface, in: Circle())
+                        .overlay {
+                            Circle().stroke(ZJTheme.divider.opacity(0.7), lineWidth: 0.5)
+                        }
+                        .shadow(color: ZJTheme.accent.opacity(0.10), radius: 12, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(actionLabel ?? "操作")
@@ -105,7 +169,7 @@ private struct ZJCardModifier: ViewModifier {
                 RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
                     .stroke(ZJTheme.divider.opacity(ZJTheme.hairlineOpacity), lineWidth: 0.5)
             }
-            .shadow(color: ZJTheme.ink.opacity(0.04), radius: 14, x: 0, y: 5)
+            .shadow(color: ZJTheme.accent.opacity(0.07), radius: 18, x: 0, y: 7)
     }
 }
 
@@ -122,8 +186,9 @@ struct ZJPrimaryButtonStyle: ButtonStyle {
             )
             .overlay {
                 RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(isEnabled ? ZJTheme.accent.opacity(0.22) : ZJTheme.divider, lineWidth: 1)
+                    .stroke(isEnabled ? ZJTheme.accent.opacity(0.18) : ZJTheme.divider, lineWidth: 1)
             }
+            .shadow(color: isEnabled ? ZJTheme.accent.opacity(0.09) : .clear, radius: 12, x: 0, y: 5)
             .opacity(configuration.isPressed ? 0.82 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
@@ -143,9 +208,32 @@ struct ZJSecondaryButtonStyle: ButtonStyle {
             )
             .overlay {
                 RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(ZJTheme.divider, lineWidth: 1)
+                    .stroke(ZJTheme.divider.opacity(0.78), lineWidth: 0.7)
             }
+            .shadow(color: ZJTheme.accent.opacity(0.06), radius: 12, x: 0, y: 5)
             .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1 : 0.55))
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
+    }
+}
+
+struct ZJTimerButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(isEnabled ? ZJTheme.timerAccent : ZJTheme.secondaryInk)
+            .background(
+                isEnabled ? ZJTheme.timerSoft : ZJTheme.mutedSurface,
+                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+                    .stroke(isEnabled ? ZJTheme.timerAccent.opacity(0.20) : ZJTheme.divider, lineWidth: 1)
+            }
+            .shadow(color: isEnabled ? ZJTheme.timerAccent.opacity(0.10) : .clear, radius: 12, x: 0, y: 5)
+            .opacity(configuration.isPressed ? 0.82 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
     }
@@ -162,12 +250,9 @@ struct ZJSectionHeader: View {
                 .foregroundStyle(ZJTheme.ink)
 
             Text(count, format: .number)
-                .font(.caption.weight(.semibold))
+                .font(.subheadline)
                 .monospacedDigit()
                 .foregroundStyle(ZJTheme.secondaryInk)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(ZJTheme.mutedSurface, in: Capsule())
 
             Spacer(minLength: 0)
         }
@@ -221,6 +306,10 @@ extension ButtonStyle where Self == ZJPrimaryButtonStyle {
 
 extension ButtonStyle where Self == ZJSecondaryButtonStyle {
     static var zjSecondary: ZJSecondaryButtonStyle { .init() }
+}
+
+extension ButtonStyle where Self == ZJTimerButtonStyle {
+    static var zjTimer: ZJTimerButtonStyle { .init() }
 }
 
 private extension Color {

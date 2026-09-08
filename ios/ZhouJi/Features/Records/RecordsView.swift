@@ -29,7 +29,7 @@ struct RecordsView: View {
                 )
             }
             .toolbar(.hidden, for: .navigationBar)
-            .background(ZJTheme.background.ignoresSafeArea())
+            .background(ZJTheme.pageBackground.ignoresSafeArea())
         }
     }
 }
@@ -41,7 +41,7 @@ private struct RecordsContent: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
+            VStack(alignment: .leading, spacing: 26) {
                 RecordsHeader()
 
                 RecordsPeriodSection(
@@ -69,7 +69,7 @@ private struct RecordsContent: View {
             .padding(.top, 12)
             .padding(.bottom, 44)
         }
-        .background(ZJTheme.background)
+        .background(ZJTheme.pageBackground)
     }
 
     @MainActor
@@ -101,16 +101,10 @@ private struct RecordsContent: View {
 
 private struct RecordsHeader: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            ZJBrandHeader(
-                subtitle: "记录每一份投入，看见持续的进步。",
-                systemImage: "chart.bar.xaxis"
-            )
-
-            Text("记录")
-                .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                .foregroundStyle(ZJTheme.ink)
-        }
+        Text("记录")
+            .font(.largeTitle.weight(.bold))
+            .foregroundStyle(ZJTheme.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -185,9 +179,9 @@ private struct RecordsMetricCard: View {
             } icon: {
                 Image(systemName: symbol)
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(ZJTheme.surface)
+                    .foregroundStyle(ZJTheme.timerAccent)
                     .frame(width: 24, height: 24)
-                    .background(ZJTheme.accent.opacity(0.72), in: Circle())
+                    .background(ZJTheme.timerSoft, in: Circle())
             }
 
             Text(value)
@@ -271,10 +265,10 @@ private struct GoalTimeRow: View {
         HStack(spacing: 12) {
             Image(systemName: icon.rawValue)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(ZJTheme.accent)
+                .foregroundStyle(ZJTheme.goalAccent(for: icon.rawValue))
                 .frame(width: 36, height: 36)
                 .background(
-                    ZJTheme.accentSoft,
+                    ZJTheme.goalSoft(for: icon.rawValue),
                     in: RoundedRectangle(cornerRadius: 11, style: .continuous)
                 )
                 .accessibilityHidden(true)

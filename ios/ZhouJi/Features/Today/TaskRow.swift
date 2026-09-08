@@ -2,7 +2,6 @@ import SwiftUI
 
 struct TaskRow: View {
     @ScaledMetric(relativeTo: .body) private var completionSize = 25.0
-    @ScaledMetric(relativeTo: .body) private var timerButtonSize = 38.0
 
     let task: TodoTask
     let isActivelyTimed: Bool
@@ -45,18 +44,20 @@ struct TaskRow: View {
                     .lineLimit(3)
 
                 if showsGoal, let goal = task.goal, goal.deletedAt == nil {
+                    let goalColor = ZJTheme.goalAccent(for: goal.displayIconName)
+
                     HStack(spacing: 5) {
                         Circle()
-                            .fill(ZJTheme.accent)
+                            .fill(goalColor)
                             .frame(width: 6, height: 6)
                         Text(goal.name)
                             .lineLimit(1)
                     }
                     .font(.caption)
-                    .foregroundStyle(ZJTheme.accent)
+                    .foregroundStyle(goalColor)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(ZJTheme.accentSoft, in: Capsule())
+                    .background(ZJTheme.goalSoft(for: goal.displayIconName), in: Capsule())
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -76,13 +77,14 @@ struct TaskRow: View {
                             .foregroundStyle(ZJTheme.surface)
                             .padding(.horizontal, 12)
                             .frame(minHeight: 38)
-                            .background(ZJTheme.accent, in: Capsule())
+                            .background(ZJTheme.timerAccent, in: Capsule())
                     } else {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(ZJTheme.accent)
-                            .frame(width: timerButtonSize, height: timerButtonSize)
-                            .background(ZJTheme.accentSoft, in: Circle())
+                        Label("开始", systemImage: "play.fill")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(ZJTheme.timerAccent)
+                            .padding(.horizontal, 12)
+                            .frame(minHeight: 38)
+                            .background(ZJTheme.timerSoft, in: Capsule())
                     }
                 }
                 .buttonStyle(.plain)

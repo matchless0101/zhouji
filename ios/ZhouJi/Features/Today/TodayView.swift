@@ -50,7 +50,7 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ZJTheme.background.ignoresSafeArea()
+                ZJTheme.pageBackground.ignoresSafeArea()
 
                 List {
                     TodayHeader(date: referenceDate)
@@ -205,17 +205,25 @@ struct TodayView: View {
                     }
                     isTaskFieldFocused = true
                 } label: {
-                    Label("添加任务", systemImage: "plus")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
+                    Label {
+                        Text("添加任务")
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                    } icon: {
+                        Image(systemName: "plus")
+                            .foregroundStyle(ZJTheme.accent)
+                    }
+                    .font(.headline)
+                    .padding(.horizontal, 22)
+                    .frame(minHeight: ZJTheme.controlHeight)
                 }
-                .buttonStyle(.zjPrimary)
+                .buttonStyle(.zjSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
         }
         .padding(.top, 8)
         .padding(.bottom, 8)
-        .background(ZJTheme.background)
+        .background(ZJTheme.background.opacity(0.96))
     }
 
     private var addTaskField: some View {
@@ -314,7 +322,7 @@ struct TodayView: View {
             HStack(spacing: 12) {
                 Image(systemName: timer.isRunning ? "waveform" : "pause.fill")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ZJTheme.accent)
+                    .foregroundStyle(ZJTheme.timerAccent)
                     .frame(width: 32, height: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -459,45 +467,96 @@ private struct TodayHeader: View {
     }()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            ZJBrandHeader(
-                subtitle: "把普通的日子，过成值得的生活。",
-                systemImage: "calendar"
-            )
-
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .bottom, spacing: 16) {
-                    titleAndDate
-                    Spacer(minLength: 16)
-                    encouragement
-                        .multilineTextAlignment(.trailing)
-                }
-
-                VStack(alignment: .leading, spacing: 10) {
-                    titleAndDate
-                    encouragement
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .bottom, spacing: 18) {
+                headerCopy
+                Spacer(minLength: 8)
+                TodaySkyWindow()
             }
+
+            headerCopy
         }
     }
 
-    private var titleAndDate: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("今天")
-                .font(.system(.largeTitle, design: .rounded, weight: .bold))
+    private var headerCopy: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("粥记")
+                .font(.title2.weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
 
-            Text(Self.dateFormatter.string(from: date))
+            HStack(alignment: .firstTextBaseline, spacing: 7) {
+                Text("你好，今天")
+                    .font(.title.weight(.bold))
+                    .foregroundStyle(ZJTheme.ink)
+
+                Image(systemName: "sparkles")
+                    .font(.title3.weight(.medium))
+                    .foregroundStyle(ZJTheme.timerAccent)
+                    .accessibilityHidden(true)
+            }
+
+            Text("专注当下，一件件完成吧。")
                 .font(.subheadline)
                 .foregroundStyle(ZJTheme.secondaryInk)
-        }
-    }
 
-    private var encouragement: some View {
-        Text("专注当下，\n一件件完成吧。")
-            .font(.caption)
-            .foregroundStyle(ZJTheme.secondaryInk)
-            .fixedSize(horizontal: false, vertical: true)
+            Text(Self.dateFormatter.string(from: date))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .padding(.top, 18)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+private struct TodaySkyWindow: View {
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            UnevenRoundedRectangle(
+                topLeadingRadius: 56,
+                bottomLeadingRadius: 14,
+                bottomTrailingRadius: 14,
+                topTrailingRadius: 56,
+                style: .continuous
+            )
+            .fill(
+                LinearGradient(
+                    colors: [ZJTheme.accentSoft, ZJTheme.surface],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+
+            Circle()
+                .fill(ZJTheme.timerSoft)
+                .frame(width: 44, height: 44)
+                .offset(x: 27, y: -80)
+
+            HStack(alignment: .bottom, spacing: -7) {
+                Circle().frame(width: 27, height: 27)
+                Circle().frame(width: 39, height: 39)
+                Circle().frame(width: 24, height: 24)
+            }
+            .foregroundStyle(ZJTheme.surface.opacity(0.92))
+            .offset(x: -18, y: -38)
+
+            VStack(alignment: .trailing, spacing: 0) {
+                ForEach(0..<4, id: \.self) { step in
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(ZJTheme.surface.opacity(0.92))
+                        .frame(width: CGFloat(22 + step * 12), height: 11)
+                }
+            }
+            .offset(x: 16, y: -7)
+        }
+        .frame(width: 116, height: 156)
+        .overlay(alignment: .bottomTrailing) {
+            Image(systemName: "leaf.fill")
+                .font(.system(size: 34, weight: .light))
+                .foregroundStyle(ZJTheme.goalAccent(for: "leaf").opacity(0.55))
+                .offset(x: 12, y: 3)
+        }
+        .shadow(color: ZJTheme.accent.opacity(0.12), radius: 18, x: 0, y: 8)
+        .accessibilityHidden(true)
     }
 }
 

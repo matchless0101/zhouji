@@ -47,7 +47,7 @@ struct GoalsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                ZJTheme.background.ignoresSafeArea()
+                ZJTheme.pageBackground.ignoresSafeArea()
 
                 List {
                     pageHeader
@@ -132,17 +132,26 @@ struct GoalsView: View {
     }
 
     private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            ZJBrandHeader(
-                subtitle: "小小的目标，汇聚成大的改变。",
-                systemImage: "plus.circle",
-                actionLabel: "快速新建目标",
-                action: beginCreatingGoal
-            )
-
+        HStack(alignment: .center, spacing: 16) {
             Text("目标")
-                .font(.system(.largeTitle, design: .rounded, weight: .bold))
+                .font(.largeTitle.weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
+
+            Spacer(minLength: 12)
+
+            Button(action: beginCreatingGoal) {
+                Image(systemName: "plus")
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundStyle(ZJTheme.accent)
+                    .frame(width: 44, height: 44)
+                    .background(ZJTheme.surface, in: Circle())
+                    .overlay {
+                        Circle().stroke(ZJTheme.divider.opacity(0.7), lineWidth: 0.5)
+                    }
+                    .shadow(color: ZJTheme.accent.opacity(0.10), radius: 12, x: 0, y: 4)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("快速新建目标")
         }
     }
 
@@ -158,7 +167,7 @@ struct GoalsView: View {
         }
         .padding(4)
         .background(
-            ZJTheme.mutedSurface,
+            ZJTheme.mutedSurface.opacity(0.82),
             in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
         )
         .accessibilityElement(children: .contain)
@@ -176,6 +185,12 @@ struct GoalsView: View {
                 .foregroundStyle(selectedFilter == filter ? ZJTheme.ink : ZJTheme.secondaryInk)
                 .frame(maxWidth: .infinity, minHeight: 36)
                 .background(selectedFilter == filter ? ZJTheme.surface : Color.clear, in: Capsule())
+                .shadow(
+                    color: selectedFilter == filter ? ZJTheme.accent.opacity(0.08) : .clear,
+                    radius: 8,
+                    x: 0,
+                    y: 3
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel(filter.title)
@@ -210,11 +225,17 @@ struct GoalsView: View {
                 .padding(.horizontal, ZJTheme.pagePadding)
             } else {
                 Button(action: beginCreatingGoal) {
-                    Label("新建目标", systemImage: "plus")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
+                    Label {
+                        Text("新建目标")
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                    } icon: {
+                        Image(systemName: "plus")
+                            .foregroundStyle(ZJTheme.accent)
+                    }
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
                 }
-                .buttonStyle(.zjPrimary)
+                .buttonStyle(.zjSecondary)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
         }
@@ -284,13 +305,15 @@ private struct GoalRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        let goalColor = ZJTheme.goalAccent(for: goal.displayIconName)
+
+        return VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
                 Image(systemName: goal.displayIconName)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(ZJTheme.accent)
-                    .frame(width: 44, height: 44)
-                    .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(goalColor)
+                    .frame(width: 52, height: 52)
+                    .background(ZJTheme.goalSoft(for: goal.displayIconName), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -302,6 +325,13 @@ private struct GoalRow: View {
                         .font(.caption)
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "chevron.right")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .accessibilityHidden(true)
             }
 
             HStack(spacing: 12) {
@@ -310,7 +340,7 @@ private struct GoalRow: View {
                     .foregroundStyle(ZJTheme.ink)
 
                 ProgressView(value: progress.fraction)
-                    .tint(ZJTheme.accent)
+                    .tint(goalColor)
                     .accessibilityLabel("目标进度")
                     .accessibilityValue("百分之 \(progress.percentage)")
 
@@ -322,5 +352,13 @@ private struct GoalRow: View {
         }
         .padding(18)
         .zjCard()
+        .overlay(alignment: .topTrailing) {
+            Image(systemName: goal.displayIconName)
+                .font(.system(size: 54, weight: .light))
+                .foregroundStyle(goalColor.opacity(0.06))
+                .rotationEffect(.degrees(-10))
+                .offset(x: -34, y: 18)
+                .accessibilityHidden(true)
+        }
     }
 }
