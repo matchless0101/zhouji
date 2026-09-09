@@ -208,7 +208,7 @@ struct TodayView: View {
                 .frame(minHeight: ZJTheme.controlHeight)
             }
             .buttonStyle(.zjSecondary)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.horizontal, ZJTheme.pagePadding)
         }
         .padding(.top, 8)

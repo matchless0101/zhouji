@@ -78,11 +78,10 @@ struct TaskRow: View {
                             .frame(minHeight: 44)
                             .background(ZJTheme.timerAccent, in: Capsule())
                     } else {
-                        Label("开始", systemImage: "play.fill")
+                        Image(systemName: "play.fill")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(ZJTheme.timerAccent)
-                            .padding(.horizontal, 16)
-                            .frame(minHeight: 44)
+                            .frame(width: 44, height: 44)
                             .background(
                                 LinearGradient(colors: [ZJTheme.timerSoft.opacity(0.65), ZJTheme.timerSoft],
                                                startPoint: .topLeading, endPoint: .bottomTrailing),
