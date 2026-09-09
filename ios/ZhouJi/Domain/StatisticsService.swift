@@ -20,10 +20,11 @@ enum StatisticsService {
         tasks: [TodoTask],
         sessions: [TimingSession],
         now: Date = .now,
+        periodDate: Date? = nil,
         calendar: Calendar = .current
     ) -> StatisticsSnapshot {
-        let day = DateBoundaries.day(containing: now, calendar: calendar)
-        let week = DateBoundaries.mondayWeek(containing: now, calendar: calendar)
+        let day = DateBoundaries.day(containing: periodDate ?? now, calendar: calendar)
+        let week = DateBoundaries.mondayWeek(containing: periodDate ?? now, calendar: calendar)
 
         let completedToday = tasks.count { task in
             task.completedAt.map { contains($0, in: day) } ?? false
@@ -92,3 +93,18 @@ enum StatisticsService {
     }
 }
 
+
+/// Comparisons use the same fact-derived totals as the main statistics cards.
+enum StatisticsComparison {
+    static func completed(_ current: Int, previous: Int, period: String) -> String {
+        let difference = current - previous
+        guard difference != 0 else { return "和\(period)一样" }
+        return "比\(period)\(difference > 0 ? "多" : "少") \(abs(difference)) 件"
+    }
+
+    static func duration(_ current: TimeInterval, previous: TimeInterval, period: String) -> String {
+        let difference = Int(max(0, current)) - Int(max(0, previous))
+        guard difference != 0 else { return "和\(period)一样" }
+        return "比\(period)\(difference > 0 ? "多" : "少") \(ElapsedTimeText.string(for: TimeInterval(abs(difference))))"
+    }
+}

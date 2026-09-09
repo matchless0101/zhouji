@@ -3,7 +3,7 @@ import UIKit
 
 enum ZJTheme {
     static let background = Color.dynamic(
-        light: UIColor(red: 0.965, green: 0.976, blue: 0.993, alpha: 1),
+        light: UIColor(red: 0.978, green: 0.976, blue: 0.968, alpha: 1),
         dark: UIColor(red: 0.055, green: 0.070, blue: 0.100, alpha: 1)
     )
 
@@ -13,27 +13,27 @@ enum ZJTheme {
     )
 
     static let mutedSurface = Color.dynamic(
-        light: UIColor(red: 0.925, green: 0.946, blue: 0.980, alpha: 1),
+        light: UIColor(red: 0.937, green: 0.940, blue: 0.946, alpha: 1),
         dark: UIColor(red: 0.135, green: 0.160, blue: 0.215, alpha: 1)
     )
 
     static let ink = Color.dynamic(
-        light: UIColor(red: 0.055, green: 0.078, blue: 0.125, alpha: 1),
+        light: UIColor(red: 0.045, green: 0.048, blue: 0.055, alpha: 1),
         dark: UIColor(red: 0.925, green: 0.945, blue: 0.980, alpha: 1)
     )
 
     static let secondaryInk = Color.dynamic(
-        light: UIColor(red: 0.350, green: 0.405, blue: 0.515, alpha: 1),
+        light: UIColor(red: 0.405, green: 0.445, blue: 0.550, alpha: 1),
         dark: UIColor(red: 0.635, green: 0.690, blue: 0.790, alpha: 1)
     )
 
     static let divider = Color.dynamic(
-        light: UIColor(red: 0.850, green: 0.885, blue: 0.940, alpha: 1),
+        light: UIColor(red: 0.915, green: 0.920, blue: 0.936, alpha: 1),
         dark: UIColor(red: 0.205, green: 0.245, blue: 0.330, alpha: 1)
     )
 
     static let accent = Color.dynamic(
-        light: UIColor(red: 0.055, green: 0.445, blue: 0.950, alpha: 1),
+        light: UIColor(red: 0.025, green: 0.440, blue: 1.000, alpha: 1),
         dark: UIColor(red: 0.340, green: 0.650, blue: 1.000, alpha: 1)
     )
 
@@ -48,7 +48,7 @@ enum ZJTheme {
     )
 
     static let success = Color.dynamic(
-        light: UIColor(red: 0.390, green: 0.445, blue: 0.555, alpha: 1),
+        light: UIColor(red: 0.450, green: 0.475, blue: 0.545, alpha: 1),
         dark: UIColor(red: 0.560, green: 0.630, blue: 0.745, alpha: 1)
     )
 
@@ -63,6 +63,7 @@ enum ZJTheme {
     )
 
     static let pagePadding: CGFloat = 18
+    static let pageTopSpacing: CGFloat = 54
     static let rowVerticalPadding: CGFloat = 12
     static let controlHeight: CGFloat = 48
     static let cornerRadius: CGFloat = 22
@@ -71,7 +72,7 @@ enum ZJTheme {
 
     static var pageBackground: LinearGradient {
         LinearGradient(
-            colors: [background, mutedSurface.opacity(0.36), background],
+            colors: [accentSoft.opacity(0.30), background, background],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
@@ -93,6 +94,22 @@ enum ZJTheme {
 
     static func goalSoft(for iconName: String) -> Color {
         goalAccent(for: iconName).opacity(0.13)
+    }
+
+    static func goalSymbol(for iconName: String) -> String {
+        switch iconName {
+        case "book.closed": "book"
+        case "briefcase": "briefcase.fill"
+        default: iconName
+        }
+    }
+
+    static func goalProgress(for iconName: String) -> Color {
+        switch iconName {
+        case "briefcase": Color(red: 0.49, green: 0.65, blue: 1)
+        case "iphone", "paintpalette": Color(red: 0.66, green: 0.54, blue: 1)
+        default: goalAccent(for: iconName)
+        }
     }
 
     private static let goalOrange = Color.dynamic(
@@ -119,6 +136,31 @@ enum ZJTheme {
         light: UIColor(red: 0.180, green: 0.650, blue: 0.420, alpha: 1),
         dark: UIColor(red: 0.370, green: 0.800, blue: 0.565, alpha: 1)
     )
+}
+
+struct ZJGoalIcon: View {
+    let iconName: String
+    var size: CGFloat = 32
+
+    var body: some View {
+        let color = ZJTheme.goalAccent(for: iconName)
+        Image(systemName: ZJTheme.goalSymbol(for: iconName))
+            .font(.system(size: size * 0.49, weight: .medium))
+            .foregroundStyle(color)
+            .frame(width: size, height: size)
+            .background {
+                RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
+                    .fill(RadialGradient(
+                        colors: [color.opacity(0.25), ZJTheme.goalSoft(for: iconName).opacity(0.3)],
+                        center: .center, startRadius: 2, endRadius: size * 0.65
+                    ))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
+                            .stroke(ZJTheme.surface.opacity(0.85), lineWidth: 1)
+                    }
+            }
+            .accessibilityHidden(true)
+    }
 }
 
 struct ZJBrandHeader: View {
@@ -173,9 +215,9 @@ private struct ZJCardModifier: ViewModifier {
             .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(ZJTheme.divider.opacity(ZJTheme.hairlineOpacity), lineWidth: 0.5)
+                    .stroke(ZJTheme.surface.opacity(0.9), lineWidth: 1)
             }
-            .shadow(color: ZJTheme.accent.opacity(0.07), radius: 18, x: 0, y: 7)
+            .shadow(color: ZJTheme.secondaryInk.opacity(0.055), radius: 14, x: 0, y: 6)
     }
 }
 
@@ -252,7 +294,7 @@ struct ZJSectionHeader: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
             Text(title)
-                .font(.headline)
+                .font(.title3.weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
 
             Text(count, format: .number)

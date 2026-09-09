@@ -14,6 +14,7 @@ struct GoalsView: View {
     private var visibleGoals: [Goal]
 
     @State private var isAddingGoal = false
+    @State private var selectedGoal: Goal?
     @State private var draftName = ""
     @State private var pendingDeletion: Goal?
     @State private var presentedError: String?
@@ -52,7 +53,7 @@ struct GoalsView: View {
 
                 List {
                     pageHeader
-                        .listRowInsets(EdgeInsets(top: 12, leading: ZJTheme.pagePadding, bottom: 12, trailing: ZJTheme.pagePadding))
+                        .listRowInsets(EdgeInsets(top: ZJTheme.pageTopSpacing, leading: ZJTheme.pagePadding + 6, bottom: 12, trailing: ZJTheme.pagePadding))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
@@ -74,13 +75,13 @@ struct GoalsView: View {
                         .listRowBackground(Color.clear)
                     } else {
                         ForEach(filteredGoals) { goal in
-                            NavigationLink {
-                                GoalDetailView(goal: goal)
+                            Button {
+                                selectedGoal = goal
                             } label: {
                                 GoalRow(goal: goal)
                             }
                             .buttonStyle(.plain)
-                            .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding, bottom: 6, trailing: ZJTheme.pagePadding))
+                            .listRowInsets(EdgeInsets(top: 8, leading: ZJTheme.pagePadding, bottom: 8, trailing: ZJTheme.pagePadding))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                             .swipeActions {
@@ -92,14 +93,24 @@ struct GoalsView: View {
                             }
                         }
                     }
+                    if !isAddingGoal {
+                        addGoalControls
+                            .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 24, trailing: 0))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                    }
                 }
                 .listStyle(.plain)
+                .contentMargins(.top, 0, for: .scrollContent)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
             }
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                addGoalControls
+                if isAddingGoal { addGoalControls }
+            }
+            .navigationDestination(item: $selectedGoal) { goal in
+                GoalDetailView(goal: goal)
             }
             .confirmationDialog(
                 "删除“\(pendingDeletion?.name ?? "这个目标")”？",
@@ -133,27 +144,10 @@ struct GoalsView: View {
     }
 
     private var pageHeader: some View {
-        HStack(alignment: .center, spacing: 16) {
-            Text("目标")
-                .font(.largeTitle.weight(.bold))
-                .foregroundStyle(ZJTheme.ink)
-
-            Spacer(minLength: 12)
-
-            Button(action: beginCreatingGoal) {
-                Image(systemName: "plus")
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(ZJTheme.accent)
-                    .frame(width: 44, height: 44)
-                    .background(ZJTheme.surface, in: Circle())
-                    .overlay {
-                        Circle().stroke(ZJTheme.divider.opacity(0.7), lineWidth: 0.5)
-                    }
-                    .shadow(color: ZJTheme.accent.opacity(0.10), radius: 12, x: 0, y: 4)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("快速新建目标")
-        }
+        Text("目标")
+            .font(.largeTitle.weight(.bold))
+            .foregroundStyle(ZJTheme.ink)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var filterBar: some View {
@@ -166,7 +160,7 @@ struct GoalsView: View {
             filterButton(.inProgress, count: inProgressGoals.count)
             filterButton(.completed, count: completedGoals.count)
         }
-        .padding(4)
+        .padding(2)
         .background(
             ZJTheme.mutedSurface.opacity(0.82),
             in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
@@ -184,7 +178,7 @@ struct GoalsView: View {
             Text("\(filter.title) \(count)")
                 .font(.subheadline.weight(selectedFilter == filter ? .semibold : .regular))
                 .foregroundStyle(selectedFilter == filter ? ZJTheme.ink : ZJTheme.secondaryInk)
-                .frame(maxWidth: .infinity, minHeight: 36)
+                .frame(maxWidth: .infinity, minHeight: 44)
                 .background(selectedFilter == filter ? ZJTheme.surface : Color.clear, in: Capsule())
                 .shadow(
                     color: selectedFilter == filter ? ZJTheme.accent.opacity(0.08) : .clear,
@@ -231,10 +225,10 @@ struct GoalsView: View {
                             .foregroundStyle(ZJTheme.secondaryInk)
                     } icon: {
                         Image(systemName: "plus")
-                            .foregroundStyle(ZJTheme.accent)
+                            .foregroundStyle(ZJTheme.secondaryInk)
                     }
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
+                    .font(.body)
+                    .frame(maxWidth: .infinity, minHeight: 56)
                 }
                 .buttonStyle(.zjSecondary)
                 .padding(.horizontal, ZJTheme.pagePadding)
@@ -242,7 +236,7 @@ struct GoalsView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 8)
-        .background(ZJTheme.background)
+        .background(Color.clear)
     }
 
     private func beginCreatingGoal() {
@@ -325,84 +319,70 @@ private struct GoalRow: View {
         let goalColor = ZJTheme.goalAccent(for: goal.displayIconName)
 
         return VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 12) {
-                Image(systemName: goal.displayIconName)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(goalColor)
-                    .frame(width: 52, height: 52)
-                    .background(ZJTheme.goalSoft(for: goal.displayIconName), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .accessibilityHidden(true)
+            HStack(spacing: 14) {
+                ZJGoalIcon(iconName: goal.displayIconName, size: 60)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 5) {
                     Text(goal.name)
-                        .font(.headline)
+                        .font(.title3.weight(.semibold))
                         .foregroundStyle(ZJTheme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
 
-                    Text(progress.total == 0 ? "从一个小任务开始" : "已完成 \(progress.completed) 件，共 \(progress.total) 件")
-                        .font(.caption)
+                    Text(progress.total == 0 ? "从一个小任务开始" : "一步一步，靠近目标。")
+                        .font(.subheadline)
                         .foregroundStyle(ZJTheme.secondaryInk)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-
-                Spacer(minLength: 8)
-
-                if let illustrationAssetName,
-                   colorScheme == .light,
-                   !dynamicTypeSize.isAccessibilitySize {
-                    GoalIllustration(assetName: illustrationAssetName)
-                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .layoutPriority(1)
 
                 Image(systemName: "chevron.right")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.medium))
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .accessibilityHidden(true)
             }
 
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 Text("\(progress.percentage)%")
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(ZJTheme.ink)
+                    .frame(minWidth: 60, alignment: .leading)
 
                 ProgressView(value: progress.fraction)
-                    .tint(goalColor)
+                    .tint(ZJTheme.goalProgress(for: goal.displayIconName))
+                    .scaleEffect(x: 1, y: 1.5)
                     .accessibilityLabel("目标进度")
                     .accessibilityValue("百分之 \(progress.percentage)")
 
                 Text("\(progress.completed) / \(progress.total)")
-                    .font(.caption)
+                    .font(.subheadline)
                     .monospacedDigit()
                     .foregroundStyle(ZJTheme.secondaryInk)
             }
         }
-        .padding(18)
-        .zjCard()
-        .overlay(alignment: .topTrailing) {
-            if illustrationAssetName == nil || colorScheme == .dark || dynamicTypeSize.isAccessibilitySize {
+        .padding(16)
+        .background(alignment: .topTrailing) {
+            if let illustrationAssetName, colorScheme == .light, !dynamicTypeSize.isAccessibilitySize,
+               let illustration = UIImage(named: illustrationAssetName) {
+                Image(uiImage: illustration)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 106, height: 106)
+                    .opacity(0.34)
+                    .blendMode(.multiply)
+                    .compositingGroup()
+                    .padding(.trailing, 8)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            } else {
                 Image(systemName: goal.displayIconName)
-                    .font(.system(size: 54, weight: .light))
+                    .font(.system(size: 64, weight: .light))
                     .foregroundStyle(goalColor.opacity(0.06))
-                    .rotationEffect(.degrees(-10))
-                    .offset(x: -34, y: 18)
+                    .rotationEffect(.degrees(-12))
+                    .padding(20)
                     .accessibilityHidden(true)
             }
         }
-    }
-}
-
-private struct GoalIllustration: View {
-    let assetName: String
-
-    var body: some View {
-        if let illustration = UIImage(named: assetName) {
-            Image(uiImage: illustration)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 76, height: 64)
-                .scaleEffect(1.18)
-                .blendMode(.multiply)
-                .compositingGroup()
-                .clipShape(.rect(cornerRadius: 12))
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-        }
+        .zjCard()
     }
 }

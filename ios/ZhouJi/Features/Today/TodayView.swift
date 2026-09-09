@@ -44,7 +44,7 @@ struct TodayView: View {
 
                 List {
                     TodayHeader(date: referenceDate)
-                        .listRowInsets(EdgeInsets(top: 12, leading: 4, bottom: 12, trailing: 4))
+                        .listRowInsets(EdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
@@ -63,6 +63,7 @@ struct TodayView: View {
                         Section {
                             ZJSectionHeader(title: "未完成", count: incompleteTasks.count)
                                 .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
+                                .listRowBackground(ZJTheme.surface)
                                 .listRowSeparator(.hidden)
 
                             ForEach(incompleteTasks) { task in
@@ -74,7 +75,8 @@ struct TodayView: View {
                     if !completedTodayTasks.isEmpty {
                         Section {
                             ZJSectionHeader(title: "已完成", count: completedTodayTasks.count)
-                                .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
+                                .listRowInsets(EdgeInsets(top: 12, leading: 18, bottom: 6, trailing: 18))
+                                .listRowBackground(ZJTheme.surface)
                                 .listRowSeparator(.hidden)
 
                             ForEach(completedTodayTasks) { task in
@@ -85,6 +87,9 @@ struct TodayView: View {
                 }
                 .listStyle(.insetGrouped)
                 .listSectionSpacing(16)
+                .contentMargins(.top, 0, for: .scrollContent)
+                .contentMargins(.bottom, 12, for: .scrollContent)
+                .contentMargins(.horizontal, ZJTheme.pagePadding, for: .scrollContent)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
             }
@@ -161,6 +166,8 @@ struct TodayView: View {
         )
         .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
         .listRowSeparatorTint(ZJTheme.divider)
+        .alignmentGuide(.listRowSeparatorLeading) { _ in 8 }
+        .alignmentGuide(.listRowSeparatorTrailing) { dimensions in dimensions.width - 8 }
         .listRowBackground(ZJTheme.surface)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
@@ -196,8 +203,8 @@ struct TodayView: View {
                     Image(systemName: "plus")
                         .foregroundStyle(ZJTheme.accent)
                 }
-                .font(.headline)
-                .padding(.horizontal, 22)
+                .font(.body)
+                .padding(.horizontal, 26)
                 .frame(minHeight: ZJTheme.controlHeight)
             }
             .buttonStyle(.zjSecondary)
@@ -327,41 +334,60 @@ struct TodayView: View {
 }
 
 private struct TodayHeader: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.colorScheme) private var colorScheme
     let date: Date
 
     @MainActor
     private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日 EEE"
+        formatter.dateFormat = "M月d日  EEE"
         return formatter
     }()
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .bottom, spacing: 18) {
-                headerCopy
-                Spacer(minLength: 8)
-                TodaySkyWindow()
+        headerCopy
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, ZJTheme.pageTopSpacing)
+            .padding(.bottom, 24)
+            .background(alignment: .bottomTrailing) {
+                if !dynamicTypeSize.isAccessibilitySize, let illustration = UIImage(named: "TodayJourney") {
+                    Image(uiImage: illustration)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 184, height: 246)
+                        .blendMode(colorScheme == .light ? .multiply : .normal)
+                        .compositingGroup()
+                        .opacity(colorScheme == .light ? 1 : 0.65)
+                        .mask {
+                            LinearGradient(
+                                stops: [.init(color: .clear, location: 0),
+                                        .init(color: .black, location: 0.16),
+                                        .init(color: .black, location: 0.92),
+                                        .init(color: .clear, location: 1)],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                        }
+                        .offset(x: 18, y: 38)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
             }
-
-            headerCopy
-        }
     }
 
     private var headerCopy: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 5) {
             Text("粥记")
-                .font(.title2.weight(.bold))
+                .font(.title.weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
 
             HStack(alignment: .firstTextBaseline, spacing: 7) {
                 Text("你好，今天")
-                    .font(.title.weight(.bold))
+                    .font(.title2)
                     .foregroundStyle(ZJTheme.ink)
-
-                Image(systemName: "sparkles")
-                    .font(.title3.weight(.medium))
+                Image(systemName: "sparkle")
+                    .font(.title2.weight(.light))
                     .foregroundStyle(ZJTheme.timerAccent)
                     .accessibilityHidden(true)
             }
@@ -371,39 +397,11 @@ private struct TodayHeader: View {
                 .foregroundStyle(ZJTheme.secondaryInk)
 
             Text(Self.dateFormatter.string(from: date))
-                .font(.subheadline.weight(.medium))
+                .font(.subheadline)
                 .foregroundStyle(ZJTheme.secondaryInk)
-                .padding(.top, 18)
+                .padding(.top, 22)
         }
         .fixedSize(horizontal: false, vertical: true)
-    }
-}
-
-private struct TodaySkyWindow: View {
-    var body: some View {
-        let shape = UnevenRoundedRectangle(
-            topLeadingRadius: 56,
-            bottomLeadingRadius: 14,
-            bottomTrailingRadius: 14,
-            topTrailingRadius: 56,
-            style: .continuous
-        )
-
-        if let illustration = UIImage(named: "TodayJourney") {
-            Image(uiImage: illustration)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 116, height: 156)
-                .scaleEffect(1.08)
-                .compositingGroup()
-                .clipShape(shape)
-                .overlay {
-                    shape.stroke(ZJTheme.surface.opacity(0.9), lineWidth: 2)
-                }
-                .frame(width: 116, height: 156)
-                .shadow(color: ZJTheme.accent.opacity(0.12), radius: 18, x: 0, y: 8)
-                .accessibilityHidden(true)
-        }
     }
 }
 

@@ -9,34 +9,27 @@ final class ZhouJiUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["粥记"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["添加任务"].exists)
-        XCTAssertTrue(app.tabBars.buttons["今天"].isSelected)
-        XCTAssertTrue(app.tabBars.buttons["目标"].exists)
-        XCTAssertTrue(app.tabBars.buttons["专注"].exists)
-        XCTAssertTrue(app.tabBars.buttons["记录"].exists)
+        XCTAssertTrue(app.buttons["tab.today"].isSelected)
+        XCTAssertTrue(app.buttons["tab.goals"].exists)
+        XCTAssertTrue(app.buttons["tab.records"].exists)
+        XCTAssertTrue(app.buttons["tab.profile"].exists)
     }
 
     @MainActor
-    func testFocusTabStartsAndFinishesARealTaskTimer() throws {
+    func testProfileTabShowsTruthfulLocalOverview() throws {
         continueAfterFailure = false
         let app = makeApp()
-        app.launchArguments += ["-ZJInitialTab", "goals"]
+        app.launchArguments += ["-ZJInitialTab", "profile"]
         app.launch()
 
-        createGoal(named: "练习 SwiftUI", in: app)
-        app.staticTexts["练习 SwiftUI"].tap()
-        createTask(named: "完成一个页面", in: app)
-
-        app.tabBars.buttons["专注"].tap()
-        XCTAssertTrue(app.staticTexts["专注"].firstMatch.waitForExistence(timeout: 2))
-
-        let startButton = app.buttons["开始专注，完成一个页面"]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 2))
-        startButton.tap()
-
-        XCTAssertTrue(app.staticTexts["正在专注"].waitForExistence(timeout: 2))
-        XCTAssertTrue(app.otherElements["focus.timer"].exists)
-        app.buttons["结束"].tap()
-        XCTAssertTrue(startButton.waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["我的"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["profile.completed"].label, "0 件")
+        XCTAssertEqual(app.staticTexts["profile.weekFocus"].label, "0分钟")
+        XCTAssertEqual(app.staticTexts["profile.completionRate"].label, "0%")
+        XCTAssertTrue(app.staticTexts["数据与存储"].exists)
+        XCTAssertTrue(app.buttons["外观"].exists)
+        XCTAssertTrue(app.buttons["关于粥记"].exists)
+        XCTAssertTrue(app.buttons["tab.profile"].isSelected)
     }
 
     @MainActor
@@ -107,7 +100,7 @@ final class ZhouJiUITests: XCTestCase {
         confirmDeletion.tap()
         XCTAssertTrue(app.staticTexts["保持运动"].waitForNonExistence(timeout: 2))
 
-        app.tabBars.buttons["今天"].tap()
+        app.buttons["tab.today"].tap()
         XCTAssertTrue(app.staticTexts["散步二十分钟"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["保持运动"].exists)
     }
@@ -120,7 +113,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launch()
 
         createGoal(named: "完成毕业论文", in: app)
-        app.tabBars.buttons["今天"].tap()
+        app.buttons["tab.today"].tap()
         app.buttons["添加任务"].tap()
 
         let goalPicker = app.buttons["today.goalPicker"]
@@ -138,7 +131,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["写论文摘要"].waitForExistence(timeout: 2))
         XCTAssertTrue(app.staticTexts["完成毕业论文"].exists)
 
-        app.tabBars.buttons["目标"].tap()
+        app.buttons["tab.goals"].tap()
         app.staticTexts["完成毕业论文"].tap()
         XCTAssertTrue(app.staticTexts["写论文摘要"].waitForExistence(timeout: 2))
     }
@@ -186,7 +179,7 @@ final class ZhouJiUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["复习错题"].waitForExistence(timeout: 2))
         app.buttons["完成任务"].tap()
-        app.tabBars.buttons["记录"].tap()
+        app.buttons["tab.records"].tap()
 
         XCTAssertTrue(app.staticTexts["记录"].firstMatch.waitForExistence(timeout: 2))
         XCTAssertEqual(app.staticTexts["records.today.completed"].label, "1 件")
@@ -194,6 +187,76 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertNotEqual(app.staticTexts["records.today.duration"].label, "0分钟")
         XCTAssertNotEqual(app.staticTexts["records.week.duration"].label, "0分钟")
         XCTAssertTrue(app.staticTexts["准备考试"].exists)
+    }
+
+    @MainActor
+    func testReferenceAppearanceAndNavigation() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 3))
+        saveScreenshot("today-light", app: app)
+        app.buttons["tab.goals"].tap()
+        XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
+        saveScreenshot("goals-light", app: app)
+        for _ in 0..<3 where !app.buttons["新建目标"].isHittable { app.swipeUp() }
+        XCTAssertTrue(app.buttons["新建目标"].isHittable)
+        XCTAssertTrue(app.staticTexts["iOS App"].exists)
+        for _ in 0..<3 where !app.buttons["全部"].isHittable { app.swipeDown() }
+        app.buttons["已完成"].tap()
+        XCTAssertTrue(app.staticTexts["这里还没有目标"].waitForExistence(timeout: 2))
+        app.buttons["全部"].tap()
+        XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
+        app.buttons["tab.records"].tap()
+        XCTAssertTrue(app.staticTexts["records.today.completed"].waitForExistence(timeout: 2))
+        XCTAssertEqual(app.staticTexts["records.today.completed"].label, "2 件")
+        saveScreenshot("records-light", app: app)
+        app.buttons["records.period.week"].tap()
+        XCTAssertTrue(app.buttons["records.period.week"].isSelected)
+        XCTAssertTrue(app.staticTexts["records.week.duration"].isHittable)
+        app.buttons["records.period.today"].tap()
+        XCTAssertTrue(app.staticTexts["records.today.completed"].isHittable)
+        app.buttons["tab.today"].tap()
+        app.buttons["开始计时"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["结束计时"].waitForExistence(timeout: 2))
+        app.buttons["结束计时"].tap()
+        XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 2))
+        app.buttons["完成任务"].firstMatch.tap()
+        XCTAssertEqual(app.buttons.matching(identifier: "完成任务").count, 2)
+        let row = app.cells.containing(.staticText, identifier: "投递实习简历").element
+        row.swipeLeft()
+        app.buttons["删除"].tap()
+        XCTAssertTrue(app.buttons["撤销"].waitForExistence(timeout: 2))
+        app.buttons["撤销"].tap()
+        XCTAssertTrue(app.staticTexts["投递实习简历"].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    func testReferenceAppearanceInDarkModeAndLargeText() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "dark",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+        app.launch()
+        XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
+        saveScreenshot("today-dark-large-text", app: app)
+        app.buttons["tab.goals"].tap()
+        XCTAssertTrue(app.buttons["全部"].waitForExistence(timeout: 2))
+        saveScreenshot("goals-dark-large-text", app: app)
+        app.buttons["tab.records"].tap()
+        XCTAssertTrue(app.buttons["records.period.week"].waitForExistence(timeout: 2))
+        app.buttons["records.period.week"].tap()
+        XCTAssertTrue(app.staticTexts["records.week.completed"].isHittable)
+        saveScreenshot("records-dark-large-text", app: app)
+    }
+
+    @MainActor
+    private func saveScreenshot(_ name: String, app: XCUIApplication) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 
     @MainActor

@@ -98,6 +98,30 @@ struct V3StatisticsTests {
         #expect(ElapsedTimeText.string(for: 3_660) == "1小时1分")
     }
 
+    @Test
+    func comparisonCopyHandlesIncreasesDecreasesAndZero() {
+        #expect(StatisticsComparison.completed(3, previous: 2, period: "昨天") == "比昨天多 1 件")
+        #expect(StatisticsComparison.completed(0, previous: 4, period: "上周") == "比上周少 4 件")
+        #expect(StatisticsComparison.completed(0, previous: 0, period: "昨天") == "和昨天一样")
+        #expect(StatisticsComparison.duration(9_000, previous: 1_200, period: "上周") == "比上周多 2小时10分")
+        #expect(StatisticsComparison.duration(0, previous: 60, period: "上周") == "比上周少 1分钟")
+        #expect(StatisticsComparison.duration(0, previous: 0, period: "上周") == "和上周一样")
+    }
+
+    @Test
+    func comparisonIncludesTheWholePreviousDayForAnOngoingTimer() throws {
+        let calendar = shanghaiCalendar
+        let start = try date(2026, 9, 8, 20, calendar: calendar)
+        let running = TimingSession(taskID: UUID(), taskTitleSnapshot: "跨夜投入",
+                                    startedAt: start, runningStartedAt: start, state: .running)
+        let snapshot = StatisticsService.snapshot(
+            tasks: [], sessions: [running], now: try date(2026, 9, 9, 10, calendar: calendar),
+            periodDate: try date(2026, 9, 8, 10, calendar: calendar), calendar: calendar
+        )
+        #expect(snapshot.secondsToday == 4 * 3_600)
+        #expect(snapshot.secondsThisWeek == 14 * 3_600)
+    }
+
     private var shanghaiCalendar: Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Asia/Shanghai")!

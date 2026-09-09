@@ -396,6 +396,7 @@ private struct GoalSettingsView: View {
                     .overlay {
                         RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous)
                             .stroke(selectedIcon == icon ? iconColor.opacity(0.55) : ZJTheme.divider, lineWidth: 1)
+                            .allowsHitTesting(false)
                     }
                     .compositingGroup()
                     .clipShape(RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous))

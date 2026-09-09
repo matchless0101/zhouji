@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TaskRow: View {
-    @ScaledMetric(relativeTo: .body) private var completionSize = 25.0
+    @ScaledMetric(relativeTo: .body) private var completionSize = 28.0
 
     let task: TodoTask
     let isActivelyTimed: Bool
@@ -40,10 +40,9 @@ struct TaskRow: View {
                 Text(task.title)
                     .font(.system(.body, design: .default, weight: .medium))
                     .foregroundStyle(task.isCompleted ? ZJTheme.secondaryInk : ZJTheme.ink)
-                    .strikethrough(task.isCompleted, color: ZJTheme.secondaryInk)
                     .lineLimit(3)
 
-                if showsGoal, let goal = task.goal, goal.deletedAt == nil {
+                if showsGoal, !task.isCompleted, let goal = task.goal, goal.deletedAt == nil {
                     let goalColor = ZJTheme.goalAccent(for: goal.displayIconName)
 
                     HStack(spacing: 5) {
@@ -65,7 +64,7 @@ struct TaskRow: View {
             if task.isCompleted {
                 if let completedAt = task.completedAt {
                     Text(completedAt, style: .time)
-                        .font(.caption)
+                        .font(.subheadline)
                         .monospacedDigit()
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
@@ -75,16 +74,22 @@ struct TaskRow: View {
                         Label("计时中", systemImage: "waveform")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(ZJTheme.surface)
-                            .padding(.horizontal, 12)
-                            .frame(minHeight: 38)
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 44)
                             .background(ZJTheme.timerAccent, in: Capsule())
                     } else {
                         Label("开始", systemImage: "play.fill")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(ZJTheme.timerAccent)
-                            .padding(.horizontal, 12)
-                            .frame(minHeight: 38)
-                            .background(ZJTheme.timerSoft, in: Capsule())
+                            .padding(.horizontal, 16)
+                            .frame(minHeight: 44)
+                            .background(
+                                LinearGradient(colors: [ZJTheme.timerSoft.opacity(0.65), ZJTheme.timerSoft],
+                                               startPoint: .topLeading, endPoint: .bottomTrailing),
+                                in: Capsule()
+                            )
+                            .overlay { Capsule().stroke(ZJTheme.surface, lineWidth: 1.5) }
+                            .shadow(color: ZJTheme.timerAccent.opacity(0.10), radius: 8, y: 3)
                     }
                 }
                 .buttonStyle(.plain)
@@ -92,7 +97,7 @@ struct TaskRow: View {
                 .accessibilityHint(task.title)
             }
         }
-        .padding(.vertical, ZJTheme.rowVerticalPadding)
+        .padding(.vertical, task.isCompleted ? 0 : 10)
         .contentShape(Rectangle())
     }
 }
