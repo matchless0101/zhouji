@@ -274,6 +274,30 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testFloatingAddTaskRemainsUsableWithRunningTimer() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "dark"]
+        app.launch()
+        app.buttons["开始计时"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["收起"].waitForExistence(timeout: 2))
+        app.buttons["收起"].tap()
+
+        let addTask = app.buttons["添加任务"]
+        let currentTimer = app.buttons["查看当前计时"]
+        XCTAssertTrue(addTask.waitForExistence(timeout: 2))
+        XCTAssertTrue(addTask.isHittable)
+        XCTAssertTrue(currentTimer.isHittable)
+        XCTAssertFalse(addTask.frame.intersects(currentTimer.frame))
+        XCTAssertGreaterThan(addTask.frame.midX, app.frame.midX)
+        XCTAssertLessThanOrEqual(addTask.frame.maxY, app.buttons["tab.today"].frame.minY)
+        saveScreenshot("today-floating-glass-active-timer", app: app)
+
+        addTask.tap()
+        XCTAssertTrue(app.textFields["今天要做什么？"].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
     func testTodayAppearanceSwitching() throws {
         continueAfterFailure = false
         let app = makeApp()

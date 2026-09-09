@@ -20,6 +20,7 @@ struct TodayView: View {
     @State private var undoDismissTask: Task<Void, Never>?
     @State private var presentedError: String?
     @State private var referenceDate = Date.now
+    @State private var bottomControlsHeight: CGFloat = 80
 
     private var incompleteTasks: [TodoTask] {
         visibleTasks.filter { !$0.isCompleted }
@@ -88,14 +89,19 @@ struct TodayView: View {
                 .listStyle(.insetGrouped)
                 .listSectionSpacing(16)
                 .contentMargins(.top, 0, for: .scrollContent)
-                .contentMargins(.bottom, 12, for: .scrollContent)
+                .contentMargins(.bottom, bottomControlsHeight + 12, for: .scrollContent)
                 .contentMargins(.horizontal, ZJTheme.pagePadding, for: .scrollContent)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
             }
             .toolbar(.hidden, for: .navigationBar)
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+            .overlay(alignment: .bottom) {
                 bottomControls
+                    .onGeometryChange(for: CGFloat.self) { proxy in
+                        proxy.size.height
+                    } action: { height in
+                        bottomControlsHeight = height
+                    }
             }
             .sheet(isPresented: $isTimerPresented) {
                 TimerSheet()
@@ -198,22 +204,18 @@ struct TodayView: View {
             } label: {
                 Label {
                     Text("添加任务")
-                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .foregroundStyle(ZJTheme.ink)
                 } icon: {
                     Image(systemName: "plus")
                         .foregroundStyle(ZJTheme.accent)
                 }
-                .font(.body)
-                .padding(.horizontal, 26)
-                .frame(minHeight: ZJTheme.controlHeight)
             }
-            .buttonStyle(.zjSecondary)
+            .buttonStyle(ZJFloatingGlassButtonStyle())
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.horizontal, ZJTheme.pagePadding)
         }
         .padding(.top, 8)
-        .padding(.bottom, 8)
-        .background(ZJTheme.background.opacity(0.96))
+        .padding(.bottom, 16)
     }
 
     private var activeTimerBar: some View {

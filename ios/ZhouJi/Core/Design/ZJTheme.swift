@@ -268,6 +268,46 @@ struct ZJPrimaryButtonStyle: ButtonStyle {
     }
 }
 
+struct ZJFloatingGlassButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        glassSurface(
+            configuration.label
+                .font(.body.weight(.semibold))
+                .padding(.horizontal, 24)
+                .padding(.vertical, 14)
+                .frame(minHeight: 54)
+                .contentShape(Capsule())
+        )
+        .shadow(color: .black.opacity(0.12), radius: 16, y: 8)
+        .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
+    }
+
+    @ViewBuilder
+    private func glassSurface<Content: View>(_ content: Content) -> some View {
+        if reduceTransparency {
+            content
+                .background(ZJTheme.surface, in: Capsule())
+                .overlay { Capsule().stroke(ZJTheme.divider, lineWidth: 1) }
+        } else if #available(iOS 26, *) {
+            content
+                .glassEffect(.regular.tint(ZJTheme.accent.opacity(0.06)).interactive(), in: .capsule)
+        } else {
+            content
+                .background(.ultraThinMaterial, in: Capsule())
+                .overlay {
+                    Capsule().stroke(LinearGradient(
+                        colors: [.white.opacity(0.75), .white.opacity(0.12), .white.opacity(0.35)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ), lineWidth: 1)
+                }
+        }
+    }
+}
+
 struct ZJSecondaryButtonStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
