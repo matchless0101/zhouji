@@ -137,6 +137,47 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testDefaultGoalsShowRecommendedArtworkAndAllowManualChoice() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-appAppearance", "light"]
+        app.launch()
+
+        createGoal(named: "高数", in: app)
+        createGoal(named: "切记1", in: app)
+        saveScreenshot("goals-default-artwork-light", app: app)
+
+        app.staticTexts["高数"].tap()
+        app.buttons["目标设置"].tap()
+        XCTAssertTrue(app.images["当前图标，学习"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["goal.icon.scope"].isSelected)
+        saveScreenshot("goal-artwork-picker", app: app)
+
+        app.buttons["goal.icon.briefcase"].tap()
+        XCTAssertTrue(app.images["当前图标，工作"].waitForExistence(timeout: 2))
+        app.buttons["保存设置"].tap()
+        app.buttons["目标设置"].tap()
+        XCTAssertTrue(app.buttons["goal.icon.briefcase"].isSelected)
+        XCTAssertTrue(app.images["当前图标，工作"].exists)
+
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.staticTexts["切记1"].tap()
+        app.buttons["目标设置"].tap()
+        XCTAssertTrue(app.images["当前图标，目标"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["goal.icon.scope"].isSelected)
+        app.buttons["goal.icon.book.closed"].tap()
+        app.buttons["保存设置"].tap()
+
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        saveScreenshot("goals-independent-icons", app: app)
+        app.staticTexts["高数"].tap()
+        app.buttons["目标设置"].tap()
+        XCTAssertTrue(app.images["当前图标，工作"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["goal.icon.briefcase"].isSelected)
+    }
+
+    @MainActor
     func testGoalSettingsCanChangeAndPersistIcon() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -254,6 +295,9 @@ final class ZhouJiUITests: XCTestCase {
             XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 2))
             XCTAssertTrue(app.buttons["开始计时"].firstMatch.isHittable)
             saveScreenshot(screenshot, app: app)
+            app.buttons["tab.goals"].tap()
+            XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
+            saveScreenshot(screenshot.replacingOccurrences(of: "today", with: "goals"), app: app)
         }
     }
 

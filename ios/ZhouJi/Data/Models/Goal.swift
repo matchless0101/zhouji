@@ -27,8 +27,12 @@ final class Goal {
         self.tasks = tasks
     }
 
-    var icon: GoalIcon {
+    var iconSelection: GoalIcon {
         GoalIcon(rawValue: iconName ?? "") ?? .scope
+    }
+
+    var icon: GoalIcon {
+        iconSelection.resolved(for: name)
     }
 
     var displayIconName: String {
@@ -37,7 +41,9 @@ final class Goal {
 }
 
 enum GoalIcon: String, CaseIterable, Identifiable {
+    // Keep the original default's stored value so existing goals can use automatic artwork without a migration.
     case scope
+    case general = "target"
     case book = "book.closed"
     case study = "graduationcap"
     case work = "briefcase"
@@ -51,7 +57,8 @@ enum GoalIcon: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .scope: "目标"
+        case .scope: "自动匹配"
+        case .general: "目标"
         case .book: "阅读"
         case .study: "学习"
         case .work: "工作"
@@ -61,5 +68,31 @@ enum GoalIcon: String, CaseIterable, Identifiable {
         case .create: "创作"
         case .grow: "成长"
         }
+    }
+
+    func resolved(for name: String) -> GoalIcon {
+        guard self == .scope else { return self }
+
+        // These local hints only choose artwork; explicit icon choices always take precedence.
+        let themes: [(icon: GoalIcon, keywords: [String])] = [
+            (.work, ["求职", "找工作", "招聘", "面试", "简历", "实习", "入职", "职业"]),
+            (.book, ["论文", "阅读", "读书", "文献", "毕业", "写作"]),
+            (.study, ["高数", "数学", "英语", "考研", "考公", "考试", "学习", "备考", "课程", "物理", "化学", "语文", "法语", "日语"]),
+            (.digital, ["编程", "程序", "软件", "代码", "网站", "应用", "开发"]),
+            (.exercise, ["健身", "跑步", "运动", "锻炼", "瑜伽", "骑行", "游泳", "马拉松"]),
+            (.health, ["健康", "睡眠", "早睡", "饮食", "减脂", "康复"]),
+            (.create, ["画画", "绘画", "设计", "创作", "摄影", "音乐", "插画"]),
+            (.grow, ["成长", "习惯", "冥想", "花草", "种植", "园艺"])
+        ]
+        if let theme = themes.first(where: { theme in
+            theme.keywords.contains(where: { name.localizedStandardContains($0) })
+        }) {
+            return theme.icon
+        }
+        if name.range(of: #"\b(?:ios|swift|swiftui|app|android|python|java|web)\b"#,
+                      options: [.regularExpression, .caseInsensitive]) != nil {
+            return .digital
+        }
+        return .general
     }
 }

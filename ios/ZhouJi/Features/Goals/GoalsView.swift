@@ -302,7 +302,7 @@ private struct GoalRow: View {
         GoalService.progress(for: goal)
     }
 
-    private var illustrationAssetName: String? {
+    private var illustrationAssetName: String {
         switch goal.icon {
         case .book, .study:
             "GoalWriting"
@@ -311,16 +311,14 @@ private struct GoalRow: View {
         case .digital:
             "GoalDigital"
         default:
-            nil
+            "GoalMilestone"
         }
     }
 
     var body: some View {
-        let goalColor = ZJTheme.goalAccent(for: goal.displayIconName)
-
-        return VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 14) {
-                ZJGoalIcon(iconName: goal.displayIconName, size: 60)
+                ZJGoalIcon(iconName: goal.displayIconName, size: 64)
 
                 VStack(alignment: .leading, spacing: 5) {
                     Text(goal.name)
@@ -362,25 +360,28 @@ private struct GoalRow: View {
         }
         .padding(16)
         .background(alignment: .topTrailing) {
-            if let illustrationAssetName, colorScheme == .light, !dynamicTypeSize.isAccessibilitySize,
+            if !dynamicTypeSize.isAccessibilitySize,
                let illustration = UIImage(named: illustrationAssetName) {
-                Image(uiImage: illustration)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 106, height: 106)
-                    .opacity(0.34)
-                    .blendMode(.multiply)
-                    .compositingGroup()
-                    .padding(.trailing, 8)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-            } else {
-                Image(systemName: goal.displayIconName)
-                    .font(.system(size: 64, weight: .light))
-                    .foregroundStyle(goalColor.opacity(0.06))
-                    .rotationEffect(.degrees(-12))
-                    .padding(20)
-                    .accessibilityHidden(true)
+                let artwork = Image(uiImage: illustration)
+                    .resizable().scaledToFit()
+                    .frame(width: 112, height: 106)
+
+                Group {
+                    if colorScheme == .dark {
+                        artwork
+                            // Remove the white backdrop without introducing a dark rectangle.
+                            .mask { artwork.colorInvert().luminanceToAlpha() }
+                            .opacity(0.72)
+                    } else {
+                        artwork
+                            .opacity(0.52)
+                            .compositingGroup()
+                            .blendMode(.multiply)
+                    }
+                }
+                .padding(.trailing, 8)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
             }
         }
         .zjCard()

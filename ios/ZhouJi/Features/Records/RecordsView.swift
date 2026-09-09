@@ -265,7 +265,7 @@ private struct RecordsGoalSection: View {
                         }
                         .buttonStyle(.plain)
                     } else {
-                        GoalTimeRow(summary: summary, icon: goal?.icon ?? .scope, showsChevron: false)
+                        GoalTimeRow(summary: summary, icon: goal?.icon ?? .general, showsChevron: false)
                     }
                     if summary.id != summaries.last?.id {
                         Divider().overlay(ZJTheme.divider.opacity(0.5)).padding(.leading, 46)

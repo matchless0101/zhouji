@@ -182,7 +182,7 @@ struct FocusView: View {
                             start(task)
                         } label: {
                             HStack(spacing: 12) {
-                                Image(systemName: task.goal?.displayIconName ?? "checkmark.circle")
+                                Image(systemName: task.goal.map { ZJTheme.goalSymbol(for: $0.displayIconName) } ?? "checkmark.circle")
                                     .font(.system(size: 18, weight: .semibold))
                                     .foregroundStyle(task.goal.map { ZJTheme.goalAccent(for: $0.displayIconName) } ?? ZJTheme.accent)
                                     .frame(width: 42, height: 42)

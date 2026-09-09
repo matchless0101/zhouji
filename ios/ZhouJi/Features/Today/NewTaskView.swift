@@ -191,15 +191,11 @@ struct NewTaskView: View {
             }
         } label: {
             HStack(spacing: 12) {
-                Image(systemName: selectedGoal?.displayIconName ?? "scope")
-                    .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(selectedGoal.map { ZJTheme.goalAccent(for: $0.displayIconName) } ?? ZJTheme.accent)
-                    .frame(width: 48, height: 48)
-                    .background(
-                        selectedGoal.map { ZJTheme.goalSoft(for: $0.displayIconName) } ?? ZJTheme.accentSoft,
-                        in: RoundedRectangle(cornerRadius: 15, style: .continuous)
-                    )
-                    .accessibilityHidden(true)
+                if let selectedGoal {
+                    ZJGoalIcon(iconName: selectedGoal.displayIconName, size: 48)
+                } else {
+                    ZJGoalIcon(iconName: "target", size: 48)
+                }
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(selectedGoal?.name ?? "不关联目标")

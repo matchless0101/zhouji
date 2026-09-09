@@ -282,7 +282,7 @@ private struct GoalSettingsView: View {
     init(goal: Goal) {
         self.goal = goal
         _draftName = State(initialValue: goal.name)
-        _selectedIcon = State(initialValue: goal.icon)
+        _selectedIcon = State(initialValue: goal.iconSelection)
     }
 
     var body: some View {
@@ -318,16 +318,12 @@ private struct GoalSettingsView: View {
     }
 
     private var preview: some View {
-        let iconColor = ZJTheme.goalAccent(for: selectedIcon.rawValue)
+        let resolvedIcon = selectedIcon.resolved(for: draftName)
 
         return HStack(spacing: 16) {
-            Image(systemName: selectedIcon.rawValue)
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundStyle(iconColor)
-                .frame(width: 58, height: 58)
-                .background(ZJTheme.goalSoft(for: selectedIcon.rawValue), in: RoundedRectangle(cornerRadius: 17, style: .continuous))
+            ZJGoalIcon(iconName: resolvedIcon.rawValue, size: 58, isDecorative: false)
                 .accessibilityIdentifier("goal.settings.previewIcon")
-                .accessibilityLabel("当前图标，\(selectedIcon.title)")
+                .accessibilityLabel("当前图标，\(resolvedIcon.title)")
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(normalizedName.isEmpty ? "目标名称" : normalizedName)
@@ -335,7 +331,7 @@ private struct GoalSettingsView: View {
                     .foregroundStyle(normalizedName.isEmpty ? ZJTheme.secondaryInk : ZJTheme.ink)
                     .lineLimit(2)
 
-                Text("让每个目标一眼可认出")
+                Text(selectedIcon == .scope ? "根据名称推荐，也可以自己选" : "让每个目标一眼可认出")
                     .font(.subheadline)
                     .foregroundStyle(ZJTheme.secondaryInk)
             }
@@ -381,14 +377,13 @@ private struct GoalSettingsView: View {
                         selectedIcon = icon
                     } label: {
                         VStack(spacing: 8) {
-                            Image(systemName: icon.rawValue)
-                                .font(.system(size: 20, weight: .semibold))
+                            ZJGoalIcon(iconName: icon.rawValue, size: 40)
                             Text(icon.title)
                                 .font(.caption)
                                 .lineLimit(1)
                         }
                         .foregroundStyle(selectedIcon == icon ? iconColor : ZJTheme.secondaryInk)
-                        .frame(maxWidth: .infinity, minHeight: 70)
+                        .frame(maxWidth: .infinity, minHeight: 84)
                         .background(selectedIcon == icon ? ZJTheme.goalSoft(for: icon.rawValue) : Color.clear)
                         .contentShape(Rectangle())
                     }
@@ -424,7 +419,7 @@ private struct GoalSettingsView: View {
     }
 
     private var isSaveDisabled: Bool {
-        normalizedName.isEmpty || (normalizedName == goal.name && selectedIcon == goal.icon)
+        normalizedName.isEmpty || (normalizedName == goal.name && selectedIcon == goal.iconSelection)
     }
 
     private func save() {
@@ -452,7 +447,7 @@ private struct GoalProgressHeader: View {
 
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Label("目标进度", systemImage: iconName)
+                Label("目标进度", systemImage: ZJTheme.goalSymbol(for: iconName))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(goalColor)
 

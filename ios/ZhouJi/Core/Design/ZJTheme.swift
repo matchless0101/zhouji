@@ -98,7 +98,10 @@ enum ZJTheme {
 
     static func goalSymbol(for iconName: String) -> String {
         switch iconName {
+        case "scope": "sparkles"
+        case "target": "scope"
         case "book.closed": "book"
+        case "graduationcap": "graduationcap.fill"
         case "briefcase": "briefcase.fill"
         default: iconName
         }
@@ -139,27 +142,49 @@ enum ZJTheme {
 }
 
 struct ZJGoalIcon: View {
+    @Environment(\.colorScheme) private var colorScheme
+
     let iconName: String
     var size: CGFloat = 32
+    var isDecorative = true
 
     var body: some View {
         let color = ZJTheme.goalAccent(for: iconName)
+        let isDark = colorScheme == .dark
+        let shape = RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
+
         Image(systemName: ZJTheme.goalSymbol(for: iconName))
-            .font(.system(size: size * 0.49, weight: .medium))
-            .foregroundStyle(color)
+            .font(.system(size: size * 0.49, weight: .regular))
+            .foregroundStyle(LinearGradient(
+                colors: [color.opacity(0.78), color, color],
+                startPoint: .top, endPoint: .bottom
+            ))
+            .shadow(color: isDark ? color.opacity(0.18) : .white.opacity(0.9), radius: 1, y: 1)
             .frame(width: size, height: size)
             .background {
-                RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
-                    .fill(RadialGradient(
-                        colors: [color.opacity(0.25), ZJTheme.goalSoft(for: iconName).opacity(0.3)],
-                        center: .center, startRadius: 2, endRadius: size * 0.65
+                shape
+                    .fill(LinearGradient(
+                        stops: [.init(color: color.opacity(isDark ? 0.13 : 0.10), location: 0),
+                                .init(color: color.opacity(isDark ? 0.25 : 0.24), location: 0.55),
+                                .init(color: color.opacity(isDark ? 0.12 : 0.08), location: 1)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
                     .overlay {
-                        RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
-                            .stroke(ZJTheme.surface.opacity(0.85), lineWidth: 1)
+                        shape.fill(RadialGradient(
+                            colors: [.white.opacity(isDark ? 0.12 : 0.85), .clear],
+                            center: .topLeading, startRadius: 0, endRadius: size * 0.85
+                        ))
                     }
+                    .overlay {
+                        shape.stroke(LinearGradient(
+                            colors: [.white.opacity(isDark ? 0.18 : 0.96), .clear,
+                                     .white.opacity(isDark ? 0.08 : 0.70)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ), lineWidth: 1)
+                    }
+                    .shadow(color: color.opacity(isDark ? 0.05 : 0.08), radius: size * 0.13, y: size * 0.08)
             }
-            .accessibilityHidden(true)
+            .accessibilityHidden(isDecorative)
     }
 }
 

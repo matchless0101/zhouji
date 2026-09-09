@@ -153,11 +153,73 @@ struct GoalAndStatisticsTests {
     }
 
     @Test
-    func goalWithoutStoredIconFallsBackToScope() {
-        let goal = Goal(name: "旧目标", iconName: nil)
+    func defaultGoalArtworkMatchesNameWithoutChangingStoredChoice() {
+        let examples: [(String, GoalIcon)] = [
+            ("高数", .study), ("论文", .book), ("Java 求职面试", .work),
+            ("iOS App", .digital), ("切记1", .general), ("happy day", .general)
+        ]
+        for (name, expected) in examples {
+            let goal = Goal(name: name)
+            #expect(goal.icon == expected)
+            #expect(goal.iconSelection == .scope)
+            #expect(goal.iconName == "scope")
+        }
+        #expect(ZJTheme.goalSymbol(for: GoalIcon.study.rawValue) == "graduationcap.fill")
+        #expect(ZJTheme.goalSymbol(for: GoalIcon.book.rawValue) == "book")
+    }
 
-        #expect(goal.icon == .scope)
-        #expect(goal.displayIconName == "scope")
+    @Test
+    func legacyGoalArtworkFallsBackWithoutRewritingData() {
+        let goal = Goal(name: "高数", iconName: nil)
+        #expect(goal.icon == .study)
+        #expect(goal.iconName == nil)
+
+        goal.name = "旧目标"
+        #expect(goal.icon == .general)
+        goal.iconName = "unavailable-symbol"
+        #expect(goal.icon == .general)
+        #expect(goal.iconName == "unavailable-symbol")
+    }
+
+    @Test
+    func manualGoalIconOverridesRecommendationsAndCanReturnToAutomatic() throws {
+        let context = try makeContext()
+        let goal = try GoalService.create(name: "高数", icon: .work, in: context)
+        #expect(goal.icon == .work)
+
+        try GoalService.update(goal, name: "论文", icon: .work, in: context)
+        #expect(goal.icon == .work)
+
+        try GoalService.update(goal, name: "论文", icon: .scope, in: context)
+        #expect(goal.icon == .book)
+        #expect(goal.iconSelection == .scope)
+
+        try GoalService.update(goal, name: "高数", icon: .general, in: context)
+        #expect(goal.icon == .general)
+    }
+
+    @Test
+    func updatingOneGoalDoesNotChangeAnotherGoalIcon() throws {
+        let context = try makeContext()
+        let studyGoal = Goal(name: "高数", iconName: nil)
+        context.insert(studyGoal)
+        let generalGoal = try GoalService.create(name: "切记1", in: context)
+
+        try GoalService.update(generalGoal, name: "切记1", icon: .book, in: context)
+
+        #expect(studyGoal.iconName == nil)
+        #expect(studyGoal.icon == .study)
+        #expect(generalGoal.iconSelection == .book)
+
+        try GoalService.update(studyGoal, name: "高数", icon: .work, in: context)
+
+        let reloadedContext = ModelContext(context.container)
+        let reloadedGoals = try reloadedContext.fetch(FetchDescriptor<Goal>())
+        let reloadedStudy = try #require(reloadedGoals.first { $0.id == studyGoal.id })
+        let reloadedGeneral = try #require(reloadedGoals.first { $0.id == generalGoal.id })
+        #expect(reloadedStudy.icon == .work)
+        #expect(reloadedGeneral.icon == .book)
+        #expect(reloadedGoals.count == 2)
     }
 
     private var shanghaiCalendar: Calendar {
