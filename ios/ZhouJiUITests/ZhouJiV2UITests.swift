@@ -233,6 +233,31 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testTodayAppearanceSwitching() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 3))
+
+        for (appearance, screenshot) in [("深色模式", "today-dark"),
+                                        ("浅色模式", "today-switched-light"),
+                                        ("深色模式", "today-switched-dark")] {
+            app.buttons["tab.profile"].tap()
+            let settings = app.buttons["外观"]
+            for _ in 0..<3 where !settings.isHittable { app.swipeUp() }
+            XCTAssertTrue(settings.isHittable)
+            settings.tap()
+            app.buttons[appearance].tap()
+            XCTAssertEqual(settings.value as? String, appearance)
+            app.buttons["tab.today"].tap()
+            XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 2))
+            XCTAssertTrue(app.buttons["开始计时"].firstMatch.isHittable)
+            saveScreenshot(screenshot, app: app)
+        }
+    }
+
+    @MainActor
     func testReferenceAppearanceInDarkModeAndLargeText() throws {
         continueAfterFailure = false
         let app = makeApp()

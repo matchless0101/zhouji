@@ -352,24 +352,32 @@ private struct TodayHeader: View {
             .padding(.top, ZJTheme.pageTopSpacing)
             .padding(.bottom, 24)
             .background(alignment: .bottomTrailing) {
-                if !dynamicTypeSize.isAccessibilitySize, let illustration = UIImage(named: "TodayJourney") {
+                if !dynamicTypeSize.isAccessibilitySize,
+                   let illustration = UIImage(named: colorScheme == .dark ? "TodayJourneyDark" : "TodayJourney") {
                     Image(uiImage: illustration)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 184, height: 246)
+                        .frame(width: colorScheme == .dark ? 172 : 184,
+                               height: colorScheme == .dark ? 230 : 246)
                         .blendMode(colorScheme == .light ? .multiply : .normal)
                         .compositingGroup()
-                        .opacity(colorScheme == .light ? 1 : 0.65)
+                        // Apply the dark blend outside the group so it can merge with the page behind it.
+                        .blendMode(colorScheme == .dark ? .lighten : .normal)
                         .mask {
-                            LinearGradient(
-                                stops: [.init(color: .clear, location: 0),
-                                        .init(color: .black, location: 0.16),
-                                        .init(color: .black, location: 0.92),
-                                        .init(color: .clear, location: 1)],
-                                startPoint: .top, endPoint: .bottom
-                            )
+                            if colorScheme == .dark {
+                                Color.black
+                            } else {
+                                LinearGradient(
+                                    stops: [.init(color: .clear, location: 0),
+                                            .init(color: .black, location: 0.16),
+                                            .init(color: .black, location: 0.92),
+                                            .init(color: .clear, location: 1)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            }
                         }
-                        .offset(x: 18, y: 38)
+                        .offset(x: colorScheme == .dark ? 0 : 18,
+                                y: colorScheme == .dark ? 0 : 38)
                         .allowsHitTesting(false)
                         .accessibilityHidden(true)
                 }
