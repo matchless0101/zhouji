@@ -19,6 +19,7 @@ struct GoalsView: View {
     @State private var pendingDeletion: Goal?
     @State private var presentedError: String?
     @State private var selectedFilter: GoalFilter = .all
+    @State private var floatingControlsHeight: CGFloat = 80
     @FocusState private var isGoalFieldFocused: Bool
 
     private var inProgressGoals: [Goal] {
@@ -93,19 +94,24 @@ struct GoalsView: View {
                             }
                         }
                     }
-                    if !isAddingGoal {
-                        addGoalControls
-                            .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 24, trailing: 0))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                    }
                 }
                 .listStyle(.plain)
                 .contentMargins(.top, 0, for: .scrollContent)
+                .contentMargins(.bottom, isAddingGoal ? 12 : floatingControlsHeight + 12, for: .scrollContent)
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
             }
             .toolbar(.hidden, for: .navigationBar)
+            .overlay(alignment: .bottomTrailing) {
+                if !isAddingGoal {
+                    addGoalControls
+                        .onGeometryChange(for: CGFloat.self) { proxy in
+                            proxy.size.height
+                        } action: { height in
+                            floatingControlsHeight = height
+                        }
+                }
+            }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if isAddingGoal { addGoalControls }
             }
@@ -222,20 +228,19 @@ struct GoalsView: View {
                 Button(action: beginCreatingGoal) {
                     Label {
                         Text("新建目标")
-                            .foregroundStyle(ZJTheme.secondaryInk)
+                            .foregroundStyle(ZJTheme.ink)
                     } icon: {
                         Image(systemName: "plus")
-                            .foregroundStyle(ZJTheme.secondaryInk)
+                            .foregroundStyle(ZJTheme.accent)
                     }
-                    .font(.body)
-                    .frame(maxWidth: .infinity, minHeight: 56)
                 }
-                .buttonStyle(.zjSecondary)
+                .buttonStyle(ZJFloatingGlassButtonStyle())
+                .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
         }
         .padding(.top, 8)
-        .padding(.bottom, 8)
+        .padding(.bottom, isAddingGoal ? 8 : 16)
         .background(Color.clear)
     }
 

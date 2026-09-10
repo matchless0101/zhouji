@@ -274,6 +274,32 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testFloatingNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-ZJPreviewSampleData", "-appAppearance", "dark",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+        app.launch()
+        let newGoal = app.buttons["新建目标"]
+        XCTAssertTrue(newGoal.waitForExistence(timeout: 3))
+        let initialFrame = newGoal.frame
+        let initialGoalY = app.staticTexts["求职"].frame.minY
+        app.swipeUp()
+        XCTAssertLessThan(app.staticTexts["求职"].frame.minY, initialGoalY)
+        XCTAssertTrue(newGoal.isHittable)
+        XCTAssertEqual(newGoal.frame.minY, initialFrame.minY, accuracy: 1)
+        XCTAssertGreaterThan(newGoal.frame.midX, app.frame.midX)
+        XCTAssertLessThanOrEqual(newGoal.frame.maxY, app.buttons["tab.goals"].frame.minY)
+        saveScreenshot("goals-floating-glass-scrolled", app: app)
+        newGoal.tap()
+        XCTAssertTrue(app.textFields["目标名称"].waitForExistence(timeout: 2))
+        XCTAssertFalse(newGoal.exists)
+        app.buttons["取消"].tap()
+        XCTAssertTrue(newGoal.waitForExistence(timeout: 2))
+        XCTAssertTrue(newGoal.isHittable)
+    }
+
+    @MainActor
     func testFloatingAddTaskRemainsUsableWithRunningTimer() throws {
         continueAfterFailure = false
         let app = makeApp()
