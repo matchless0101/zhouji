@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6faff">
+  <meta name="description" content="粥记，一款为 iPhone 设计的极简任务与目标记录工具。记下今天的事，朝目标前进，记录真实投入。">
+  <title>粥记 · 把今天要做的事，简单记下来</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+  <svg class="icon-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></symbol>
+    <symbol id="plus" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></symbol>
+    <symbol id="target" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-10m-4 0h4v4"/></symbol>
+    <symbol id="power" viewBox="0 0 24 24"><path d="M12 2v10M7 5.5a9 9 0 1 0 10 0"/></symbol>
+    <symbol id="record" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h4"/></symbol>
+    <symbol id="apple" viewBox="0 0 24 28"><path fill="currentColor" stroke="none" d="M18.6 14.8c0-3 2.4-4.5 2.5-4.6-1.4-2.1-3.6-2.4-4.4-2.4-1.9-.2-3.8 1.2-4.7 1.2s-2.5-1.2-4.1-1.1c-2.1 0-4 1.2-5.1 3.1-2.2 3.7-.6 9.1 1.5 12.1 1 1.5 2.2 3.1 3.8 3 1.5-.1 2.1-1 4-1s2.5 1 4.2 1c1.7 0 2.7-1.5 3.7-3 1.2-1.7 1.7-3.4 1.7-3.5-.1 0-3.1-1.2-3.1-4.8ZM15.5 5.8c.8-1 1.4-2.4 1.2-3.8-1.2.1-2.7.8-3.6 1.8-.8.9-1.5 2.3-1.3 3.6 1.4.1 2.8-.7 3.7-1.6Z"/></symbol>
+  </defs></svg>
+    <header class="site-header wrap">
+      <a class="brand" href="#" aria-label="粥记首页"><img src="assets/logo.svg" width="36" height="36" alt=""><span>粥记</span></a>
+      <nav aria-label="主导航"><a href="#features">功能</a><a href="#philosophy">理念</a><a href="#download">下载</a><a class="nav-download" href="#download">下载粥记</a></nav>
+    </header>
+    <main id="main">
+      <section class="hero wrap" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">简单 · 专注 · 更好的自己</p>
+          <h1 id="hero-title">把今天要做的事，<br>简单记下来。</h1>
+          <p class="hero-description">不设优先级。<br>不强迫你填写截止时间。<br>不需要复杂的任务管理。</p>
+          <p class="hero-focus">只关注：<strong>目标 · 今天 · 专注</strong></p>
+          <a class="store-button" href="#download"><svg><use href="#apple"/></svg><span><strong>App Store 下载</strong><small>为 iPhone 设计</small></span></a>
+          <p class="device-note">轻一点记录，踏实地完成。</p>
+        </div>
+        <div class="hero-art" aria-label="粥记今天页面展示">
+          <div class="orb hero-orb" aria-hidden="true"></div>
+          <div class="phone phone-today hero-phone" role="img" aria-label="iPhone 上的粥记今天页面，清晰呈现待办任务"></div>
+          <p class="handwritten hero-note">从一件小事<br>开始，<br>慢慢变好。</p>
+        </div>
+      </section>
+      <section class="features section-wash" id="features" aria-labelledby="features-title">
+        <div class="wrap">
+          <div class="section-heading centered"><p class="eyebrow">为什么是粥记</p><h2 id="features-title">Todo，本来不应该这么复杂。</h2></div>
+          <div class="feature-grid">
+            <a class="feature-card" href="#today"><div class="feature-top"><span class="icon-tile blue"><svg><use href="#check"/></svg></span><h3>今天</h3></div><p>打开粥记，直接看到<br>今天要做的事情。<br>完成以后，打一个勾。</p></a>
+            <a class="feature-card" href="#goals"><div class="feature-top"><span class="icon-tile mint"><svg><use href="#target"/></svg></span><h3>目标</h3></div><p>把每天的小任务放进目标里，<br>看见自己一点一点完成它。</p></a>
+            <a class="feature-card" href="#focus"><div class="feature-top"><span class="icon-tile lavender"><svg><use href="#power"/></svg></span><h3>专注</h3></div><p>想开始的时候就开始计时，<br>不提前安排几点开始，<br>也不用规划一整天。</p></a>
+          </div>
+        </div>
+      </section>
+      <section class="today-section detail-section" id="today" aria-labelledby="today-title">
+        <div class="wrap split">
+          <div class="today-art visual"><div class="orb today-orb" aria-hidden="true"></div><div class="phone phone-today today-phone" role="img" aria-label="今天的任务清单，完成后用蓝色勾选标记"></div><p class="handwritten today-note">简单的清单，<br>也能让今天<br>变得清晰。</p></div>
+          <div class="detail-copy"><p class="eyebrow">今天</p><h2 id="today-title">今天，只看今天。</h2><p class="section-description">不需要建立复杂的项目体系，<br>也不用先学习一套任务管理方法。</p>
+            <ul class="steps"><li><span class="icon-tile blue"><svg><use href="#plus"/></svg></span><div><h3>添加一个任务</h3><p>快速记录，随手添加。</p></div></li><li><span class="icon-tile aqua"><svg><use href="#check"/></svg></span><div><h3>完成后打勾</h3><p>做完一件，就少一件。</p></div></li><li><span class="icon-tile lavender"><svg><use href="#power"/></svg></span><div><h3>想专注时开始计时</h3><p>不需要提前计划，想开始就开始。</p></div></li></ul>
+          </div>
+        </div>
+      </section>
+      <section class="goals-section detail-section" id="goals" aria-labelledby="goals-title">
+        <div class="wrap split">
+          <div class="detail-copy goal-copy"><p class="eyebrow">目标</p><h2 id="goals-title">大目标，也可以慢慢完成。</h2><p class="goal-name">“完成硕士论文”</p>
+            <div class="goal-demo" aria-label="目标进度互动演示"><div class="progress-row"><progress id="goal-progress" value="3" max="5" aria-label="论文目标完成进度">60%</progress><output id="goal-percent">60%</output></div><div class="goal-tasks"><label><input type="checkbox" checked><span>完成实验</span></label><label><input type="checkbox" checked><span>整理实验结果</span></label><label><input type="checkbox" checked><span>撰写方法章节</span></label><label><input type="checkbox"><span>完成讨论章节</span></label><label><input type="checkbox"><span>论文修改</span></label></div></div>
+            <p class="demo-hint">试着打个勾，看见进步。<span class="sr-only">此处仅为演示，不会保存任务。</span></p>
+          </div>
+          <div class="goal-art visual"><div class="orb goal-orb" aria-hidden="true"></div><div class="phone phone-goals goal-phone" role="img" aria-label="粥记目标页面，展示论文任务与完成进度"></div><p class="handwritten goal-note">每一次完成，<br>都在靠近目标。</p></div>
+        </div>
+      </section>
+      <section class="focus-section" id="focus" aria-labelledby="focus-title">
+        <div class="wrap split"><div class="timer-art"><div class="orb timer-back" aria-hidden="true"></div><div class="timer-face"><span class="timer-digits" id="timer-digits" aria-label="专注时长">42:18</span><span id="timer-status">正在专注 · 完成论文</span><button class="timer-toggle" id="timer-toggle" type="button" aria-label="暂停专注演示" aria-pressed="false"><span class="pause-mark" aria-hidden="true"></span></button></div><p class="handwritten timer-note">专注，<br>让时间变得具体。</p></div><div class="detail-copy"><p class="eyebrow">专注</p><h2 id="focus-title">不安排时间。<br>开始，就是开始。</h2><p class="section-description">粥记不会要求你提前填写“预计开始时间”<br class="desktop-break">“预计结束时间”或一堆参数。</p></div></div>
+      </section>
+      <section class="philosophy" id="philosophy" aria-labelledby="philosophy-title"><div class="wrap centered"><p class="eyebrow">粥记的原则</p><h2 id="philosophy-title">少一点管理。<br>多一点完成。</h2><ul class="principles"><li>没有优先级</li><li>没有复杂标签</li><li>没有截止时间焦虑</li><li>无需注册账户</li><li>没有学习成本</li></ul><p>我们希望粥记打开以后，第一件事不是整理任务，而是开始做事。</p></div></section>
+      <section class="pages-section" aria-labelledby="pages-title"><div class="wrap split"><div class="phone-lineup" role="img" aria-label="粥记今天、目标和记录三个核心页面"></div><div class="pages-copy"><h2 id="pages-title">三个核心页面，就够了。</h2><p>今天做什么。<br>为什么而做。<br>已经做了多少。</p><div class="page-labels"><div><span class="icon-tile blue"><svg><use href="#check"/></svg></span><strong>今天</strong><span>专注当下</span></div><div><span class="icon-tile mint"><svg><use href="#target"/></svg></span><strong>目标</strong><span>看见进步</span></div><div><span class="icon-tile lavender"><svg><use href="#record"/></svg></span><strong>记录</strong><span>回顾自己</span></div></div></div></div></section>
+      <section class="download-section" id="download" aria-labelledby="download-title"><div class="orb footer-orb-left" aria-hidden="true"></div><div class="orb footer-orb-right" aria-hidden="true"></div><div class="wrap centered"><h2 id="download-title">今天，从一件小事开始。</h2><a class="brand footer-brand" href="#"><img src="assets/logo.svg" width="42" height="42" alt=""><span>粥记</span></a><a class="store-button final-download" id="app-store-link" href="#download" aria-disabled="true"><svg><use href="#apple"/></svg><span><strong id="download-label">App Store · 即将上架</strong><small>为 iPhone 设计</small></span></a><p class="download-status" id="download-status">准备好后，在这里与你见面。</p><p class="handwritten footer-note">简单的生活，<br>可以很美好。</p></div></section>
+    </main>
+    <footer class="site-footer"><div class="footer-links"><button type="button" data-dialog="privacy">隐私说明</button><span>·</span><button type="button" data-dialog="usage">使用说明</button><a id="contact-link" hidden>联系我们</a></div><p>© 2026 粥记</p></footer>
+    <dialog id="info-dialog" aria-labelledby="dialog-title"><button class="dialog-close" type="button" aria-label="关闭">×</button><h2 id="dialog-title"></h2><div id="dialog-content"></div></dialog>
+</body>
+</html>

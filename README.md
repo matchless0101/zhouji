@@ -75,6 +75,8 @@ V3 已开放“今天”“目标”“记录”三个一级入口。统计直�
 
 ## 🔧 本地运行
 
+官网前端位于 [`website/`](website/README.md)，按官网 UI 参考图实现，无需后端与第三方依赖。预览方式、上架链接配置与验证说明见官网目录文档。
+
 工程文件：[ios/ZhouJi.xcodeproj](ios/ZhouJi.xcodeproj)
 
 1. 使用 Xcode 打开 `ios/ZhouJi.xcodeproj`
