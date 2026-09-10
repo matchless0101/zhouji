@@ -2,6 +2,8 @@
 
 根据提供的官网 UI 参考图实现，使用原生 HTML、CSS 和 JavaScript，无运行时第三方依赖、无需后端或构建步骤。页面包含首屏、功能、今天、目标、专注、产品理念、核心页面和下载区。
 
+正式官网：<https://zhouji.xiangdangdang.top/>。阿里云部署目录、配置、更新方式与验证记录见 [部署说明](deploy/README.md)。
+
 ## 本地预览
 
 在仓库根目录执行 `python3 -m http.server 4173 --bind 127.0.0.1 --directory website/dist`，访问 `http://127.0.0.1:4173`。
