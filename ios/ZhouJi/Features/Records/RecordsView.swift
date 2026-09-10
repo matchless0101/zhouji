@@ -81,7 +81,7 @@ private struct RecordsContent: View {
                     .accessibilityElement(children: .contain)
                     .accessibilityLabel("记录时间范围")
                 }
-                .padding(.top, ZJTheme.pageTopSpacing)
+                .padding(.top, ZJTheme.compactPageTopSpacing)
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {

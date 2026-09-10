@@ -54,7 +54,7 @@ struct GoalsView: View {
 
                 List {
                     pageHeader
-                        .listRowInsets(EdgeInsets(top: ZJTheme.pageTopSpacing, leading: ZJTheme.pagePadding + 6, bottom: 12, trailing: ZJTheme.pagePadding))
+                        .listRowInsets(EdgeInsets(top: ZJTheme.compactPageTopSpacing, leading: ZJTheme.pagePadding + 6, bottom: 12, trailing: ZJTheme.pagePadding))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
 
