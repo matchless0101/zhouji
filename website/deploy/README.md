@@ -12,6 +12,7 @@
 | 发布根目录 | `/var/www/zhouji-site` |
 | 当前目录 | `/var/www/zhouji-site/current`，软链接到发布版本 |
 | 首次发布版本 | `/var/www/zhouji-site/releases/7cc1dcc` |
+| Universal Links 发布版本 | `/var/www/zhouji-site/releases/20260910-universal-links` |
 | Nginx 配置 | `/etc/nginx/sites-available/zhouji-site`，软链接启用于 `sites-enabled` |
 | HTTPS 证书 | Let's Encrypt，独立域名证书，首次有效期至 2026-12-09 |
 | 证书校验目录 | `/var/www/zhouji-site/acme` |
@@ -39,3 +40,9 @@
 - `certbot renew --cert-name zhouji.xiangdangdang.top --dry-run --run-deploy-hooks --non-interactive` 续期演练成功，且执行了本站的 Nginx 加载钩子。复用服务器原有续期定时任务。
 
 官网的 App Store 链接仍未提供，下载状态保持“即将上架”。正式下载、政策和邮箱仍在 `dist/config.js` 配置。
+
+## Universal Links 更新
+
+已发布 `/.well-known/apple-app-site-association`，并兼容根目录 `/apple-app-site-association` 地址。两个地址直接返回 `application/json`，关联标识为 `7V46ZF4WY4.com.matchless.ZhouJi`，仅匹配 `/wechat/*`。更新前的 HTTPS 配置保存在 `/var/backups/zhouji-site/before-universal-links.conf`，原静态版本保留在 `releases/7cc1dcc`。
+
+后续打包需包含隐藏目录 `.well-known`。平台填写信息、签名要求和验收边界见 [微信与 Universal Links 说明](../../docs/04-微信开放平台与UniversalLinks.md)。

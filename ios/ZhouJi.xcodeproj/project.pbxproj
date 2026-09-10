@@ -64,6 +64,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		014FD451941CFBFD37F28785 /* ZhouJi.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZhouJi.entitlements; sourceTree = "<group>"; };
 		091F10FDB6775FD2CAF673D6 /* RecordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordsView.swift; sourceTree = "<group>"; };
 		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
 		1646A004151B67E5335956D1 /* GoalWriting.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalWriting.png; sourceTree = "<group>"; };
@@ -126,6 +127,7 @@
 		2FBD4BAB996290A8A484C6DB /* ZhouJi */ = {
 			isa = PBXGroup;
 			children = (
+				014FD451941CFBFD37F28785 /* ZhouJi.entitlements */,
 				5407A086F29986A1274E57F3 /* App */,
 				7E39E7F1972DF249CBD97343 /* Core */,
 				20E4D179AF395F4E09108692 /* Data */,
@@ -356,13 +358,13 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					2C58CB1C2DCD5AFEBBC301BB = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 7V46ZF4WY4;
 					};
 					6153DB4F6632572815F56D51 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 7V46ZF4WY4;
 					};
 					CDF204EBF181E7C014F96C7D = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = 7V46ZF4WY4;
 						TestTargetID = 6153DB4F6632572815F56D51;
 					};
 				};
@@ -508,7 +510,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7V46ZF4WY4;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -552,6 +554,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = ZhouJi/ZhouJi.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "粥记";
@@ -604,7 +607,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 7V46ZF4WY4;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -638,6 +641,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CODE_SIGN_ENTITLEMENTS = ZhouJi/ZhouJi.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "粥记";

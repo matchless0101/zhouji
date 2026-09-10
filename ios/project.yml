@@ -7,7 +7,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "6.0"
-    DEVELOPMENT_TEAM: ""
+    DEVELOPMENT_TEAM: "7V46ZF4WY4"
 targets:
   ZhouJi:
     type: application
@@ -17,6 +17,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.matchless.ZhouJi
+        CODE_SIGN_ENTITLEMENTS: ZhouJi/ZhouJi.entitlements
         PRODUCT_NAME: ZhouJi
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: 粥记
