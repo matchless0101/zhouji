@@ -359,8 +359,8 @@ private struct TodayHeader: View {
                     Image(uiImage: illustration)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: colorScheme == .dark ? 172 : 184,
-                               height: colorScheme == .dark ? 230 : 246)
+                        .frame(width: colorScheme == .dark ? 163 : 184,
+                               height: colorScheme == .dark ? 218 : 246)
                         .blendMode(colorScheme == .light ? .multiply : .normal)
                         .compositingGroup()
                         // Apply the dark blend outside the group so it can merge with the page behind it.

@@ -63,7 +63,7 @@ enum ZJTheme {
     )
 
     static let pagePadding: CGFloat = 18
-    static let pageTopSpacing: CGFloat = 54
+    static let pageTopSpacing: CGFloat = 42
     static let compactPageTopSpacing: CGFloat = 22
     static let rowVerticalPadding: CGFloat = 12
     static let controlHeight: CGFloat = 48
