@@ -89,13 +89,14 @@ struct ProfileView: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("粥同学")
+                Text("游客模式")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
 
-                Text("专注当下，积累成长。")
+                Text("数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。")
                     .font(.subheadline)
                     .foregroundStyle(ZJTheme.secondaryInk)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 0)
@@ -103,6 +104,7 @@ struct ProfileView: View {
         .padding(16)
         .zjCard()
         .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("profile.guestNotice")
     }
 
     private func metrics(_ statistics: StatisticsSnapshot) -> some View {
