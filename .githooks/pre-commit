@@ -1,0 +1,12 @@
+#!/bin/sh
+# Check staged text only. Report filenames, never the matched values.
+if git grep -I -l --cached -E 'wx[0-9a-fA-F]{16}|-----BEGIN (RSA |EC )?PRIVATE KEY-----' --; then
+    printf '%s\n' '提交已阻止：暂存文件中包含微信 AppID 或私钥，请移至不跟踪的配置文件。' >&2
+    exit 1
+else
+    result=$?
+    if [ "$result" -ne 1 ]; then
+        printf '%s\n' '无法完成配置泄露检查，停止提交。' >&2
+        exit "$result"
+    fi
+fi

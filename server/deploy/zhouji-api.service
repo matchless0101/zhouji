@@ -1,0 +1,22 @@
+[Unit]
+Description=ZhouJi API
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=zhouji-api
+Group=zhouji-api
+WorkingDirectory=/opt/zhouji-api/current
+EnvironmentFile=/etc/zhouji/api.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/zhouji-api/current/.venv/bin/uvicorn zhouji_api.app:create_app --factory --host 127.0.0.1 --port 8011 --workers 1 --no-access-log
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

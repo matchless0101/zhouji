@@ -3,3 +3,11 @@ DerivedData/
 *.xcuserstate
 xcuserdata/
 .impeccable/
+.env
+.env.*
+!.env.example
+*.p8
+__pycache__/
+.pytest_cache/
+.venv/
+*.egg-info/

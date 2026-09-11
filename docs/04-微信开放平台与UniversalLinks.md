@@ -9,9 +9,10 @@
 | 测试版本 Bundle ID | 当前 Debug 与 Release 使用同一个 App Bundle ID；未定义独立测试 App。测试组件 `com.matchless.ZhouJiTests` 和 `com.matchless.ZhouJiUITests` 不用于该字段 |
 | Universal Links | `https://zhouji.xiangdangdang.top/wechat/`，保留末尾 `/` |
 | Apple Team ID | `7V46ZF4WY4`，由用户提供 |
+| 微信 AppID | `仅在未跟踪的配置文件中保存`，用户于 2026-09-11 提供 |
 | AASA application identifier | `7V46ZF4WY4.com.matchless.ZhouJi`，这不是微信 AppID |
 
-微信 AppID 尚未提供，项目尚未接入微信 OpenSDK。这里只完成官网与 iOS 的域名关联准备，不表示微信登录已经实现。
+微信 AppID 已提供，AppSecret 和微信登录权限状态待确认，项目尚未接入微信 OpenSDK。这里只完成官网与 iOS 的域名关联准备，不表示微信登录已经实现。后端已确定使用 Python + FastAPI + MySQL，基础服务见 `server/`；Apple 私钥配置按用户要求暂缓。
 
 ## iOS 工程
 
