@@ -46,6 +46,7 @@ struct ProfileView: View {
                         metrics(statistics)
                         encouragementBanner
                         settingsCard
+                        AccountSessionActions()
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
                     .padding(.top, 12)

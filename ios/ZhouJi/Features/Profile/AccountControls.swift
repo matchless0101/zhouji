@@ -1,11 +1,10 @@
 import AuthenticationServices
 import SwiftUI
 
+/// Guest login entry near the top of Profile; session end actions live at the page bottom.
 struct AccountControls: View {
     @Environment(AccountStore.self) private var account
     @Environment(\.colorScheme) private var colorScheme
-    @State private var showsDeletion = false
-    @State private var showsLogout = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -54,44 +53,74 @@ struct AccountControls: View {
                 Text("任务与计时记录仍保存在本机，云同步尚未上线。")
                     .font(.footnote)
                     .foregroundStyle(ZJTheme.secondaryInk)
-                HStack {
-                    Button("退出登录") { showsLogout = true }
-                        .disabled(account.isBusy)
-                        .accessibilityIdentifier("account.logout")
-                    Spacer()
-                    Button("注销账户", role: .destructive) { showsDeletion = true }
-                        .disabled(account.isBusy)
-                        .accessibilityIdentifier("account.delete")
+            }
+            AccountStatusRow()
+        }
+        .padding(16)
+        .zjCard()
+        .task { await account.prepare() }
+    }
+}
+
+/// Logout and account deletion stay at the bottom of the Profile page when signed in.
+struct AccountSessionActions: View {
+    @Environment(AccountStore.self) private var account
+    @State private var showsDeletion = false
+    @State private var showsLogout = false
+
+    var body: some View {
+        Group {
+            if account.account != nil {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Button("退出登录") { showsLogout = true }
+                            .disabled(account.isBusy)
+                            .accessibilityIdentifier("account.logout")
+                        Spacer()
+                        Button("注销账户", role: .destructive) { showsDeletion = true }
+                            .disabled(account.isBusy)
+                            .accessibilityIdentifier("account.delete")
+                    }
+                }
+                .padding(16)
+                .zjCard()
+                .confirmationDialog("退出登录？", isPresented: $showsLogout, titleVisibility: .visible) {
+                    Button("退出登录", role: .destructive) { Task { await account.logout(); await account.prepare() } }
+                } message: {
+                    Text("本机任务、目标和计时记录会继续保留。")
+                }
+                .confirmationDialog("永久注销粥记账户？", isPresented: $showsDeletion, titleVisibility: .visible) {
+                    Button("注销账户", role: .destructive) { Task { await account.deleteAccount() } }
+                } message: {
+                    Text(account.account?.provider == "wechat"
+                         ? "将永久删除粥记服务端账户及保存的授权凭据，本机记录保留。微信中的应用授权请在微信设置中管理。"
+                         : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机任务、目标和计时记录仍会保留。")
                 }
             }
+        }
+    }
+}
+
+private struct AccountStatusRow: View {
+    @Environment(AccountStore.self) private var account
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
             if account.isWaitingForWeChat {
                 HStack {
                     ProgressView("等待微信授权…")
                     Spacer()
                     Button("取消") { account.cancelWeChat() }
                 }
-            } else if account.isBusy { ProgressView("正在处理…") }
+            } else if account.isBusy {
+                ProgressView("正在处理…")
+            }
             if let message = account.message {
                 Text(message)
                     .font(.footnote)
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .accessibilityIdentifier("account.message")
             }
-        }
-        .padding(16)
-        .zjCard()
-        .task { await account.prepare() }
-        .confirmationDialog("退出登录？", isPresented: $showsLogout, titleVisibility: .visible) {
-            Button("退出登录", role: .destructive) { Task { await account.logout(); await account.prepare() } }
-        } message: {
-            Text("本机任务、目标和计时记录会继续保留。")
-        }
-        .confirmationDialog("永久注销粥记账户？", isPresented: $showsDeletion, titleVisibility: .visible) {
-            Button("注销账户", role: .destructive) { Task { await account.deleteAccount() } }
-        } message: {
-            Text(account.account?.provider == "wechat"
-                 ? "将永久删除粥记服务端账户及保存的授权凭据，本机记录保留。微信中的应用授权请在微信设置中管理。"
-                 : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机任务、目标和计时记录仍会保留。")
         }
     }
 }
