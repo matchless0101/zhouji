@@ -46,6 +46,7 @@ struct ProfileView: View {
                         metrics(statistics)
                         encouragementBanner
                         settingsCard
+                        BackupSettingsCard()
                         AccountSessionActions()
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
@@ -327,7 +328,7 @@ private struct ProfileMetricCard: View {
     }
 }
 
-private struct ProfileSettingRow: View {
+struct ProfileSettingRow: View {
     let title: String
     let detail: String
     let systemImage: String

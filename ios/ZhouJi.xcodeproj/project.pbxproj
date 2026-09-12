@@ -12,6 +12,7 @@
 		07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409B7EA59769107E561759AD /* ElapsedTimeText.swift */; };
 		133C67A44B4E45991C1CB6EF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DBB5F5DE0B20629D81DD123 /* Security.framework */; };
 		1393CDF839361BE8DBC5C7C6 /* WechatOpenSDK-NoPay.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2C168C99ADB089400590D2D /* WechatOpenSDK-NoPay.xcframework */; };
+		1AE28A3CAB798741FAFD066C /* BackupSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE21D920EFE89D19F314717C /* BackupSettingsCard.swift */; };
 		1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9044BEDD04665F95B062D30A /* AccountStore.swift */; };
 		23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739BFA8892AE674A65737C96 /* RootTabView.swift */; };
 		23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763FEDE98326909204980EF0 /* TodoTask.swift */; };
@@ -27,6 +28,7 @@
 		461E587FC99FA97A74AEBE8B /* WeChatLoginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */; };
 		46EB6E15F04DADEB14FA1AF8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E01969A83CD9F462B172766C /* PrivacyInfo.xcprivacy */; };
 		49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247A04FBA5BEED1351742A62 /* ProfileEditor.swift */; };
+		4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */; };
 		52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760666CB6E383348C6C86675 /* WeChatLogin.swift */; };
 		69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */; };
 		6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE35BC4F8E743F7330D793A /* ProfileView.swift */; };
@@ -51,6 +53,7 @@
 		D342FF3A7D844027F62D25A7 /* ZhouJiV2UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */; };
 		D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */; };
 		DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */; };
+		DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4339224F869B244AD0294B9F /* BackupStore.swift */; };
 		E198CF76119B22225D58195C /* GoalMilestone.png in Resources */ = {isa = PBXBuildFile; fileRef = 22DF369FBA30443E63F384E4 /* GoalMilestone.png */; };
 		E52C7A415BA6BB4CDFFC8656 /* GoalCareer.png in Resources */ = {isa = PBXBuildFile; fileRef = 5D57249F85F726C34F1777E6 /* GoalCareer.png */; };
 		E9DB91015B2E08B16C43D69C /* GoalDigital.png in Resources */ = {isa = PBXBuildFile; fileRef = F563F5E85F82688888ED00FA /* GoalDigital.png */; };
@@ -93,6 +96,7 @@
 		330445BD9756850EFD1D5B36 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStoreTests.swift; sourceTree = "<group>"; };
 		409B7EA59769107E561759AD /* ElapsedTimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeText.swift; sourceTree = "<group>"; };
+		4339224F869B244AD0294B9F /* BackupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStore.swift; sourceTree = "<group>"; };
 		49B0CE29A0DF122A284A6F1D /* AccountKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountKeychain.swift; sourceTree = "<group>"; };
 		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
 		5D57249F85F726C34F1777E6 /* GoalCareer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalCareer.png; sourceTree = "<group>"; };
@@ -110,6 +114,7 @@
 		9044BEDD04665F95B062D30A /* AccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStore.swift; sourceTree = "<group>"; };
 		99D99CBCADD2F9116441ACEF /* StatisticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsService.swift; sourceTree = "<group>"; };
 		9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskUndoToast.swift; sourceTree = "<group>"; };
+		9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStoreTests.swift; sourceTree = "<group>"; };
 		A5FC5312C02A40C4E425D029 /* TaskRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRow.swift; sourceTree = "<group>"; };
 		A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
 		B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalAndStatisticsTests.swift; sourceTree = "<group>"; };
@@ -134,6 +139,7 @@
 		F435CF614869DD2BFB974BA9 /* AccountControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountControls.swift; sourceTree = "<group>"; };
 		F563F5E85F82688888ED00FA /* GoalDigital.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalDigital.png; sourceTree = "<group>"; };
 		F9FE7B80BB92D300651E1455 /* ZJTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJTheme.swift; sourceTree = "<group>"; };
+		FE21D920EFE89D19F314717C /* BackupSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSettingsCard.swift; sourceTree = "<group>"; };
 		FF801AF1512F4520691A5C32 /* ZhouJiTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -227,6 +233,7 @@
 			isa = PBXGroup;
 			children = (
 				369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */,
+				9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */,
 				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
 				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
 				180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */,
@@ -363,6 +370,7 @@
 			isa = PBXGroup;
 			children = (
 				F435CF614869DD2BFB974BA9 /* AccountControls.swift */,
+				FE21D920EFE89D19F314717C /* BackupSettingsCard.swift */,
 				247A04FBA5BEED1351742A62 /* ProfileEditor.swift */,
 				2AE35BC4F8E743F7330D793A /* ProfileView.swift */,
 			);
@@ -381,6 +389,7 @@
 		F101C6E92A5158C82E2DA999 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				4339224F869B244AD0294B9F /* BackupStore.swift */,
 				2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */,
 				409B7EA59769107E561759AD /* ElapsedTimeText.swift */,
 				6168DF05F9358B91A840E301 /* GoalService.swift */,
@@ -527,6 +536,8 @@
 				067375DB8F4E47FFA01BCC14 /* AccountKeychain.swift in Sources */,
 				1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */,
 				41D14A4D877104C6569584D3 /* AppAppearance.swift in Sources */,
+				1AE28A3CAB798741FAFD066C /* BackupSettingsCard.swift in Sources */,
+				DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */,
 				DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */,
 				07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */,
 				7EEF9D1CBF8D22787B4FC568 /* FocusView.swift in Sources */,
@@ -560,6 +571,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				973DA768BCD323FDA88B5127 /* AccountStoreTests.swift in Sources */,
+				4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */,
 				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
 				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
 				392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */,
