@@ -39,6 +39,9 @@ struct AccountControls: View {
                         .accessibilityIdentifier("account.retry")
                 }
             } else {
+                Text("任务与计时记录仍保存在本机，云同步尚未上线。")
+                    .font(.footnote)
+                    .foregroundStyle(ZJTheme.secondaryInk)
                 HStack {
                     Button("退出登录") { showsLogout = true }
                         .accessibilityIdentifier("account.logout")

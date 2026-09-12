@@ -2,11 +2,13 @@ import hashlib
 import secrets
 import time
 import uuid
+import unicodedata
+from typing import Literal
 from collections import defaultdict, deque
 from threading import Lock
 
 from fastapi import APIRouter, Header, HTTPException, Request, Response
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -23,6 +25,31 @@ class AppleLogin(BaseModel):
     challenge: str = Field(min_length=32, max_length=128)
     code: str = Field(min_length=1, max_length=4096)
     identity_token: str = Field(min_length=1, max_length=16384)
+
+
+class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    nickname: str = Field(max_length=100)
+    avatar: Literal['sunrise', 'leaf', 'moon', 'ocean', 'flower', 'mountain']
+
+    @field_validator('nickname')
+    @classmethod
+    def valid_nickname(cls, value):
+        value = unicodedata.normalize('NFC', value.strip())
+        if not 1 <= len(value) <= 20:
+            raise ValueError('nickname length')
+        for char in value:
+            category = unicodedata.category(char)
+            if category in ('Cc', 'Cs', 'Zl', 'Zp') or (category == 'Cf' and char not in '\u200c\u200d'):
+                raise ValueError('nickname contains control characters')
+        if not any(unicodedata.category(char)[0] in 'LNSP' for char in value):
+            raise ValueError('nickname must be visible')
+        return value
+
+
+def public_account(account):
+    return {'id': account['id'], 'provider': 'apple',
+            'nickname': account['nickname'], 'avatar': account['avatar']}
 
 
 class RateLimiter:
@@ -116,12 +143,13 @@ def auth_router(database, provider):
                             apple_refresh_encrypted=encrypted, created_at=now, verified_at=now))
                     conn.execute(insert(sessions).values(token_hash=digest(token), account_id=account_id,
                                                          created_at=now, expires_at=expires))
+                    result_account = conn.execute(select(accounts).where(accounts.c.id == account_id)).mappings().one()
                 break
             except IntegrityError:
                 if attempt:
                     raise
         return {'token': token, 'expires_at': expires,
-                'account': {'id': account_id, 'provider': 'apple'}}
+                'account': public_account(result_account)}
 
     @router.get('/account')
     def me(authorization: str | None = Header(default=None)):
@@ -139,7 +167,19 @@ def auth_router(database, provider):
                 raise HTTPException(503, '暂时无法验证登录，请稍后重试') from None
             with database.begin() as conn:
                 conn.execute(update(accounts).where(accounts.c.id == account['id']).values(verified_at=now))
-        return {'id': account['id'], 'provider': 'apple'}
+        return public_account(account)
+
+    @router.patch('/account/profile')
+    def edit_profile(body: ProfileUpdate, authorization: str | None = Header(default=None)):
+        # Use the authenticated account only; also perform the same Apple revalidation as /account.
+        current = me(authorization)
+        with database.begin() as conn:
+            result = conn.execute(update(accounts).where(accounts.c.id == current['id']).values(
+                nickname=body.nickname, avatar=body.avatar))
+            if result.rowcount != 1:
+                raise HTTPException(401, '请重新登录')
+            account = conn.execute(select(accounts).where(accounts.c.id == current['id'])).mappings().one()
+        return public_account(account)
 
     @router.post('/auth/logout', status_code=204)
     def logout(authorization: str | None = Header(default=None)):

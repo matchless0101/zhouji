@@ -9,6 +9,7 @@ struct ProfileView: View {
 
     @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
     @State private var isAboutPresented = false
+    @State private var isProfileEditorPresented = false
 
     private var appearance: AppAppearance {
         AppAppearance(rawValue: appearanceRawValue) ?? .system
@@ -56,6 +57,9 @@ struct ProfileView: View {
             .sheet(isPresented: $isAboutPresented) {
                 AboutZhouJiView()
             }
+            .sheet(isPresented: $isProfileEditorPresented) {
+                if let profile = account.account { ProfileEditor(profile: profile) }
+            }
         }
     }
 
@@ -71,7 +75,42 @@ struct ProfileView: View {
         }
     }
 
-    private var identityCard: some View {
+    @ViewBuilder private var identityCard: some View {
+        if let profile = account.account {
+            Button {
+                isProfileEditorPresented = true
+            } label: {
+                HStack(spacing: 16) {
+                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .sunrise)
+                    VStack(alignment: .leading, spacing: 7) {
+                        Text(profile.displayName)
+                            .font(.title3.weight(.bold))
+                            .foregroundStyle(ZJTheme.ink)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                            .accessibilityIdentifier("profile.displayName")
+                        Label("Apple 登录", systemImage: "apple.logo")
+                            .font(.caption)
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                }
+                .padding(16)
+                .zjCard()
+            }
+            .buttonStyle(.plain)
+            .disabled(account.isBusy)
+            .accessibilityLabel("\(profile.displayName)，编辑个人资料")
+            .accessibilityIdentifier("profile.edit")
+        } else {
+            guestIdentityCard
+        }
+    }
+
+    private var guestIdentityCard: some View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
@@ -91,13 +130,11 @@ struct ProfileView: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text(account.account == nil ? "游客模式" : "已通过 Apple 登录")
+                Text("游客模式")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
 
-                Text(account.account == nil
-                     ? "数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。"
-                     : "云同步尚未上线，任务与记录仍保存在本机。")
+                Text("数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。")
                     .font(.subheadline)
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
@@ -108,7 +145,7 @@ struct ProfileView: View {
         .padding(16)
         .zjCard()
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(account.account == nil ? "profile.guestNotice" : "profile.accountNotice")
+        .accessibilityIdentifier("profile.guestNotice")
     }
 
     private func metrics(_ statistics: StatisticsSnapshot) -> some View {

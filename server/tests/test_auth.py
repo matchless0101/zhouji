@@ -193,3 +193,50 @@ def test_client_secret_is_short_lived_es256_and_empty_revoke_body_is_success(app
     factory.return_value.__exit__ = Mock(return_value=False)
     monkeypatch.setattr(httpx, 'Client', factory)
     provider.revoke(provider.cipher.encrypt(b'private-refresh').decode())
+
+
+def test_profile_defaults_update_persist_and_do_not_leak_into_other_accounts(setup):
+    client, db, provider = setup
+    first, _, _ = login(client)
+    h1 = {'Authorization': 'Bearer ' + first.json()['token']}
+    assert first.json()['account']['nickname'] == '粥记用户'
+    assert first.json()['account']['avatar'] == 'sunrise'
+    provider.exchange.return_value = ('another-subject', 'other-encrypted')
+    other, _, _ = login(client)
+    h2 = {'Authorization': 'Bearer ' + other.json()['token']}
+    response = client.patch('/api/v1/account/profile', headers=h1,
+                            json={'nickname': '  小粥 🌱  ', 'avatar': 'leaf'})
+    assert response.status_code == 200
+    assert response.json()['nickname'] == '小粥 🌱'
+    assert response.json()['avatar'] == 'leaf'
+    assert client.get('/api/v1/account', headers=h2).json()['nickname'] == '粥记用户'
+    provider.exchange.return_value = ('test-subject', 'encrypted-refresh')
+    again, _, _ = login(client)
+    assert again.json()['account'] == response.json()
+    assert client.patch('/api/v1/account/profile', json={'nickname': '访客', 'avatar': 'leaf'}).status_code == 401
+    assert client.patch('/api/v1/account/profile', headers=h1, json={
+        'nickname': '越权', 'avatar': 'moon', 'id': other.json()['account']['id']}).status_code == 422
+
+
+@pytest.mark.parametrize('nickname', ['', '   ', '字'*21, '换\n行', '含\u0000字符', '隐藏\u202e方向', '\u200d'])
+def test_profile_rejects_invalid_nicknames_without_changes(setup, nickname):
+    client, db, provider = setup
+    result, _, _ = login(client)
+    headers = {'Authorization': 'Bearer ' + result.json()['token']}
+    response = client.patch('/api/v1/account/profile', headers=headers,
+                            json={'nickname': nickname, 'avatar': 'leaf'})
+    assert response.status_code == 422
+    assert client.get('/api/v1/account', headers=headers).json()['nickname'] == '粥记用户'
+
+
+def test_profile_rejects_untrusted_avatar_urls_and_expired_credentials(setup):
+    client, db, provider = setup
+    result, _, _ = login(client)
+    headers = {'Authorization': 'Bearer ' + result.json()['token']}
+    assert client.patch('/api/v1/account/profile', headers=headers,
+        json={'nickname': '小粥', 'avatar': 'https://example.com/track'}).status_code == 422
+    with db.begin() as conn:
+        conn.execute(update(accounts).values(verified_at=1))
+    provider.validate_refresh.side_effect = InvalidIdentity
+    assert client.patch('/api/v1/account/profile', headers=headers,
+        json={'nickname': '小粥', 'avatar': 'leaf'}).status_code == 401

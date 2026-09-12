@@ -43,11 +43,14 @@ final class AccountStore {
                     return
                 }
             }
-            account = try await api.account(token: saved.token)
+            let refreshed = try await api.account(token: saved.token)
+            try applyAccount(refreshed)
             message = nil
         } catch AccountError.expired {
             do { try clearSession() } catch { message = AccountError.keychain.localizedDescription; return }
             message = AccountError.expired.localizedDescription
+        } catch AccountError.keychain {
+            message = AccountError.keychain.localizedDescription
         } catch {
             // Offline use remains available. Cached account status never implies sync success.
             message = account == nil ? AccountError.keychain.localizedDescription
@@ -126,6 +129,38 @@ final class AccountStore {
             try clearSession()
             message = nil
         } catch { message = error.localizedDescription }
+    }
+
+    func updateProfile(nickname: String, avatar: String, accountID: String) async -> Bool {
+        guard !isBusy, let session, session.account.id == accountID else { return false }
+        isBusy = true
+        message = nil
+        defer { isBusy = false }
+        do {
+            let updated = try await api.updateProfile(token: session.token, nickname: nickname, avatar: avatar)
+            guard updated.id == session.account.id else { throw AccountError.invalidResponse }
+            do { try applyAccount(updated) }
+            catch {
+                // The server has saved the change; do not falsely present it as a failed save.
+                message = "资料已保存，本机缓存暂未更新，请解锁设备后重新打开 App。"
+            }
+            return true
+        } catch AccountError.expired {
+            do { try clearSession() } catch { message = AccountError.keychain.localizedDescription; return false }
+            message = AccountError.expired.localizedDescription
+            return false
+        } catch {
+            message = error.localizedDescription
+            return false
+        }
+    }
+
+    private func applyAccount(_ updated: AppAccount) throws {
+        guard var saved = session, saved.account.id == updated.id else { throw AccountError.invalidResponse }
+        saved.account = updated
+        session = saved
+        account = updated
+        try storage.save(saved)
     }
 
     func deleteAccount() async {

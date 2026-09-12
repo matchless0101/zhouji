@@ -6,6 +6,7 @@ private actor AccountStub: AccountServing {
     var fails = false
     var expired = false
     var logoutCalls = 0
+    var profile = AppAccount(id: "test-account", provider: "apple")
     let value = AccountSession(token: "test-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
                                account: AppAccount(id: "test-account", provider: "apple"))
     func setFailure(_ value: Bool) { fails = value }
@@ -21,7 +22,13 @@ private actor AccountStub: AccountServing {
     func account(token: String) async throws -> AppAccount {
         if expired { throw AccountError.expired }
         if fails { throw AccountError.unavailable }
-        return value.account
+        return profile
+    }
+    func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount {
+        if expired { throw AccountError.expired }
+        if fails { throw AccountError.unavailable }
+        profile = AppAccount(id: "test-account", provider: "apple", nickname: nickname, avatar: avatar)
+        return profile
     }
     func logout(token: String) async throws {
         logoutCalls += 1
@@ -48,6 +55,54 @@ private actor AccountStub: AccountServing {
 }
 
 @MainActor struct AccountStoreTests {
+    @Test func profileSaveUpdatesIdentityAndSurvivesRestart() async {
+        let api = AccountStub()
+        let storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        let success = await store.updateProfile(nickname: "小粥", avatar: "leaf", accountID: "test-account")
+        #expect(success)
+        #expect(store.account?.displayName == "小粥")
+        #expect(storage.value?.account.avatar == "leaf")
+        let restored = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await restored.restore()
+        #expect(restored.account?.displayName == "小粥")
+        #expect(restored.account?.avatar == "leaf")
+    }
+
+    @Test func profileFailureKeepsOldIdentityAndWrongAccountCannotSave() async {
+        let api = AccountStub()
+        let storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        #expect(await store.updateProfile(nickname: "别人", avatar: "leaf", accountID: "other") == false)
+        await api.setFailure(true)
+        #expect(await store.updateProfile(nickname: "小粥", avatar: "leaf", accountID: "test-account") == false)
+        #expect(store.account?.displayName == "粥记用户")
+        #expect(storage.value?.account.nickname == nil)
+    }
+
+    @Test func remoteProfileSaveWithCacheFailureIsReportedTruthfully() async {
+        let api = AccountStub()
+        let storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        storage.failsSave = true
+        #expect(await store.updateProfile(nickname: "小粥", avatar: "moon", accountID: "test-account"))
+        #expect(store.account?.displayName == "小粥")
+        #expect(store.message?.contains("资料已保存") == true)
+    }
+
+    @Test func oldAccountCacheWithoutProfileFieldsStillDecodes() throws {
+        let data = Data(#"{"id":"old-account","provider":"apple"}"#.utf8)
+        let account = try JSONDecoder().decode(AppAccount.self, from: data)
+        #expect(account.displayName == "粥记用户")
+        #expect(account.avatar == nil)
+    }
+
     @Test func unreadableKeychainDoesNotClaimAnUnverifiedAccountExists() async {
         let storage = MemorySession()
         storage.failsRead = true

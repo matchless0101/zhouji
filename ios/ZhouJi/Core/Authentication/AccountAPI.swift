@@ -9,17 +9,24 @@ struct LoginChallenge: Codable, Sendable {
 struct AppAccount: Codable, Equatable, Sendable {
     let id: String
     let provider: String
+    var nickname: String? = nil
+    var avatar: String? = nil
+
+    var displayName: String {
+        guard let nickname, !nickname.isEmpty else { return "粥记用户" }
+        return nickname
+    }
 }
 
 struct AccountSession: Codable, Sendable {
     let token: String
     let expiresAt: Double
-    let account: AppAccount
+    var account: AppAccount
     var appleUser: String?
 }
 
 enum AccountError: LocalizedError {
-    case expired, unavailable, invalidResponse, keychain, reauthenticate, invalidAuthorization
+    case expired, unavailable, invalidResponse, keychain, reauthenticate, invalidAuthorization, invalidProfile
 
     var errorDescription: String? {
         switch self {
@@ -29,6 +36,7 @@ enum AccountError: LocalizedError {
         case .keychain: "无法安全保存登录状态，请解锁设备后重试。"
         case .reauthenticate: "为保护账户，请退出后重新登录，再注销账户。"
         case .invalidAuthorization: "Apple 授权未完成，请重新尝试。"
+        case .invalidProfile: "昵称需为 1–20 个字符，不能包含换行或隐藏字符。"
         }
     }
 }
@@ -37,6 +45,7 @@ protocol AccountServing: Sendable {
     func challenge() async throws -> LoginChallenge
     func login(challenge: String, code: String, identityToken: String) async throws -> AccountSession
     func account(token: String) async throws -> AppAccount
+    func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount
     func logout(token: String) async throws
     func delete(token: String) async throws
 }
@@ -64,6 +73,11 @@ struct AccountAPI: AccountServing {
 
     func account(token: String) async throws -> AppAccount {
         try await decode("account", token: token)
+    }
+
+    func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount {
+        let body = try JSONSerialization.data(withJSONObject: ["nickname": nickname, "avatar": avatar])
+        return try await decode("account/profile", method: "PATCH", token: token, body: body)
     }
 
     func logout(token: String) async throws {
@@ -101,6 +115,7 @@ struct AccountAPI: AccountServing {
         case 200..<300: return data
         case 401: throw AccountError.expired
         case 403: throw AccountError.reauthenticate
+        case 422 where path == "account/profile": throw AccountError.invalidProfile
         default: throw AccountError.unavailable
         }
     }

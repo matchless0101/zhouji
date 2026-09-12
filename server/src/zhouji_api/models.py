@@ -11,6 +11,8 @@ accounts = Table('auth_accounts', metadata,
     Column('apple_refresh_encrypted', Text, nullable=False),
     Column('created_at', BigInteger, nullable=False),
     Column('verified_at', BigInteger, nullable=False),
+    Column('nickname', String(20), nullable=False, server_default='粥记用户'),
+    Column('avatar', String(16), nullable=False, server_default='sunrise'),
 )
 sessions = Table('auth_sessions', metadata,
     Column('token_hash', identifier(64), primary_key=True),
