@@ -83,6 +83,18 @@ python3.12 -m venv .venv
 - 配置备份：`/etc/zhouji/api.env.before-apple`、`/etc/nginx/sites-available/zhouji-site.before-apple`。官网、两个 AASA 地址及 `/wechat/` 应在每次部署后验证。
 - 本次账号功能不删除本机 SwiftData 数据；尚无云端任务表。后续同步必须增加游客数据归属和账号隔离，再接通自动同步。
 
+## 备份与故障探针（阶段 A）
+
+- 数据库备份脚本：`deploy/backup-zhouji-db.sh`；演练步骤与验收见 `deploy/BACKUP-DRILL.md`。令牌加密密钥必须与库同批备份。
+- 就绪探针：`deploy/health-probe.sh`，对 `GET /api/v1/health/ready` 非 200 返回非零退出码，可接入 cron / systemd timer / 外部拨测。示例：
+
+```sh
+# crontab -e
+*/5 * * * * /opt/zhouji-api/current/deploy/health-probe.sh http://127.0.0.1:8011 || logger -t zhouji-api 'ready check failed'
+```
+
+告警通道（邮件、IM webhook）由服务器侧已有通知设施承接；本仓库只保证探针可脚本化调用。
+
 回退首次部署：先恢复粥记站点配置备份，移除本次专用限流配置 `/etc/nginx/conf.d/zhouji-api-limit.conf`，`nginx -t` 成功后 reload，再停止 `zhouji-api`。保留数据库与密钥备份，不因服务回退删除账户数据。
 
 接口实现依据：[Apple 用户验证](https://developer.apple.com/documentation/signinwithapple/verifying-a-user)、[Apple 账户注销与令牌撤销](https://developer.apple.com/documentation/technotes/tn3194-handling-account-deletions-and-revoking-tokens-for-sign-in-with-apple)、[PyJWT](https://pyjwt.readthedocs.io/en/stable/)。

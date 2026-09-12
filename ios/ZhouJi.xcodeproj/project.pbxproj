@@ -16,6 +16,7 @@
 		1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9044BEDD04665F95B062D30A /* AccountStore.swift */; };
 		23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739BFA8892AE674A65737C96 /* RootTabView.swift */; };
 		23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763FEDE98326909204980EF0 /* TodoTask.swift */; };
+		2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */; };
 		283DFB2464B4A6C5775A5497 /* GoalWriting.png in Resources */ = {isa = PBXBuildFile; fileRef = 1646A004151B67E5335956D1 /* GoalWriting.png */; };
 		28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */; };
 		34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6168DF05F9358B91A840E301 /* GoalService.swift */; };
@@ -30,6 +31,7 @@
 		49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247A04FBA5BEED1351742A62 /* ProfileEditor.swift */; };
 		4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */; };
 		52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760666CB6E383348C6C86675 /* WeChatLogin.swift */; };
+		682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */; };
 		69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */; };
 		6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE35BC4F8E743F7330D793A /* ProfileView.swift */; };
 		719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */; };
@@ -46,6 +48,7 @@
 		AB2404F9D508EBD1AF51DF52 /* TimerMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18CD865EF12BEF475370DF2B /* TimerMath.swift */; };
 		ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FC5312C02A40C4E425D029 /* TaskRow.swift */; };
 		AF6738630FD3D445014B99DE /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF369424D165E148281CB11E /* TodayView.swift */; };
+		C2C59084A547B8E13E19FC5F /* MigrationRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE38239592F10514065F5284 /* MigrationRegressionTests.swift */; };
 		C42867AA3411C6BB6EAF0903 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */; };
 		D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091F10FDB6775FD2CAF673D6 /* RecordsView.swift */; };
 		D27670415C7369910700AB77 /* AccountControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = F435CF614869DD2BFB974BA9 /* AccountControls.swift */; };
@@ -82,6 +85,7 @@
 
 /* Begin PBXFileReference section */
 		014FD451941CFBFD37F28785 /* ZhouJi.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZhouJi.entitlements; sourceTree = "<group>"; };
+		05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSafetyStore.swift; sourceTree = "<group>"; };
 		091F10FDB6775FD2CAF673D6 /* RecordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordsView.swift; sourceTree = "<group>"; };
 		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
 		1646A004151B67E5335956D1 /* GoalWriting.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalWriting.png; sourceTree = "<group>"; };
@@ -110,6 +114,7 @@
 		763FEDE98326909204980EF0 /* TodoTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTask.swift; sourceTree = "<group>"; };
 		8200A7EA922F71B190159019 /* TimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSheet.swift; sourceTree = "<group>"; };
 		829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiApp.swift; sourceTree = "<group>"; };
+		82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyDataFixtures.swift; sourceTree = "<group>"; };
 		8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerControllerTests.swift; sourceTree = "<group>"; };
 		9044BEDD04665F95B062D30A /* AccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStore.swift; sourceTree = "<group>"; };
 		99D99CBCADD2F9116441ACEF /* StatisticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsService.swift; sourceTree = "<group>"; };
@@ -122,6 +127,7 @@
 		C607725C41AC3A40809F71B5 /* AccountAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPI.swift; sourceTree = "<group>"; };
 		C9C35F7363B8898BC2EBAC9F /* TodayJourneyDark.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TodayJourneyDark.png; sourceTree = "<group>"; };
 		CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMathTests.swift; sourceTree = "<group>"; };
+		CE38239592F10514065F5284 /* MigrationRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationRegressionTests.swift; sourceTree = "<group>"; };
 		D2C168C99ADB089400590D2D /* WechatOpenSDK-NoPay.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "WechatOpenSDK-NoPay.xcframework"; path = "Vendor/WechatOpenSDK-NoPay.xcframework"; sourceTree = "<group>"; };
 		D4D74816771A9FD9CCE4D7B9 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
 		D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiV2UITests.swift; sourceTree = "<group>"; };
@@ -236,6 +242,8 @@
 				9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */,
 				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
 				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
+				82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */,
+				CE38239592F10514065F5284 /* MigrationRegressionTests.swift */,
 				180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */,
 				8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */,
 				CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */,
@@ -389,6 +397,7 @@
 		F101C6E92A5158C82E2DA999 /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */,
 				4339224F869B244AD0294B9F /* BackupStore.swift */,
 				2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */,
 				409B7EA59769107E561759AD /* ElapsedTimeText.swift */,
@@ -536,6 +545,7 @@
 				067375DB8F4E47FFA01BCC14 /* AccountKeychain.swift in Sources */,
 				1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */,
 				41D14A4D877104C6569584D3 /* AppAppearance.swift in Sources */,
+				2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */,
 				1AE28A3CAB798741FAFD066C /* BackupSettingsCard.swift in Sources */,
 				DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */,
 				DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */,
@@ -574,6 +584,8 @@
 				4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */,
 				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
 				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
+				682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */,
+				C2C59084A547B8E13E19FC5F /* MigrationRegressionTests.swift in Sources */,
 				392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */,
 				39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */,
 				447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */,
