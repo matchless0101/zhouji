@@ -19,6 +19,12 @@ private actor AccountStub: AccountServing {
         if fails { throw AccountError.unavailable }
         return value
     }
+    func weChatChallenge() async throws -> LoginChallenge { try await challenge() }
+    func loginWeChat(challenge: String, code: String) async throws -> AccountSession {
+        if fails { throw AccountError.unavailable }
+        profile = AppAccount(id: "wechat-account", provider: "wechat")
+        return AccountSession(token: "wechat-token", expiresAt: Date.now.timeIntervalSince1970 + 3600, account: profile)
+    }
     func account(token: String) async throws -> AppAccount {
         if expired { throw AccountError.expired }
         if fails { throw AccountError.unavailable }
@@ -191,5 +197,72 @@ private actor AccountStub: AccountServing {
         await api.setFailure(false)
         await store.prepare()
         #expect(store.challenge != nil)
+    }
+}
+
+@MainActor private final class WeChatStub: WeChatAuthorizing {
+    var failure: WeChatLoginError?
+    var receivedState: String?
+    var waits = false
+    var pending: CheckedContinuation<String, Error>?
+    func authorize(state: String) async throws -> String {
+        receivedState = state
+        if let failure { throw failure }
+        if waits { return try await withCheckedThrowingContinuation { pending = $0 } }
+        return "one-use-code"
+    }
+    func cancel() { pending?.resume(throwing: WeChatLoginError.cancelled); pending = nil }
+    func handle(url: URL) {}
+    func handle(activity: NSUserActivity) {}
+}
+
+@MainActor struct WeChatAccountTests {
+    @Test func weChatLoginPersistsAndAppleRevocationDoesNotLogItOut() async {
+        let api = AccountStub(), storage = MemorySession(), wechat = WeChatStub()
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false, weChat: wechat)
+        await store.loginWeChat()
+        #expect(wechat.receivedState == "test-challenge")
+        #expect(store.account?.provider == "wechat")
+        #expect(storage.value?.appleUser == nil)
+        #expect(storage.value?.token == "wechat-token")
+        await store.credentialRevoked()
+        #expect(store.account?.provider == "wechat")
+        let restored = AccountStore(api: api, storage: storage, checksAppleCredential: false, weChat: wechat)
+        await restored.restore()
+        #expect(restored.account?.id == "wechat-account")
+        await restored.logout()
+        #expect(storage.value == nil)
+    }
+
+    @Test func unavailableWeChatAndFailedKeychainNeverLeaveLoggedInAccount() async {
+        let api = AccountStub(), storage = MemorySession(), wechat = WeChatStub()
+        let store = AccountStore(api: api, storage: storage, weChat: wechat)
+        wechat.failure = .notInstalled
+        await store.loginWeChat()
+        #expect(store.account == nil)
+        #expect(store.message == WeChatLoginError.notInstalled.localizedDescription)
+        #expect(!store.isBusy && !store.isWaitingForWeChat)
+        wechat.failure = nil
+        storage.failsSave = true
+        await store.loginWeChat()
+        #expect(store.account == nil && storage.value == nil)
+        #expect(await api.logoutCalls == 1)
+        #expect(store.message == AccountError.keychain.localizedDescription)
+    }
+
+    @Test func cancellingAuthorizationClearsBusyStateAndAllowsRetry() async {
+        let api = AccountStub(), storage = MemorySession(), wechat = WeChatStub()
+        wechat.waits = true
+        let store = AccountStore(api: api, storage: storage, weChat: wechat)
+        let task = Task { await store.loginWeChat() }
+        while wechat.pending == nil { await Task.yield() }
+        #expect(store.isWaitingForWeChat)
+        store.cancelWeChat()
+        await task.value
+        #expect(!store.isBusy && !store.isWaitingForWeChat)
+        #expect(store.account == nil)
+        wechat.waits = false
+        await store.loginWeChat()
+        #expect(store.account?.provider == "wechat")
     }
 }

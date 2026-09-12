@@ -12,6 +12,9 @@ struct AppAccount: Codable, Equatable, Sendable {
     var nickname: String? = nil
     var avatar: String? = nil
 
+    var providerName: String { provider == "wechat" ? "微信登录" : "Apple 登录" }
+    var providerIcon: String { provider == "wechat" ? "message.fill" : "apple.logo" }
+
     var displayName: String {
         guard let nickname, !nickname.isEmpty else { return "粥记用户" }
         return nickname
@@ -43,6 +46,8 @@ enum AccountError: LocalizedError {
 
 protocol AccountServing: Sendable {
     func challenge() async throws -> LoginChallenge
+    func weChatChallenge() async throws -> LoginChallenge
+    func loginWeChat(challenge: String, code: String) async throws -> AccountSession
     func login(challenge: String, code: String, identityToken: String) async throws -> AccountSession
     func account(token: String) async throws -> AppAccount
     func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount
@@ -69,6 +74,15 @@ struct AccountAPI: AccountServing {
             "challenge": challenge, "code": code, "identity_token": identityToken
         ])
         return try await decode("auth/apple", method: "POST", body: body)
+    }
+
+    func weChatChallenge() async throws -> LoginChallenge {
+        try await decode("auth/wechat/challenge", method: "POST")
+    }
+
+    func loginWeChat(challenge: String, code: String) async throws -> AccountSession {
+        let body = try JSONSerialization.data(withJSONObject: ["challenge": challenge, "code": code])
+        return try await decode("auth/wechat", method: "POST", body: body)
     }
 
     func account(token: String) async throws -> AppAccount {

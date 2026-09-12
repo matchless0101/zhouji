@@ -4,9 +4,9 @@
 
 ## 当前交付范围
 
-- FastAPI 与独立 MySQL 已部署，提供健康检查、Apple 登录准备、授权验证、账户读取、昵称头像编辑、退出及注销接口。
-- iOS 使用系统 Apple 登录按钮，登录状态保存在设备钥匙串，支持恢复、退出和注销。登录不上传本机任务、目标或计时记录。
-- 微信 AppID 与 AppSecret 已由用户提供并私下保存，微信登录权限仍待确认，微信 SDK 与登录接口尚未实现。
+- FastAPI 与独立 MySQL 已部署，提供健康检查、Apple / 微信登录准备与换码、授权验证、账户读取、昵称头像编辑、退出及注销接口。
+- iOS 使用系统 Apple 登录按钮与微信 OpenSDK 登录入口，登录状态保存在设备钥匙串，支持恢复、退出和注销。登录不上传本机任务、目标或计时记录。
+- 微信 AppID 与 AppSecret 已由用户提供并私下保存；服务端微信 OAuth、账户多 provider 模型与迁移 `003_wechat_login.sql` 已完成。微信开放平台登录权限状态与真机授权仍待人工确认。
 - Apple 平台 App ID、专用密钥与服务器配置已完成。用户已在真机确认 Apple 登录与退出正常；真机注销尚未人工验收，其成功、失败与重试路径已由自动化测试覆盖。
 - 云同步尚未实现，登录界面与游客界面均明确说明数据仍在本机。
 
@@ -45,9 +45,11 @@ python3.12 -m venv .venv
 | `GET /api/v1/health/ready` | MySQL 连接与已启用登录所需表结构正常返回 200，否则 503 |
 | `POST /api/v1/auth/apple/challenge` | 返回 5 分钟有效的一次性 challenge 和 nonce |
 | `POST /api/v1/auth/apple` | 接收 challenge、code、identity_token，向 Apple 换码并验证后返回账户与 30 天会话 |
-| `GET /api/v1/account` | Bearer 会话查询当前账户，每 24 小时向 Apple 再验证授权 |
+| `POST /api/v1/auth/wechat/challenge` | 返回绑定微信 provider 的一次性 challenge 和 nonce |
+| `POST /api/v1/auth/wechat` | 接收 challenge、code，向微信换码并验证后返回账户与 30 天会话 |
+| `GET /api/v1/account` | Bearer 会话查询当前账户，每 24 小时向对应登录提供方再验证授权 |
 | `POST /api/v1/auth/logout` | 撤销当前会话，重复退出返回 204 |
-| `DELETE /api/v1/account` | 需最近 10 分钟的登录；先撤销 Apple 授权，再删除账户及所有会话 |
+| `DELETE /api/v1/account` | 需最近 10 分钟的登录；先撤销 Apple 授权（微信无对等撤销端点），再删除账户及所有会话 |
 
 健康响应均禁止缓存，不返回数据库地址、账号、SQL 错误或密钥。登录启用时，就绪检查同时检查账户、会话和一次性请求表的列。公网不提供 Swagger/OpenAPI 文档。
 
@@ -55,7 +57,7 @@ python3.12 -m venv .venv
 
 新增 `PATCH /api/v1/account/profile`，请求仅包含 `nickname` 与 `avatar`。身份来自 Bearer 会话，不接受客户端指定账户 ID。登录与账户读取响应增加昵称和头像字段，原客户端可忽略新字段，新客户端可读取缺失字段的旧钥匙串缓存。
 
-首次安装先执行 `001_apple_auth.sql`，再执行一次 `002_account_profile.sql`；已有登录服务只执行 `002`，为已有账户补充默认资料。生产迁移先检查两个新增列：均不存在才执行，均存在则跳过，部分存在时停止检查，不自动猜测修复。
+首次安装先执行 `001_apple_auth.sql`，再执行一次 `002_account_profile.sql`；已有登录服务只执行 `002`，为已有账户补充默认资料。微信登录需在 `002` 之后执行一次 `003_wechat_login.sql`，为已有 Apple 账户补默认 `provider`，并增加微信身份列与单 provider 约束。生产迁移先检查目标列/约束：均不存在才执行，均存在则跳过，部分存在时停止检查，不自动猜测修复。
 
 头像仅支持固定枚举，不涉及上传文件。昵称按 NFC 规范化后校验长度及不可见字符。自动化验证覆盖默认资料、修改保存、再次登录保留、账号隔离、非法昵称、非法头像地址和已撤销授权。
 
@@ -63,13 +65,20 @@ python3.12 -m venv .venv
 
 若需回退本增量，将 `current` 恢复指向 `/opt/zhouji-api/releases/apple-login-20260912-01` 并重启专用服务。保留新增列和已保存资料，旧版登录代码可忽略这些字段；无需回退 Nginx 或删除数据库列。
 
+## 微信登录
+
+- 依赖 `ZHOUJI_WECHAT_APP_ID`、`ZHOUJI_WECHAT_APP_SECRET_PATH` 与共用的 `ZHOUJI_TOKEN_ENCRYPTION_KEY_PATH`；缺任一项时微信登录返回 530/503，不影响 Apple 登录与健康检查。
+- AppSecret 仅保存为服务器权限 600 的文件；systemd 通过 `LoadCredential=wechat-app-secret` 映射到 `/run/credentials/zhouji-api.service/`。真实 AppID 不写入仓库示例或文档。
+- challenge 与会话按 provider 隔离；微信 refresh token 与 Apple 一样使用 Fernet 加密保存。httpx/httpcore 日志调高阈值，避免官方 OAuth 把 secret 写进查询串时落入日志。
+- 注销：删除粥记账户与加密凭据；微信无官方 revoke 端点，客户端确认文案引导用户在微信设置中管理授权。
+
 ## Apple 登录部署
 
 - 当前运行目录：`/opt/zhouji-api/current`，专用系统用户 `zhouji-api`，systemd 单进程监听 `127.0.0.1:8011`。
 - 表结构：管理员对 `zhouji` 执行 `migrations/001_apple_auth.sql`；业务用户继续只有增删改查权限。不要对其他项目执行迁移。
-- 真实配置只在 `/etc/zhouji/api.env`；Apple 私钥在 `/etc/zhouji/apple-login.p8`，刷新令牌加密密钥在 `/etc/zhouji/token-encryption-key`，均 `root:root 600`。
-- systemd 使用 `LoadCredential` 提供两个文件，应用中的路径分别是 `/run/credentials/zhouji-api.service/apple-private-key` 和 `/run/credentials/zhouji-api.service/token-encryption-key`。不要将加密密钥重新生成，否则已保存的 Apple 刷新令牌将无法解密。需将它与数据库一同私下备份。
-- Apple 的刷新令牌加密保存，粥记会话只保存 SHA-256 摘要。授权码与 identity token 不落库、不写日志；接口校验失败也不回显提交值。
+- 真实配置只在 `/etc/zhouji/api.env`；Apple 私钥在 `/etc/zhouji/apple-login.p8`，微信 AppSecret 在 `/etc/zhouji/wechat-app-secret`，刷新令牌加密密钥在 `/etc/zhouji/token-encryption-key`，均 `root:root 600`。
+- systemd 使用 `LoadCredential` 提供上述文件，应用中的路径分别是 `/run/credentials/zhouji-api.service/apple-private-key`、`wechat-app-secret` 和 `token-encryption-key`。不要将加密密钥重新生成，否则已保存的刷新令牌将无法解密。需将它与数据库一同私下备份。
+- Apple / 微信的刷新令牌加密保存，粥记会话只保存 SHA-256 摘要。授权码与 identity token 不落库、不写日志；接口校验失败也不回显提交值。
 - 粥记 Nginx `/api/` 保留路径代理到 8011，覆盖真实客户端地址，禁用访问日志，限制 32KB 请求体和请求速率。应用授权接口额外按来源限制每分钟 20 次，当前实现限定单进程；增加 worker 或副本前须改用共享限流存储。
 - 配置备份：`/etc/zhouji/api.env.before-apple`、`/etc/nginx/sites-available/zhouji-site.before-apple`。官网、两个 AASA 地址及 `/wechat/` 应在每次部署后验证。
 - 本次账号功能不删除本机 SwiftData 数据；尚无云端任务表。后续同步必须增加游客数据归属和账号隔离，再接通自动同步。

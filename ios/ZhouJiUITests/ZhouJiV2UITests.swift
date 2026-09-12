@@ -35,6 +35,23 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testWeChatLoginWithoutInstalledWeChatKeepsGuestState() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "profile"]
+        app.launch()
+        let button = app.buttons["account.wechatLogin"]
+        if !button.isHittable { app.swipeUp() }
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
+        button.tap()
+        let error = app.staticTexts["account.message"]
+        XCTAssertTrue(error.waitForExistence(timeout: 35))
+        XCTAssertTrue(error.label.contains("微信") || error.label.contains("登录服务"))
+        XCTAssertFalse(app.buttons["account.logout"].exists)
+        XCTAssertTrue(button.isEnabled)
+    }
+
+    @MainActor
     func testGoalTaskLifecycleUpdatesProgressAndSupportsUndo() throws {
         continueAfterFailure = false
         let app = makeApp()

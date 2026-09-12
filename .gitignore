@@ -11,3 +11,5 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.egg-info/
+ios/Config/Local.xcconfig
+ios/Vendor/

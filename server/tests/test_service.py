@@ -53,7 +53,7 @@ def test_health_http_contract_with_working_sql_connection():
             assert response.headers["cache-control"] == "no-store"
         assert client.get("/docs").status_code == 404
         assert client.get("/openapi.json").status_code == 404
-        assert client.post("/api/v1/auth/wechat").status_code == 404
+        assert client.post("/api/v1/auth/wechat/challenge").status_code == 503
 
 
 def test_unavailable_database_is_not_reported_as_ready_and_secrets_are_not_logged(caplog):

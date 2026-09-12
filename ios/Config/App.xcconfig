@@ -1,0 +1,3 @@
+// Keep the real WeChat AppID only in the ignored Local.xcconfig.
+ZHOUJI_WECHAT_APP_ID =
+#include? "Local.xcconfig"

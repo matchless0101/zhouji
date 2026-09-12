@@ -89,7 +89,7 @@ struct ProfileView: View {
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                             .accessibilityIdentifier("profile.displayName")
-                        Label("Apple 登录", systemImage: "apple.logo")
+                        Label(profile.providerName, systemImage: profile.providerIcon)
                             .font(.caption)
                             .foregroundStyle(ZJTheme.secondaryInk)
                     }

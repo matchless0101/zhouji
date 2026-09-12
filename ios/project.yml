@@ -14,6 +14,30 @@ targets:
     platform: iOS
     sources:
       - path: ZhouJi
+      - path: Vendor/WechatOpenSDK-NoPay.xcframework/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    configFiles:
+      Debug: Config/App.xcconfig
+      Release: Config/App.xcconfig
+    dependencies:
+      - framework: Vendor/WechatOpenSDK-NoPay.xcframework
+        embed: false
+      - sdk: Security.framework
+      - sdk: CoreGraphics.framework
+      - sdk: WebKit.framework
+      - sdk: libc++.tbd
+    info:
+      path: ZhouJi/Info.plist
+      properties:
+        ZhouJiWeChatAppID: $(ZHOUJI_WECHAT_APP_ID)
+        CFBundleURLTypes:
+          - CFBundleURLName: com.matchless.ZhouJi.wechat
+            CFBundleURLSchemes:
+              - $(ZHOUJI_WECHAT_APP_ID)
+        LSApplicationQueriesSchemes:
+          - weixin
+          - weixinULAPI
+          - weixinURLParamsAPI
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.matchless.ZhouJi
@@ -26,6 +50,7 @@ targets:
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+        OTHER_LDFLAGS: ["$(inherited)", "-ObjC", "-all_load"]
     scheme:
       testTargets:
         - ZhouJiTests

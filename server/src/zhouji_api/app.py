@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from .apple import AppleProvider, AppleSettings
 from .auth import auth_router
 from .models import metadata
+from .wechat import WeChatProvider, WeChatSettings
 
 from .database import make_engine
 from .settings import Settings
@@ -17,11 +18,14 @@ from .settings import Settings
 logger = logging.getLogger("zhouji_api")
 
 
-def create_app(settings: Settings | None = None, *, engine: Engine | None = None, apple_provider=None) -> FastAPI:
+def create_app(settings: Settings | None = None, *, engine: Engine | None = None, apple_provider=None, wechat_provider=None) -> FastAPI:
     database = engine if engine is not None else make_engine(settings or Settings.from_environment())
     if apple_provider is None:
         apple_settings = AppleSettings.from_environment()
         apple_provider = AppleProvider(apple_settings) if apple_settings else None
+    if wechat_provider is None:
+        wechat_settings = WeChatSettings.from_environment()
+        wechat_provider = WeChatProvider(wechat_settings) if wechat_settings else None
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -48,7 +52,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     async def database_unavailable(request, error):
         return JSONResponse(status_code=503, content={'detail': '服务暂不可用，请稍后重试'})
 
-    app.include_router(auth_router(database, apple_provider))
+    app.include_router(auth_router(database, apple_provider, wechat_provider))
 
     @app.get("/api/v1/health/live")
     def liveness(response: Response):
@@ -60,7 +64,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         try:
             with database.connect() as connection:
                 connection.execute(text("SELECT 1"))
-                if apple_provider is not None:
+                if apple_provider is not None or wechat_provider is not None:
                     for table in metadata.sorted_tables:
                         connection.execute(table.select().limit(0))
         except SQLAlchemyError:

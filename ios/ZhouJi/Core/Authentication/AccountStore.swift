@@ -8,6 +8,8 @@ final class AccountStore {
     private(set) var challenge: LoginChallenge?
     private(set) var isBusy = false
     private(set) var isPreparing = false
+    private(set) var isWaitingForWeChat = false
+    private let weChat: any WeChatAuthorizing
     var message: String?
     private var session: AccountSession?
     private let api: any AccountServing
@@ -15,7 +17,8 @@ final class AccountStore {
     private let checksAppleCredential: Bool
 
     init(api: any AccountServing = AccountAPI(), storage: any AccountSessionStoring = AccountKeychain(),
-         checksAppleCredential: Bool = true) {
+         checksAppleCredential: Bool = true, weChat: any WeChatAuthorizing = WeChatLogin()) {
+        self.weChat = weChat
         self.api = api
         self.storage = storage
         self.checksAppleCredential = checksAppleCredential
@@ -34,7 +37,7 @@ final class AccountStore {
             }
             session = saved
             account = saved.account
-            if checksAppleCredential, let user = saved.appleUser {
+            if checksAppleCredential, saved.account.provider == "apple", let user = saved.appleUser {
                 let state = try await ASAuthorizationAppleIDProvider().credentialState(forUserID: user)
                 if state == .revoked || state == .notFound || state == .transferred {
                     try? await api.logout(token: saved.token)
@@ -63,8 +66,11 @@ final class AccountStore {
         isPreparing = true
         defer { isPreparing = false }
         do {
-            challenge = try await api.challenge()
+            let prepared = try await api.challenge()
+            guard !isBusy, account == nil else { return }
+            challenge = prepared
         } catch {
+            guard !isBusy, account == nil else { return }
             challenge = nil
             message = error.localizedDescription
         }
@@ -119,6 +125,35 @@ final class AccountStore {
             message = nil
         } catch { message = error.localizedDescription }
     }
+
+    func loginWeChat() async {
+        guard !isBusy, account == nil else { return }
+        isBusy = true
+        message = nil
+        defer { isBusy = false; isWaitingForWeChat = false }
+        do {
+            let pending = try await api.weChatChallenge()
+            guard pending.expiresAt > Date.now.timeIntervalSince1970 else { throw WeChatLoginError.expired }
+            isWaitingForWeChat = true
+            let code = try await weChat.authorize(state: pending.challenge)
+            isWaitingForWeChat = false
+            var result = try await api.loginWeChat(challenge: pending.challenge, code: code)
+            result.appleUser = nil
+            guard result.account.provider == "wechat" else { throw AccountError.invalidResponse }
+            do { try storage.save(result) }
+            catch {
+                try? await api.logout(token: result.token)
+                throw AccountError.keychain
+            }
+            session = result
+            account = result.account
+            challenge = nil
+        } catch { message = error.localizedDescription }
+    }
+
+    func cancelWeChat() { if isWaitingForWeChat { weChat.cancel() } }
+    func handleWeChat(url: URL) { weChat.handle(url: url) }
+    func handleWeChat(activity: NSUserActivity) { weChat.handle(activity: activity) }
 
     func logout() async {
         guard !isBusy, let session else { return }
@@ -178,7 +213,7 @@ final class AccountStore {
     }
 
     func credentialRevoked() async {
-        guard !isBusy else { return }
+        guard !isBusy, session?.account.provider == "apple" else { return }
         isBusy = true
         defer { isBusy = false }
         if let session { try? await api.logout(token: session.token) }
