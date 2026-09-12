@@ -8,6 +8,8 @@ User=zhouji-api
 Group=zhouji-api
 WorkingDirectory=/opt/zhouji-api/current
 EnvironmentFile=/etc/zhouji/api.env
+LoadCredential=apple-private-key:/etc/zhouji/apple-login.p8
+LoadCredential=token-encryption-key:/etc/zhouji/token-encryption-key
 Environment=PYTHONDONTWRITEBYTECODE=1
 ExecStart=/opt/zhouji-api/current/.venv/bin/uvicorn zhouji_api.app:create_app --factory --host 127.0.0.1 --port 8011 --workers 1 --no-access-log
 Restart=on-failure

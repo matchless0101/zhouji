@@ -1,9 +1,12 @@
 import SwiftData
 import SwiftUI
+import AuthenticationServices
 
 @main
 struct ZhouJiApp: App {
     @State private var timerController = TimerController()
+    @State private var accountStore = AccountStore()
+    @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
 
     var sharedModelContainer: ModelContainer = {
@@ -37,6 +40,14 @@ struct ZhouJiApp: App {
         WindowGroup {
             RootTabView()
                 .environment(timerController)
+                .environment(accountStore)
+                .task { await accountStore.restore() }
+                .onChange(of: scenePhase) { _, phase in
+                    if phase == .active { Task { await accountStore.restore() } }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: ASAuthorizationAppleIDProvider.credentialRevokedNotification)) { _ in
+                    Task { await accountStore.credentialRevoked() }
+                }
                 .tint(ZJTheme.accent)
                 .preferredColorScheme(
                     (AppAppearance(rawValue: appearanceRawValue) ?? .system).colorScheme

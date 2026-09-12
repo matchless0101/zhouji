@@ -3,6 +3,7 @@ import SwiftUI
 import UIKit
 
 struct ProfileView: View {
+    @Environment(AccountStore.self) private var account
     @Query private var tasks: [TodoTask]
     @Query private var sessions: [TimingSession]
 
@@ -40,6 +41,7 @@ struct ProfileView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         header
                         identityCard
+                        AccountControls()
                         metrics(statistics)
                         encouragementBanner
                         settingsCard
@@ -89,11 +91,13 @@ struct ProfileView: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("游客模式")
+                Text(account.account == nil ? "游客模式" : "已通过 Apple 登录")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
 
-                Text("数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。")
+                Text(account.account == nil
+                     ? "数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。"
+                     : "云同步尚未上线，任务与记录仍保存在本机。")
                     .font(.subheadline)
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
@@ -104,7 +108,7 @@ struct ProfileView: View {
         .padding(16)
         .zjCard()
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("profile.guestNotice")
+        .accessibilityIdentifier(account.account == nil ? "profile.guestNotice" : "profile.accountNotice")
     }
 
     private func metrics(_ statistics: StatisticsSnapshot) -> some View {

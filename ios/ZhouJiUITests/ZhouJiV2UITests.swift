@@ -30,6 +30,8 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["外观"].exists)
         XCTAssertTrue(app.buttons["关于粥记"].exists)
         XCTAssertTrue(app.buttons["tab.profile"].isSelected)
+        XCTAssertTrue(app.staticTexts["游客模式"].exists)
+        XCTAssertTrue(app.staticTexts["登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。"].exists)
     }
 
     @MainActor
