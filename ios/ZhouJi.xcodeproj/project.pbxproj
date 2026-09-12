@@ -24,6 +24,7 @@
 		3AF2DF62E7A5B95E8CB10FC9 /* AccountAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = C607725C41AC3A40809F71B5 /* AccountAPI.swift */; };
 		41D14A4D877104C6569584D3 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330445BD9756850EFD1D5B36 /* AppAppearance.swift */; };
 		447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */; };
+		461E587FC99FA97A74AEBE8B /* WeChatLoginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */; };
 		46EB6E15F04DADEB14FA1AF8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E01969A83CD9F462B172766C /* PrivacyInfo.xcprivacy */; };
 		49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247A04FBA5BEED1351742A62 /* ProfileEditor.swift */; };
 		52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760666CB6E383348C6C86675 /* WeChatLogin.swift */; };
@@ -129,6 +130,7 @@
 		E6C07800FED59A353B4EDCF1 /* TodayJourney.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TodayJourney.png; sourceTree = "<group>"; };
 		EB14CABDF98D4727ADF21D56 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
 		EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLoginTests.swift; sourceTree = "<group>"; };
 		F435CF614869DD2BFB974BA9 /* AccountControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountControls.swift; sourceTree = "<group>"; };
 		F563F5E85F82688888ED00FA /* GoalDigital.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalDigital.png; sourceTree = "<group>"; };
 		F9FE7B80BB92D300651E1455 /* ZJTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJTheme.swift; sourceTree = "<group>"; };
@@ -231,6 +233,7 @@
 				8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */,
 				CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */,
 				0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */,
+				EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */,
 			);
 			path = ZhouJiTests;
 			sourceTree = "<group>";
@@ -563,6 +566,7 @@
 				39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */,
 				447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */,
 				719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */,
+				461E587FC99FA97A74AEBE8B /* WeChatLoginTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

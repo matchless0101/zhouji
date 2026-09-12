@@ -151,6 +151,8 @@ final class AccountStore {
         } catch { message = error.localizedDescription }
     }
 
+    func weChatEnteredBackground() { weChat.applicationDidEnterBackground() }
+    func weChatBecameActive() { weChat.applicationDidBecomeActive() }
     func cancelWeChat() { if isWaitingForWeChat { weChat.cancel() } }
     func handleWeChat(url: URL) { weChat.handle(url: url) }
     func handleWeChat(activity: NSUserActivity) { weChat.handle(activity: activity) }

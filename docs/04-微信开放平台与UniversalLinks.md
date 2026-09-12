@@ -47,3 +47,10 @@ Nginx 为两个 AASA 地址设置精确匹配和 `application/json` 类型，其
 微信 OpenSDK 注册与回调已在代码中实现；SDK 注册时的 Universal Link 必须与平台填写值一致。真机验收应使用正确签名的新安装版本，从备忘录等外部入口点击上述链接，并检查微信发起与返回流程；同时确认开放平台登录权限已开通。
 
 参考：[Apple Universal Links](https://developer.apple.com/library/archive/documentation/General/Conceptual/AppSearch/UniversalLinks.html)、[微信 iOS 接入指南](https://developers.weixin.qq.com/doc/oplatform/Mobile_App/Access_Guide/iOS.html)。
+
+
+## 授权等待修复（2026-09-12）
+
+`onOpenURL` 同时分发应用 Scheme 与本站 `/wechat/` 下的 HTTPS 链接；后者转换为浏览活动交给微信 SDK。`onContinueUserActivity` 也使用相同域名与路径约束。取消或失败响应缺少 state 时结束等待；成功响应缺失或不匹配 state 时不能登录，外来 state 不影响当前请求。
+
+通过场景前后台状态区分唤起和返回：30 秒未离开 App 或返回后 10 秒仍缺授权结果时提示重试，不持续等待到 5 分钟。若 SDK 验证过程中再次进入后台，取消这次返回超时。测试覆盖两个回跳入口、外部链接拒绝、缺失 state 的失败响应、旧回调、重复回调、未唤起和返回无结果；真机微信授权仍需人工确认。

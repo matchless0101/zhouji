@@ -43,7 +43,11 @@ struct ZhouJiApp: App {
                 .environment(accountStore)
                 .task { await accountStore.restore() }
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { Task { await accountStore.restore() } }
+                    if phase == .background { accountStore.weChatEnteredBackground() }
+                    if phase == .active {
+                        accountStore.weChatBecameActive()
+                        Task { await accountStore.restore() }
+                    }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: ASAuthorizationAppleIDProvider.credentialRevokedNotification)) { _ in
                     Task { await accountStore.credentialRevoked() }
