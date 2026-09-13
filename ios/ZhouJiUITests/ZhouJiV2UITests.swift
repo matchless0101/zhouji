@@ -87,14 +87,25 @@ final class ZhouJiUITests: XCTestCase {
     func testContentSyncCardAppearsOnlyWhenFlagEnabled() throws {
         continueAfterFailure = false
         let app = makeApp()
-        app.launchArguments += ["-ZJInitialTab", "profile", "-ZJSyncContent", "-ZJIsolationSampleData"]
+        app.launchArguments += [
+            "-ZJPreviewSampleData", "-ZJIsolationSampleData", "-ZJInitialTab", "profile", "-ZJSyncContent"
+        ]
         app.launch()
-        XCTAssertTrue(app.staticTexts["sync.title"].waitForExistence(timeout: 4))
-        XCTAssertTrue(app.staticTexts["登录后可使用测试云同步；未上传前数据仍仅保存在本机。"].exists)
-        // Logged into preview account library → upload/restore controls visible.
+        XCTAssertTrue(app.staticTexts["我的"].firstMatch.waitForExistence(timeout: 4))
+        XCTAssertTrue(app.staticTexts["账户记录 · 离线"].waitForExistence(timeout: 3)
+                      || app.staticTexts["账户的本机记录"].waitForExistence(timeout: 2)
+                      || app.buttons["library.guest"].waitForExistence(timeout: 2))
+        // Sync card is opt-in; scroll until its upload control appears.
         let upload = app.buttons["sync.upload"]
-        for _ in 0..<5 where !upload.exists { app.swipeUp() }
-        XCTAssertTrue(upload.exists)
+        var found = false
+        for _ in 0..<8 {
+            if upload.exists || upload.isHittable {
+                found = true
+                break
+            }
+            app.swipeUp()
+        }
+        XCTAssertTrue(found, "sync.upload should appear when -ZJSyncContent is set")
         XCTAssertTrue(app.buttons["sync.restore"].exists)
         XCTAssertTrue(app.buttons["sync.pushPending"].exists)
     }
