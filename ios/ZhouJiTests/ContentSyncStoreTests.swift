@@ -151,14 +151,19 @@ struct ContentSyncStoreTests {
         source.insert(session)
         try source.save()
 
+        let journalDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let api = SyncAPIMock()
-        let store = ContentSyncStore(api: api, defaults: UserDefaults(suiteName: "content-sync-tests")!, forcesEnabled: true)
-        let uploaded = try await store.uploadLibrary(context: source, token: "token")
+        let store = ContentSyncStore(
+            api: api,
+            defaults: UserDefaults(suiteName: "content-sync-tests")!,
+            forcesEnabled: true,
+            journalDirectory: journalDir
+        )
+        let uploaded = try await store.uploadLibrary(context: source, token: "token", scope: "account-test")
         #expect(uploaded >= 2)
         #expect(!api.pushed.isEmpty)
         #expect(store.message?.contains("已上传") == true)
 
-        // Simulate pull page derived from local facts.
         let changes = try ContentSyncStore.factChanges(in: source)
         let entities = changes.map { change in
             SyncEntityPayload(
@@ -177,6 +182,108 @@ struct ContentSyncStoreTests {
         #expect(restored == entities.count)
         #expect(try target.fetch(FetchDescriptor<TodoTask>()).count == 1)
         #expect(try target.fetch(FetchDescriptor<TimingSession>()).count == 1)
+
+        // Second upload should be empty pending after journal refresh.
+        let second = try await ContentSyncStore.pendingChanges(
+            in: source,
+            journal: SyncJournalStore(directory: journalDir, scope: "account-test").load()
+        )
+        #expect(second.isEmpty)
+    }
+
+    @Test func conflictKeepLocalUsesCloudVersionPlusOne() async throws {
+        let context = try makeContext()
+        let task = try TaskService.create(title: "本机较新", in: context)
+        let journalDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let api = ConflictAPIMock()
+        let store = ContentSyncStore(
+            api: api,
+            defaults: UserDefaults(suiteName: "content-sync-tests")!,
+            forcesEnabled: true,
+            journalDirectory: journalDir
+        )
+        _ = try await store.pushPending(context: context, token: "t", scope: "account-c")
+        #expect(store.conflicts.count == 1)
+        let conflict = try #require(store.conflicts.first)
+        #expect(conflict.serverVersion == 3)
+        await store.resolveConflict(conflict, keepLocal: true, context: context, token: "t", scope: "account-c")
+        #expect(api.lastPushVersion == 4)
+        #expect(store.conflicts.isEmpty)
+        #expect(store.message?.contains("本机") == true)
+        _ = task
+    }
+
+    @Test func conflictUseCloudAppliesServerPayload() async throws {
+        let context = try makeContext()
+        let task = try TaskService.create(title: "本机旧", in: context)
+        let journalDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let api = ConflictAPIMock()
+        let store = ContentSyncStore(
+            api: api,
+            defaults: UserDefaults(suiteName: "content-sync-tests")!,
+            forcesEnabled: true,
+            journalDirectory: journalDir
+        )
+        _ = try await store.pushPending(context: context, token: "t", scope: "account-d")
+        let conflict = try #require(store.conflicts.first)
+        await store.resolveConflict(conflict, keepLocal: false, context: context, token: "t", scope: "account-d")
+        let updated = try context.fetch(FetchDescriptor<TodoTask>()).first { $0.id == task.id }
+        #expect(updated?.title == "云端较新")
+        #expect(store.conflicts.isEmpty)
+    }
+
+    @MainActor private final class ConflictAPIMock: ContentSyncServing, @unchecked Sendable {
+        var lastPushVersion: Int?
+        private var didConflict = false
+
+        func push(token: String, changes: [SyncChangePayload]) async throws -> SyncPushResponse {
+            lastPushVersion = changes.first?.version
+            guard let change = changes.first else {
+                return SyncPushResponse(applied: [], conflicts: [], serverTime: 0)
+            }
+            if !didConflict {
+                didConflict = true
+                return SyncPushResponse(
+                    applied: [],
+                    conflicts: [SyncConflictItem(
+                        clientOpId: change.clientOpId,
+                        entityType: change.entityType,
+                        entityId: change.entityId,
+                        serverVersion: 3,
+                        serverUpdatedAt: 2_000,
+                        serverDeletedAt: nil,
+                        serverPayload: [
+                            "title": .string("云端较新"),
+                            "createdAt": .int(1_000),
+                            "completedAt": .null,
+                            "deletedAt": .null,
+                            "goalId": .null
+                        ]
+                    )],
+                    serverTime: 0
+                )
+            }
+            return SyncPushResponse(
+                applied: [SyncAppliedItem(
+                    clientOpId: change.clientOpId,
+                    entityType: change.entityType,
+                    entityId: change.entityId,
+                    version: change.version,
+                    serverSeq: change.version,
+                    deduped: false
+                )],
+                conflicts: [],
+                serverTime: 0
+            )
+        }
+
+        func pull(token: String, cursor: Int, limit: Int) async throws -> SyncPullResponse {
+            SyncPullResponse(entities: [], cursor: cursor, hasMore: false)
+        }
+
+        func status(token: String) async throws -> SyncStatusResponse {
+            SyncStatusResponse(accountId: "a", latestSeq: 0, softDeletedCount: 0, syncEnabled: true)
+        }
     }
 
     private func makeContext() throws -> ModelContext {

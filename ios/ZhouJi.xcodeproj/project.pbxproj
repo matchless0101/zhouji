@@ -56,6 +56,7 @@
 		AF6738630FD3D445014B99DE /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF369424D165E148281CB11E /* TodayView.swift */; };
 		C2C59084A547B8E13E19FC5F /* MigrationRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE38239592F10514065F5284 /* MigrationRegressionTests.swift */; };
 		C42867AA3411C6BB6EAF0903 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */; };
+		C9E524A1889F5DA6060F2806 /* SyncJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8033D5698F8AA8FC76E2BA1C /* SyncJournal.swift */; };
 		CF0EE690F0E04950F5A47CEC /* SyncSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */; };
 		D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091F10FDB6775FD2CAF673D6 /* RecordsView.swift */; };
 		D27670415C7369910700AB77 /* AccountControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = F435CF614869DD2BFB974BA9 /* AccountControls.swift */; };
@@ -124,6 +125,7 @@
 		739BFA8892AE674A65737C96 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		760666CB6E383348C6C86675 /* WeChatLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLogin.swift; sourceTree = "<group>"; };
 		763FEDE98326909204980EF0 /* TodoTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTask.swift; sourceTree = "<group>"; };
+		8033D5698F8AA8FC76E2BA1C /* SyncJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncJournal.swift; sourceTree = "<group>"; };
 		8200A7EA922F71B190159019 /* TimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSheet.swift; sourceTree = "<group>"; };
 		829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiApp.swift; sourceTree = "<group>"; };
 		82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyDataFixtures.swift; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 			isa = PBXGroup;
 			children = (
 				E7E9A8C51A4A3FF60CC926D1 /* ContentSyncAPI.swift */,
+				8033D5698F8AA8FC76E2BA1C /* SyncJournal.swift */,
 			);
 			path = Sync;
 			sourceTree = "<group>";
@@ -597,6 +600,7 @@
 				D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */,
 				23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */,
 				84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */,
+				C9E524A1889F5DA6060F2806 /* SyncJournal.swift in Sources */,
 				CF0EE690F0E04950F5A47CEC /* SyncSettingsCard.swift in Sources */,
 				ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */,
 				EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */,

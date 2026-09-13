@@ -47,17 +47,23 @@ final class ContentSyncStore {
     private(set) var message: String?
     private(set) var latestSeq = 0
     private(set) var softDeletedCount = 0
+    private(set) var pendingCount = 0
+    private(set) var conflicts: [SyncJournalConflict] = []
+    private(set) var needsFullReconcile = false
 
     private let api: any ContentSyncServing
     private let defaults: UserDefaults
     private let scopeKeyPrefix = "contentSync.cursor."
     private let forcesEnabled: Bool?
+    private let journalDirectory: URL
 
     init(api: any ContentSyncServing = ContentSyncAPI(), defaults: UserDefaults = .standard,
-         forcesEnabled: Bool? = nil) {
+         forcesEnabled: Bool? = nil,
+         journalDirectory: URL = URL.applicationSupportDirectory.appendingPathComponent("ContentSync")) {
         self.api = api
         self.defaults = defaults
         self.forcesEnabled = forcesEnabled
+        self.journalDirectory = journalDirectory
     }
 
     var isEnabled: Bool { forcesEnabled ?? ContentSyncFlag.isEnabled }
@@ -66,6 +72,37 @@ final class ContentSyncStore {
 
     private func setCursor(_ value: Int, for scope: String) {
         defaults.set(value, forKey: scopeKeyPrefix + scope)
+    }
+
+    private func journalStore(for scope: String) -> SyncJournalStore {
+        SyncJournalStore(directory: journalDirectory, scope: scope)
+    }
+
+    func reloadJournal(scope: String) {
+        let journal = journalStore(for: scope).load()
+        conflicts = journal.conflicts
+        needsFullReconcile = journal.needsFullReconcile
+    }
+
+    /// Incremental changes not yet in the journal (or with a newer local updatedAt).
+    static func pendingChanges(in context: ModelContext, journal: SyncJournal) throws -> [SyncChangePayload] {
+        let all = try factChanges(in: context)
+        return all.filter { change in
+            guard let entry = journal.entries[change.entityType + "/" + change.entityId] else { return true }
+            return change.updatedAt > entry.updatedAt || change.version > entry.version
+        }.map { change in
+            let key = change.entityType + "/" + change.entityId
+            let nextVersion = (journal.entries[key]?.version ?? 0) + 1
+            return SyncChangePayload(
+                clientOpId: change.clientOpId,
+                entityType: change.entityType,
+                entityId: change.entityId,
+                op: change.op,
+                version: nextVersion,
+                updatedAt: change.updatedAt,
+                payload: change.payload
+            )
+        }
     }
 
     func refreshStatus(token: String) async {
@@ -79,7 +116,8 @@ final class ContentSyncStore {
         }
     }
 
-    func uploadLibrary(context: ModelContext, token: String, batchSize: Int = 100) async throws -> Int {
+    /// Full snapshot upload; refreshes the journal for every applied entity.
+    func uploadLibrary(context: ModelContext, token: String, scope: String, batchSize: Int = 100) async throws -> Int {
         guard isEnabled else { throw ContentSyncError.disabled }
         guard !isBusy else { return 0 }
         isBusy = true
@@ -87,25 +125,195 @@ final class ContentSyncStore {
             isBusy = false
             progress = nil
         }
+        let store = journalStore(for: scope)
+        var journal = store.load()
         do {
-            let changes = try Self.factChanges(in: context)
+            let changes = try Self.pendingChanges(in: context, journal: journal)
             progress = ContentSyncProgress(phase: "正在上传", completed: 0, total: changes.count)
-            var conflicts = 0
             var index = 0
             while index < changes.count {
                 let end = min(index + batchSize, changes.count)
-                let response = try await api.push(token: token, changes: Array(changes[index..<end]))
-                conflicts += response.conflicts.count
+                let slice = Array(changes[index..<end])
+                let response = try await api.push(token: token, changes: slice)
+                let byOpId = Dictionary(uniqueKeysWithValues: slice.map { ($0.clientOpId, $0) })
+                for item in response.applied {
+                    if let change = byOpId[item.clientOpId] {
+                        journal.noteApplied(
+                            entityType: change.entityType,
+                            entityId: change.entityId,
+                            version: item.version,
+                            updatedAt: change.updatedAt
+                        )
+                    }
+                }
+                for conflict in response.conflicts {
+                    journal.noteConflict(SyncJournalConflict(
+                        entityType: conflict.entityType,
+                        entityId: conflict.entityId,
+                        serverVersion: conflict.serverVersion,
+                        serverUpdatedAt: conflict.serverUpdatedAt,
+                        serverDeletedAt: conflict.serverDeletedAt,
+                        serverPayload: conflict.serverPayload,
+                        localChange: byOpId[conflict.clientOpId]
+                    ))
+                }
                 index = end
                 progress = ContentSyncProgress(phase: "正在上传", completed: index, total: changes.count)
             }
-            message = conflicts > 0
-                ? ContentSyncError.conflictCount(conflicts).localizedDescription
-                : "已上传 \(changes.count) 条记录到此账户。本机记录未删除。"
+            journal.needsFullReconcile = false
+            try store.save(journal)
+            conflicts = journal.conflicts
+            needsFullReconcile = false
+            pendingCount = max(0, changes.count - journal.conflicts.count)
+            message = journal.conflicts.isEmpty
+                ? "已上传 \(changes.count) 条记录到此账户。本机记录未删除。"
+                : ContentSyncError.conflictCount(journal.conflicts.count).localizedDescription
             return changes.count
         } catch {
             message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             throw error
+        }
+    }
+
+    /// Push only entities that changed since the journal (R4: local use continues if this fails).
+    func pushPending(context: ModelContext, token: String, scope: String, batchSize: Int = 100) async throws -> Int {
+        guard isEnabled else { throw ContentSyncError.disabled }
+        guard !isBusy else { return 0 }
+        isBusy = true
+        defer {
+            isBusy = false
+            progress = nil
+        }
+        let store = journalStore(for: scope)
+        var journal = store.load()
+        do {
+            var changes = try Self.pendingChanges(in: context, journal: journal)
+            if changes.count > SyncJournal.maxPending {
+                journal.needsFullReconcile = true
+                try store.save(journal)
+                needsFullReconcile = true
+                pendingCount = changes.count
+                message = "待同步 \(changes.count) 项，已超过上限。仍可本机使用与导出；请完成完整上传后再同步。"
+                throw ContentSyncError.server("待同步项过多，需要完整对账")
+            }
+            progress = ContentSyncProgress(phase: "正在同步", completed: 0, total: changes.count)
+            var index = 0
+            while index < changes.count {
+                let end = min(index + batchSize, changes.count)
+                let slice = Array(changes[index..<end])
+                let response = try await api.push(token: token, changes: slice)
+                let byOpId = Dictionary(uniqueKeysWithValues: slice.map { ($0.clientOpId, $0) })
+                for item in response.applied {
+                    if let change = byOpId[item.clientOpId] {
+                        journal.noteApplied(
+                            entityType: change.entityType,
+                            entityId: change.entityId,
+                            version: item.version,
+                            updatedAt: change.updatedAt
+                        )
+                    }
+                }
+                for conflict in response.conflicts {
+                    journal.noteConflict(SyncJournalConflict(
+                        entityType: conflict.entityType,
+                        entityId: conflict.entityId,
+                        serverVersion: conflict.serverVersion,
+                        serverUpdatedAt: conflict.serverUpdatedAt,
+                        serverDeletedAt: conflict.serverDeletedAt,
+                        serverPayload: conflict.serverPayload,
+                        localChange: byOpId[conflict.clientOpId]
+                    ))
+                }
+                index = end
+                progress = ContentSyncProgress(phase: "正在同步", completed: index, total: changes.count)
+            }
+            try store.save(journal)
+            conflicts = journal.conflicts
+            pendingCount = 0
+            message = journal.conflicts.isEmpty
+                ? "已同步 \(changes.count) 项变更。"
+                : ContentSyncError.conflictCount(journal.conflicts.count).localizedDescription
+            return changes.count
+        } catch {
+            message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            throw error
+        }
+    }
+
+    /// R1: user picks local or cloud for one conflict.
+    func resolveConflict(
+        _ conflict: SyncJournalConflict,
+        keepLocal: Bool,
+        context: ModelContext,
+        token: String,
+        scope: String
+    ) async {
+        guard isEnabled, !isBusy else { return }
+        isBusy = true
+        defer { isBusy = false }
+        let store = journalStore(for: scope)
+        var journal = store.load()
+        do {
+            if keepLocal {
+                guard var local = conflict.localChange else {
+                    message = "本机版本不可用，请从云端恢复。"
+                    return
+                }
+                local = SyncChangePayload(
+                    clientOpId: UUID().uuidString,
+                    entityType: local.entityType,
+                    entityId: local.entityId,
+                    op: local.op,
+                    version: conflict.serverVersion + 1,
+                    updatedAt: max(local.updatedAt, conflict.serverUpdatedAt + 1),
+                    payload: local.payload
+                )
+                let response = try await api.push(token: token, changes: [local])
+                if let item = response.applied.first {
+                    journal.noteApplied(
+                        entityType: local.entityType,
+                        entityId: local.entityId,
+                        version: item.version,
+                        updatedAt: local.updatedAt
+                    )
+                    message = "已保留本机版本。"
+                } else if let next = response.conflicts.first {
+                    journal.noteConflict(SyncJournalConflict(
+                        entityType: next.entityType,
+                        entityId: next.entityId,
+                        serverVersion: next.serverVersion,
+                        serverUpdatedAt: next.serverUpdatedAt,
+                        serverDeletedAt: next.serverDeletedAt,
+                        serverPayload: next.serverPayload,
+                        localChange: local
+                    ))
+                    message = "云端仍有更新，请重试或选择云端版本。"
+                }
+            } else {
+                try Self.apply(
+                    entities: [SyncEntityPayload(
+                        entityType: conflict.entityType,
+                        entityId: conflict.entityId,
+                        version: conflict.serverVersion,
+                        serverSeq: 0,
+                        updatedAt: conflict.serverUpdatedAt,
+                        deletedAt: conflict.serverDeletedAt,
+                        payload: conflict.serverPayload
+                    )],
+                    in: context
+                )
+                journal.noteApplied(
+                    entityType: conflict.entityType,
+                    entityId: conflict.entityId,
+                    version: conflict.serverVersion,
+                    updatedAt: conflict.serverUpdatedAt
+                )
+                message = "已使用云端版本。"
+            }
+            try store.save(journal)
+            conflicts = journal.conflicts
+        } catch {
+            message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
 
@@ -117,6 +325,8 @@ final class ContentSyncStore {
             isBusy = false
             progress = nil
         }
+        let store = journalStore(for: scope)
+        var journal = store.load()
         do {
             var cursor = 0
             var applied = 0
@@ -124,12 +334,23 @@ final class ContentSyncStore {
             while true {
                 let page = try await api.pull(token: token, cursor: cursor, limit: batchSize)
                 try Self.apply(entities: page.entities, in: context)
+                for entity in page.entities {
+                    journal.noteApplied(
+                        entityType: entity.entityType,
+                        entityId: entity.entityId,
+                        version: entity.version,
+                        updatedAt: entity.updatedAt
+                    )
+                }
                 applied += page.entities.count
                 cursor = page.cursor
+                journal.cursor = cursor
                 setCursor(cursor, for: scope)
                 progress = ContentSyncProgress(phase: "正在恢复", completed: applied, total: applied)
                 if !page.hasMore { break }
             }
+            try store.save(journal)
+            conflicts = journal.conflicts
             message = "已从此账户云端恢复 \(applied) 条记录。未删除本机多出的记录。"
             return applied
         } catch {
