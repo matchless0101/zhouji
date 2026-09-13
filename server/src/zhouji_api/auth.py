@@ -13,7 +13,8 @@ from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from .apple import InvalidIdentity, ProviderUnavailable
-from .models import accounts, challenges, sessions
+from .models import accounts, challenges, sessions, sync_entities
+from .sync import sync_router
 
 
 def digest(value):
@@ -240,8 +241,12 @@ def auth_router(database, apple_provider, wechat_provider=None):
         except ProviderUnavailable:
             raise HTTPException(503, 'Apple 授权撤销未完成，请稍后重试') from None
         with database.begin() as conn:
+            conn.execute(delete(sync_entities).where(sync_entities.c.account_id == account['id']))
             conn.execute(delete(sessions).where(sessions.c.account_id == account['id']))
             conn.execute(delete(accounts).where(accounts.c.id == account['id']))
         return Response(status_code=204)
+
+    # Content sync is implemented but remains behind the product release checklist.
+    router.include_router(sync_router(database, authenticate))
 
     return router

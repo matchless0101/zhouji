@@ -30,3 +30,19 @@ challenges = Table('auth_challenges', metadata,
     Column('provider', String(16), nullable=False, server_default='apple'),
     Column('expires_at', BigInteger, nullable=False, index=True),
 )
+
+# Content sync facts. Account-scoped only; server never trusts client account_id.
+# version is the client's monotonic entity version (R1 conflict gate).
+# server_seq is the per-account pull cursor (assigned under account lock).
+sync_entities = Table('sync_entities', metadata,
+    Column('account_id', identifier(36), ForeignKey('auth_accounts.id', ondelete='CASCADE'), primary_key=True),
+    Column('entity_type', String(32), primary_key=True),
+    Column('entity_id', identifier(36), primary_key=True),
+    Column('version', BigInteger, nullable=False),
+    Column('server_seq', BigInteger, nullable=False, index=True),
+    Column('updated_at', BigInteger, nullable=False),
+    Column('deleted_at', BigInteger, nullable=True),
+    Column('payload', Text, nullable=False, server_default='{}'),
+    Column('client_op_id', identifier(64), nullable=True),
+)
+

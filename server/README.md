@@ -49,7 +49,18 @@ python3.12 -m venv .venv
 | `POST /api/v1/auth/wechat` | 接收 challenge、code，向微信换码并验证后返回账户与 30 天会话 |
 | `GET /api/v1/account` | Bearer 会话查询当前账户，每 24 小时向对应登录提供方再验证授权 |
 | `POST /api/v1/auth/logout` | 撤销当前会话，重复退出返回 204 |
-| `DELETE /api/v1/account` | 需最近 10 分钟的登录；先撤销 Apple 授权（微信无对等撤销端点），再删除账户及所有会话 |
+| `DELETE /api/v1/account` | 需最近 10 分钟的登录；先撤销 Apple 授权（微信无对等撤销端点），再删除账户及所有会话与同步内容 |
+| `POST /api/v1/sync/push` | 账户内容上行：按实体版本写入；旧版本返回冲突与服务端状态；同版本幂等 |
+| `GET /api/v1/sync/pull` | 按 `server_seq` 游标拉取本账户变更 |
+| `GET /api/v1/sync/status` | 最新游标与软删除计数（阶段 B 基础，客户端同步 UI 尚未接通） |
+
+## 内容同步（阶段 B 基础，未对用户开放）
+
+- 表：`sync_entities`（迁移 `004_content_sync.sql`），按 `account_id` 隔离；注销账户时级联/显式删除内容。
+- R1：客户端 `version` 小于服务端 → `conflicts` 返回服务端版本与 payload，不静默覆盖。
+- R2：软删除写入 `deleted_at`；`purge_soft_deleted(..., older_than_seconds=7*86400)` 按 7 天物理清理（需运维定时任务，尚未挂 cron）。
+- R3：服务端只存客户端推送的事实；应用层约定仅推送已结束计时会话。
+- 本阶段**不**在 iOS 打开自动同步，也不改变现有界面文案；首次上传与客户端协议对接属阶段 C。
 
 健康响应均禁止缓存，不返回数据库地址、账号、SQL 错误或密钥。登录启用时，就绪检查同时检查账户、会话和一次性请求表的列。公网不提供 Swagger/OpenAPI 文档。
 
