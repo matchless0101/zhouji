@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0534628CA06F1B63C6D6A7D5 /* ContentSyncStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED60D27B4B9AC675A51EC389 /* ContentSyncStoreTests.swift */; };
 		058C856465F14C4EEEBDB0E1 /* TimerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */; };
 		067375DB8F4E47FFA01BCC14 /* AccountKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49B0CE29A0DF122A284A6F1D /* AccountKeychain.swift */; };
 		07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 409B7EA59769107E561759AD /* ElapsedTimeText.swift */; };
@@ -34,6 +35,8 @@
 		52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760666CB6E383348C6C86675 /* WeChatLogin.swift */; };
 		682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */; };
 		69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */; };
+		6A3E8687D26F71130AA90CE2 /* ContentSyncStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA8146CFAC8BBA402513027 /* ContentSyncStore.swift */; };
+		6B2770874242107D94E7C98D /* ContentSyncAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E9A8C51A4A3FF60CC926D1 /* ContentSyncAPI.swift */; };
 		6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE35BC4F8E743F7330D793A /* ProfileView.swift */; };
 		719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */; };
 		7C9C2A21E5E8869E5A2B01CF /* TimingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E1DC75DF0AB63875968F45 /* TimingSession.swift */; };
@@ -53,6 +56,7 @@
 		AF6738630FD3D445014B99DE /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF369424D165E148281CB11E /* TodayView.swift */; };
 		C2C59084A547B8E13E19FC5F /* MigrationRegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE38239592F10514065F5284 /* MigrationRegressionTests.swift */; };
 		C42867AA3411C6BB6EAF0903 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */; };
+		CF0EE690F0E04950F5A47CEC /* SyncSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */; };
 		D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091F10FDB6775FD2CAF673D6 /* RecordsView.swift */; };
 		D27670415C7369910700AB77 /* AccountControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = F435CF614869DD2BFB974BA9 /* AccountControls.swift */; };
 		D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9FE7B80BB92D300651E1455 /* ZJTheme.swift */; };
@@ -92,6 +96,7 @@
 		05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSafetyStore.swift; sourceTree = "<group>"; };
 		091F10FDB6775FD2CAF673D6 /* RecordsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordsView.swift; sourceTree = "<group>"; };
 		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
+		0FA8146CFAC8BBA402513027 /* ContentSyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSyncStore.swift; sourceTree = "<group>"; };
 		1646A004151B67E5335956D1 /* GoalWriting.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalWriting.png; sourceTree = "<group>"; };
 		180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskServiceTests.swift; sourceTree = "<group>"; };
 		18CD865EF12BEF475370DF2B /* TimerMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMath.swift; sourceTree = "<group>"; };
@@ -107,6 +112,7 @@
 		41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryTests.swift; sourceTree = "<group>"; };
 		4339224F869B244AD0294B9F /* BackupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStore.swift; sourceTree = "<group>"; };
 		49B0CE29A0DF122A284A6F1D /* AccountKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountKeychain.swift; sourceTree = "<group>"; };
+		4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSettingsCard.swift; sourceTree = "<group>"; };
 		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
 		5D57249F85F726C34F1777E6 /* GoalCareer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalCareer.png; sourceTree = "<group>"; };
 		5DBB5F5DE0B20629D81DD123 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -147,7 +153,9 @@
 		E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewTaskView.swift; sourceTree = "<group>"; };
 		E1E1DC75DF0AB63875968F45 /* TimingSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimingSession.swift; sourceTree = "<group>"; };
 		E6C07800FED59A353B4EDCF1 /* TodayJourney.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TodayJourney.png; sourceTree = "<group>"; };
+		E7E9A8C51A4A3FF60CC926D1 /* ContentSyncAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSyncAPI.swift; sourceTree = "<group>"; };
 		EB14CABDF98D4727ADF21D56 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
+		ED60D27B4B9AC675A51EC389 /* ContentSyncStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSyncStoreTests.swift; sourceTree = "<group>"; };
 		EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLoginTests.swift; sourceTree = "<group>"; };
 		F435CF614869DD2BFB974BA9 /* AccountControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountControls.swift; sourceTree = "<group>"; };
@@ -213,6 +221,14 @@
 			path = ZhouJi;
 			sourceTree = "<group>";
 		};
+		39A99CCF16C03581CD60881A /* Sync */ = {
+			isa = PBXGroup;
+			children = (
+				E7E9A8C51A4A3FF60CC926D1 /* ContentSyncAPI.swift */,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
 		408DC4476E9C699B8B43594F /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -250,6 +266,7 @@
 				369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */,
 				41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */,
 				9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */,
+				ED60D27B4B9AC675A51EC389 /* ContentSyncStoreTests.swift */,
 				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
 				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
 				82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */,
@@ -277,6 +294,7 @@
 			children = (
 				9075B67A3A70DBCDAC65A1BA /* Authentication */,
 				4C1DCDD978533A27FD116B74 /* Design */,
+				39A99CCF16C03581CD60881A /* Sync */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -393,6 +411,7 @@
 				71FACF4124070C02A3F302CF /* LocalLibraryCard.swift */,
 				247A04FBA5BEED1351742A62 /* ProfileEditor.swift */,
 				2AE35BC4F8E743F7330D793A /* ProfileView.swift */,
+				4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -411,6 +430,7 @@
 			children = (
 				05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */,
 				4339224F869B244AD0294B9F /* BackupStore.swift */,
+				0FA8146CFAC8BBA402513027 /* ContentSyncStore.swift */,
 				2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */,
 				409B7EA59769107E561759AD /* ElapsedTimeText.swift */,
 				6168DF05F9358B91A840E301 /* GoalService.swift */,
@@ -560,6 +580,8 @@
 				2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */,
 				1AE28A3CAB798741FAFD066C /* BackupSettingsCard.swift in Sources */,
 				DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */,
+				6B2770874242107D94E7C98D /* ContentSyncAPI.swift in Sources */,
+				6A3E8687D26F71130AA90CE2 /* ContentSyncStore.swift in Sources */,
 				DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */,
 				07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */,
 				7EEF9D1CBF8D22787B4FC568 /* FocusView.swift in Sources */,
@@ -575,6 +597,7 @@
 				D10197C2E9BC26547AB82497 /* RecordsView.swift in Sources */,
 				23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */,
 				84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */,
+				CF0EE690F0E04950F5A47CEC /* SyncSettingsCard.swift in Sources */,
 				ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */,
 				EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */,
 				69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */,
@@ -597,6 +620,7 @@
 				973DA768BCD323FDA88B5127 /* AccountStoreTests.swift in Sources */,
 				46BB3D5F0F1865ED5B109AD5 /* BackupRecoveryTests.swift in Sources */,
 				4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */,
+				0534628CA06F1B63C6D6A7D5 /* ContentSyncStoreTests.swift in Sources */,
 				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
 				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
 				682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */,

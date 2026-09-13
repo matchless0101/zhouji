@@ -14,6 +14,8 @@ final class AccountStore {
     private let weChat: any WeChatAuthorizing
     var message: String?
     private var session: AccountSession?
+    /// Bearer token for content sync; nil when signed out.
+    var syncToken: String? { session?.token }
     private let api: any AccountServing
     private let storage: any AccountSessionStoring
     private let checksAppleCredential: Bool

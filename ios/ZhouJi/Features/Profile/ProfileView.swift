@@ -49,6 +49,7 @@ struct ProfileView: View {
                         encouragementBanner
                         settingsCard
                         BackupSettingsCard()
+                        SyncSettingsCard()
                         AccountSessionActions()
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)

@@ -8,6 +8,7 @@ struct ZhouJiApp: App {
     @State private var storageMessage: String?
     @State private var selectedTab = RootTabView.initialTab
     @State private var accountStore = AccountStore()
+    @State private var contentSync = ContentSyncStore()
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
 
@@ -99,6 +100,7 @@ struct ZhouJiApp: App {
                 }
             }
                 .environment(accountStore)
+                .environment(contentSync)
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .background { accountStore.weChatEnteredBackground() }
                     if phase == .active {
