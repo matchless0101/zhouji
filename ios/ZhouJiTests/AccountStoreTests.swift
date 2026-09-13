@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 import Testing
 @testable import ZhouJi
 
@@ -6,6 +7,7 @@ private actor AccountStub: AccountServing {
     var fails = false
     var expired = false
     var logoutCalls = 0
+    var deleteCalls = 0
     var profile = AppAccount(id: "test-account", provider: "apple")
     let value = AccountSession(token: "test-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
                                account: AppAccount(id: "test-account", provider: "apple"))
@@ -41,6 +43,7 @@ private actor AccountStub: AccountServing {
         if fails { throw AccountError.unavailable }
     }
     func delete(token: String) async throws {
+        deleteCalls += 1
         if fails { throw AccountError.unavailable }
     }
 }
@@ -61,6 +64,62 @@ private actor AccountStub: AccountServing {
 }
 
 @MainActor struct AccountStoreTests {
+    @Test func authenticatedLibrariesRespectLoginFailureExpiryAndLogout() async throws {
+        let guest = try ModelContainer(for: Goal.self, TodoTask.self, TimingSession.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let libraries = try LocalLibraryStore(guest: guest, inMemory: true)
+        let api = AccountStub(), storage = MemorySession()
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false, libraries: libraries)
+        _ = try TaskService.create(title: "游客历史", in: guest.mainContext)
+        storage.failsSave = true
+        await store.finishLogin(challenge: "c", code: "c", identityToken: "t", appleUser: "u")
+        #expect(store.account == nil && libraries.current.scope == LibraryScope.guest)
+        storage.failsSave = false
+        await store.finishLogin(challenge: "c", code: "c", identityToken: "t", appleUser: "u")
+        #expect(libraries.current.scope == LibraryScope.account("test-account"))
+        let task = try TaskService.create(title: "账户计时", in: libraries.current.container.mainContext)
+        _ = libraries.current.timer.requestStart(for: task)
+        let calls = await api.logoutCalls
+        await store.logout()
+        #expect(store.account != nil)
+        #expect(await api.logoutCalls == calls)
+        #expect(libraries.current.timer.finishActiveSession())
+        await api.setExpired()
+        await store.restore()
+        #expect(store.account == nil && libraries.authenticatedScope == nil)
+        #expect(libraries.current.scope == LibraryScope.account("test-account"))
+        await store.finishLogin(challenge: "c", code: "c", identityToken: "t", appleUser: "u")
+        await store.logout()
+        #expect(store.account == nil && libraries.current.scope == LibraryScope.guest)
+        #expect(try guest.mainContext.fetch(FetchDescriptor<TodoTask>()).map(\.title) == ["游客历史"])
+    }
+
+    @Test func deletionBackupFailureStopsRequestAndServerFailureKeepsLibrary() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let guest = try ModelContainer(for: Goal.self, TodoTask.self, TimingSession.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let libraries = try LocalLibraryStore(guest: guest, directory: directory, inMemory: true)
+        let api = AccountStub(), storage = MemorySession()
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false, libraries: libraries)
+        await store.finishLogin(challenge: "c", code: "c", identityToken: "t", appleUser: "u")
+        _ = try TaskService.create(title: "注销保护", in: libraries.current.container.mainContext)
+        // A regular file at the destination directory reproduces a real protection-write failure.
+        try Data().write(to: directory)
+        await store.deleteAccount()
+        #expect(await api.deleteCalls == 0)
+        #expect(store.account != nil && libraries.current.scope != LibraryScope.guest)
+        try FileManager.default.removeItem(at: directory)
+        await api.setFailure(true)
+        await store.deleteAccount()
+        #expect(store.account != nil && libraries.current.scope != LibraryScope.guest)
+        #expect(libraries.deletedBackupURL == nil)
+        await api.setFailure(false)
+        await store.deleteAccount()
+        #expect(store.account == nil && libraries.current.scope == LibraryScope.guest)
+        let url = try #require(libraries.deletedBackupURL)
+        #expect(try BackupStore.readFile(url).tasks.map(\.title) == ["注销保护"])
+    }
+
     @Test func profileSaveUpdatesIdentityAndSurvivesRestart() async {
         let api = AccountStub()
         let storage = MemorySession()

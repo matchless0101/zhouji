@@ -41,11 +41,13 @@
 		84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D99CBCADD2F9116441ACEF /* StatisticsService.swift */; };
 		86C739E82800CD5980A742BE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC72B41BE1C6E9A27ED8B28E /* CoreGraphics.framework */; };
 		8BC6BBF9C67A9E4BF59FA4EA /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D74816771A9FD9CCE4D7B9 /* Goal.swift */; };
+		9540C9F599C5554FEF58F457 /* LocalLibraryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71FACF4124070C02A3F302CF /* LocalLibraryCard.swift */; };
 		9563A9682CCD1D342E7A834C /* TodayJourneyDark.png in Resources */ = {isa = PBXBuildFile; fileRef = C9C35F7363B8898BC2EBAC9F /* TodayJourneyDark.png */; };
 		973DA768BCD323FDA88B5127 /* AccountStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */; };
 		9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B2295B64B5F7D07702E701 /* GoalDetailView.swift */; };
 		9C032EB942FFBFE5639CD65D /* TimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8200A7EA922F71B190159019 /* TimerSheet.swift */; };
 		9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */; };
+		9EC6AD826D33E9FC49F7CD7D /* LocalLibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */; };
 		AB2404F9D508EBD1AF51DF52 /* TimerMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18CD865EF12BEF475370DF2B /* TimerMath.swift */; };
 		ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FC5312C02A40C4E425D029 /* TaskRow.swift */; };
 		AF6738630FD3D445014B99DE /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF369424D165E148281CB11E /* TodayView.swift */; };
@@ -65,6 +67,7 @@
 		F16ECC25C431FC829086CEFB /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2699FF4AB95E602B07219343 /* libc++.tbd */; };
 		F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */; };
 		F46FC5A56CBF92CF7D38C5EA /* TodayJourney.png in Resources */ = {isa = PBXBuildFile; fileRef = E6C07800FED59A353B4EDCF1 /* TodayJourney.png */; };
+		FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -111,6 +114,7 @@
 		6168DF05F9358B91A840E301 /* GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalService.swift; sourceTree = "<group>"; };
 		6AD198BF41F57BCC38DF3E7C /* ZhouJiUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		709622E12C4C4BAB9D0C062B /* ZhouJi.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ZhouJi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		71FACF4124070C02A3F302CF /* LocalLibraryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryCard.swift; sourceTree = "<group>"; };
 		739BFA8892AE674A65737C96 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		760666CB6E383348C6C86675 /* WeChatLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLogin.swift; sourceTree = "<group>"; };
 		763FEDE98326909204980EF0 /* TodoTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTask.swift; sourceTree = "<group>"; };
@@ -119,6 +123,8 @@
 		82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyDataFixtures.swift; sourceTree = "<group>"; };
 		8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerControllerTests.swift; sourceTree = "<group>"; };
 		9044BEDD04665F95B062D30A /* AccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStore.swift; sourceTree = "<group>"; };
+		937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryTests.swift; sourceTree = "<group>"; };
+		977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryStore.swift; sourceTree = "<group>"; };
 		99D99CBCADD2F9116441ACEF /* StatisticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsService.swift; sourceTree = "<group>"; };
 		9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskUndoToast.swift; sourceTree = "<group>"; };
 		9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStoreTests.swift; sourceTree = "<group>"; };
@@ -178,6 +184,7 @@
 		20E4D179AF395F4E09108692 /* Data */ = {
 			isa = PBXGroup;
 			children = (
+				977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */,
 				A06B25A349A8D19657298D98 /* Models */,
 			);
 			path = Data;
@@ -246,6 +253,7 @@
 				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
 				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
 				82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */,
+				937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */,
 				CE38239592F10514065F5284 /* MigrationRegressionTests.swift */,
 				180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */,
 				8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */,
@@ -382,6 +390,7 @@
 			children = (
 				F435CF614869DD2BFB974BA9 /* AccountControls.swift */,
 				FE21D920EFE89D19F314717C /* BackupSettingsCard.swift */,
+				71FACF4124070C02A3F302CF /* LocalLibraryCard.swift */,
 				247A04FBA5BEED1351742A62 /* ProfileEditor.swift */,
 				2AE35BC4F8E743F7330D793A /* ProfileView.swift */,
 			);
@@ -558,6 +567,8 @@
 				9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */,
 				34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */,
 				D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */,
+				9540C9F599C5554FEF58F457 /* LocalLibraryCard.swift in Sources */,
+				FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */,
 				F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */,
 				49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */,
 				6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */,
@@ -589,6 +600,7 @@
 				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
 				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
 				682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */,
+				9EC6AD826D33E9FC49F7CD7D /* LocalLibraryTests.swift in Sources */,
 				C2C59084A547B8E13E19FC5F /* MigrationRegressionTests.swift in Sources */,
 				392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */,
 				39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */,

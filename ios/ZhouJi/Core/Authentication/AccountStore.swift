@@ -7,6 +7,8 @@ final class AccountStore {
     private(set) var account: AppAccount?
     private(set) var challenge: LoginChallenge?
     private(set) var isBusy = false
+    private(set) var isChangingLibrary = false
+    private let libraries: LocalLibraryStore?
     private(set) var isPreparing = false
     private(set) var isWaitingForWeChat = false
     private let weChat: any WeChatAuthorizing
@@ -17,7 +19,9 @@ final class AccountStore {
     private let checksAppleCredential: Bool
 
     init(api: any AccountServing = AccountAPI(), storage: any AccountSessionStoring = AccountKeychain(),
-         checksAppleCredential: Bool = true, weChat: any WeChatAuthorizing = WeChatLogin()) {
+         checksAppleCredential: Bool = true, weChat: any WeChatAuthorizing = WeChatLogin(),
+         libraries: LocalLibraryStore? = nil) {
+        self.libraries = libraries
         self.weChat = weChat
         self.api = api
         self.storage = storage
@@ -35,6 +39,7 @@ final class AccountStore {
                 message = AccountError.expired.localizedDescription
                 return
             }
+            try libraries?.restoreAuthentication(accountID: saved.account.id)
             session = saved
             account = saved.account
             if checksAppleCredential, saved.account.provider == "apple", let user = saved.appleUser {
@@ -52,6 +57,8 @@ final class AccountStore {
         } catch AccountError.expired {
             do { try clearSession() } catch { message = AccountError.keychain.localizedDescription; return }
             message = AccountError.expired.localizedDescription
+        } catch let error as LibraryError {
+            message = error.localizedDescription
         } catch AccountError.keychain {
             message = AccountError.keychain.localizedDescription
         } catch {
@@ -112,14 +119,21 @@ final class AccountStore {
 
     // Kept separate from the system authorization object so failure paths can be tested.
     func finishLogin(challenge: String, code: String, identityToken: String, appleUser: String) async {
+        isChangingLibrary = true
+        defer { isChangingLibrary = false }
         do {
             var result = try await api.login(challenge: challenge, code: code, identityToken: identityToken)
             result.appleUser = appleUser
-            do { try storage.save(result) }
+            let prepared: LocalLibrary?
+            do {
+                prepared = try libraries?.prepareLogin(accountID: result.account.id)
+                try storage.save(result)
+            }
             catch {
                 try? await api.logout(token: result.token)
-                throw AccountError.keychain
+                throw error
             }
+            if let prepared { libraries?.completeLogin(accountID: result.account.id, prepared: prepared) }
             session = result
             account = result.account
             message = nil
@@ -130,21 +144,27 @@ final class AccountStore {
         guard !isBusy, account == nil else { return }
         isBusy = true
         message = nil
-        defer { isBusy = false; isWaitingForWeChat = false }
+        defer { isBusy = false; isWaitingForWeChat = false; isChangingLibrary = false }
         do {
             let pending = try await api.weChatChallenge()
             guard pending.expiresAt > Date.now.timeIntervalSince1970 else { throw WeChatLoginError.expired }
             isWaitingForWeChat = true
             let code = try await weChat.authorize(state: pending.challenge)
             isWaitingForWeChat = false
+            isChangingLibrary = true
             var result = try await api.loginWeChat(challenge: pending.challenge, code: code)
             result.appleUser = nil
             guard result.account.provider == "wechat" else { throw AccountError.invalidResponse }
-            do { try storage.save(result) }
+            let prepared: LocalLibrary?
+            do {
+                prepared = try libraries?.prepareLogin(accountID: result.account.id)
+                try storage.save(result)
+            }
             catch {
                 try? await api.logout(token: result.token)
-                throw AccountError.keychain
+                throw error
             }
+            if let prepared { libraries?.completeLogin(accountID: result.account.id, prepared: prepared) }
             session = result
             account = result.account
             challenge = nil
@@ -161,9 +181,13 @@ final class AccountStore {
         guard !isBusy, let session else { return }
         isBusy = true
         defer { isBusy = false }
+        isChangingLibrary = true
+        defer { isChangingLibrary = false }
         do {
+            let prepared = try libraries?.prepareLogout()
             try await api.logout(token: session.token)
             try clearSession()
+            if let prepared { libraries?.completeLogout(prepared: prepared) }
             message = nil
         } catch { message = error.localizedDescription }
     }
@@ -204,10 +228,18 @@ final class AccountStore {
         guard !isBusy, let session else { return }
         isBusy = true
         defer { isBusy = false }
+        isChangingLibrary = true
+        defer { isChangingLibrary = false }
         do {
+            let prepared = try libraries?.prepareLogout()
+            let backup = try libraries?.prepareDeletionBackup()
             try await api.delete(token: session.token)
+            // Retain the export even if clearing the Keychain subsequently fails.
+            libraries?.retainDeletedBackup(backup)
             try clearSession()
-            message = "账户已注销，本机任务与计时记录已保留。"
+            if let prepared { libraries?.completeLogout(prepared: prepared) }
+            message = libraries == nil ? "账户已注销，本机任务与计时记录已保留。"
+                : "账户已注销，已返回游客记录。可在数据备份中导出注销前内容。"
         } catch AccountError.expired {
             try? clearSession()
             message = AccountError.expired.localizedDescription
@@ -227,6 +259,7 @@ final class AccountStore {
         try storage.clear()
         session = nil
         account = nil
+        libraries?.authenticationExpired()
         challenge = nil
     }
 }

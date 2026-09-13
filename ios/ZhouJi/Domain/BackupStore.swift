@@ -26,7 +26,7 @@ enum BackupError: LocalizedError {
         case .contentChanged:
             "本机数据已变化，请重新选择备份并确认恢复内容。"
         case .unsupportedScope:
-            "此备份包含账户分区，当前版本仅支持恢复本机数据。"
+            "备份与当前记录归属不同。请切换到游客记录或登录原账户后恢复；当前不支持跨账户导入。"
         case .protectionFailed:
             "未能保存恢复前的保护副本，本机数据未改动。请检查可用空间后重试。"
         case .emptyDocument:
@@ -97,7 +97,7 @@ enum BackupStore {
             goals: goals.map(BackupGoal.init).sorted { $0.id.uuidString < $1.id.uuidString },
             tasks: tasks.map(BackupTask.init).sorted { $0.id.uuidString < $1.id.uuidString },
             timingSessions: sessions.map(BackupTimingSession.init).sorted { $0.id.uuidString < $1.id.uuidString },
-            dataScope: "local"
+            dataScope: LibraryScope.of(context)
         )
         return try prepared(document, allowEmpty: true)
     }
@@ -170,6 +170,7 @@ enum BackupStore {
         in context: ModelContext
     ) throws -> BackupRestorePreview {
         _ = try prepared(document)
+        guard (document.dataScope ?? LibraryScope.guest) == LibraryScope.of(context) else { throw BackupError.unsupportedScope }
         try ensureCanRestore(in: context)
         let existingGoals = Set(try context.fetch(FetchDescriptor<Goal>()).map(\.id))
         let existingTasks = Set(try context.fetch(FetchDescriptor<TodoTask>()).map(\.id))
@@ -203,7 +204,7 @@ enum BackupStore {
         _ document: ZhouJiBackupDocument,
         in context: ModelContext,
         expectedContent: ZhouJiBackupDocument? = nil,
-        protectionWriter: (Data) throws -> Void = BackupSafetyStore.save,
+        protectionWriter: ((Data) throws -> Void)? = nil,
         saveChanges: (ModelContext) throws -> Void = { try $0.save() }
     ) throws -> BackupRestoreResult {
         let document = try prepared(document)
@@ -216,7 +217,11 @@ enum BackupStore {
         }
         // Establish the rollback boundary before making any import mutations.
         try context.save()
-        do { try protectionWriter(encode(before)) }
+        do {
+            let data = try encode(before)
+            if let protectionWriter { try protectionWriter(data) }
+            else { try BackupSafetyStore.save(data, in: context) }
+        }
         catch { throw BackupError.protectionFailed }
         let wasAutosaveEnabled = context.autosaveEnabled
         context.autosaveEnabled = false
@@ -323,7 +328,7 @@ enum BackupStore {
         guard (1...schemaVersion).contains(document.schemaVersion) else {
             throw BackupError.unsupportedSchema(found: document.schemaVersion)
         }
-        guard document.dataScope == "local" || (document.schemaVersion == 1 && document.dataScope == nil) else {
+        guard (document.dataScope.map(LibraryScope.isValid) ?? false) || (document.schemaVersion == 1 && document.dataScope == nil) else {
             throw BackupError.unsupportedScope
         }
         let count = document.goals.count + document.tasks.count + document.timingSessions.count

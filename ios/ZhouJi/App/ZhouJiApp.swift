@@ -4,12 +4,39 @@ import AuthenticationServices
 
 @main
 struct ZhouJiApp: App {
-    @State private var timerController = TimerController()
+    @State private var libraries: LocalLibraryStore?
+    @State private var storageMessage: String?
+    @State private var selectedTab = RootTabView.initialTab
     @State private var accountStore = AccountStore()
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
 
-    var sharedModelContainer: ModelContainer = {
+    init() {
+        do {
+            let libraries = try Self.makeLibraries()
+            _libraries = State(initialValue: libraries)
+            _accountStore = State(initialValue: Self.makeAccountStore(libraries))
+        } catch {
+            _storageMessage = State(initialValue: LibraryError.unavailable.localizedDescription)
+        }
+    }
+
+    private static func makeAccountStore(_ libraries: LocalLibraryStore) -> AccountStore {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-ZJInMemoryStore") {
+            let storage = LibraryPreviewSession()
+            if ProcessInfo.processInfo.arguments.contains("-ZJIsolationSampleData") {
+                storage.value = AccountSession(token: "preview-only", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+                    account: AppAccount(id: "preview-account", provider: "apple"))
+                return AccountStore(api: LibraryPreviewAPI(), storage: storage, checksAppleCredential: false, libraries: libraries)
+            }
+            return AccountStore(storage: storage, libraries: libraries)
+        }
+        #endif
+        return AccountStore(libraries: libraries)
+    }
+
+    private static func makeLibraries() throws -> LocalLibraryStore {
         let schema = Schema([
             Goal.self,
             TodoTask.self,
@@ -30,18 +57,48 @@ struct ZhouJiApp: App {
                 try insertPreviewSampleData(in: container.mainContext)
             }
             #endif
-            return container
+            let libraries = try LocalLibraryStore(guest: container, inMemory: usesInMemoryStore)
+            #if DEBUG
+            if usesInMemoryStore, ProcessInfo.processInfo.arguments.contains("-ZJIsolationSampleData") {
+                let prepared = try libraries.prepareLogin(accountID: "preview-account")
+                libraries.completeLogin(accountID: "preview-account", prepared: prepared)
+                let task = try TaskService.create(title: "账户独有任务", in: prepared.container.mainContext)
+                try TaskService.setCompleted(task, completed: true, in: prepared.container.mainContext)
+            }
+            #endif
+            return libraries
         } catch {
-            fatalError("无法创建粥记本地数据库：\(error.localizedDescription)")
+            throw LibraryError.unavailable
         }
-    }()
+    }
 
     var body: some Scene {
         WindowGroup {
-            RootTabView()
-                .environment(timerController)
+            Group {
+                if let libraries {
+                    RootTabView(selection: $selectedTab)
+                        .id(libraries.current.scope)
+                        .modelContainer(libraries.current.container)
+                        .environment(libraries.current.timer)
+                        .environment(libraries)
+                        .disabled(accountStore.isChangingLibrary)
+                        // Local data is immediately usable while login status refreshes in the background.
+                        .task { await accountStore.restore() }
+                } else {
+                    VStack(spacing: 16) {
+                        Text(storageMessage ?? LibraryError.unavailable.localizedDescription)
+                        Button("重试打开") {
+                            do {
+                                let loaded = try Self.makeLibraries()
+                                accountStore = Self.makeAccountStore(loaded)
+                                libraries = loaded
+                                storageMessage = nil
+                            } catch { storageMessage = LibraryError.unavailable.localizedDescription }
+                        }
+                    }.padding()
+                }
+            }
                 .environment(accountStore)
-                .task { await accountStore.restore() }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .background { accountStore.weChatEnteredBackground() }
                     if phase == .active {
@@ -59,7 +116,6 @@ struct ZhouJiApp: App {
                     (AppAppearance(rawValue: appearanceRawValue) ?? .system).colorScheme
                 )
         }
-        .modelContainer(sharedModelContainer)
     }
     #if DEBUG
     /// Visual-review fixtures are opt-in and can only be inserted into a temporary store.
@@ -106,3 +162,23 @@ struct ZhouJiApp: App {
     #endif
 
 }
+
+#if DEBUG
+/// UI fixtures are reachable only with the explicit in-memory launch flag; never read the real Keychain.
+@MainActor private final class LibraryPreviewSession: AccountSessionStoring {
+    var value: AccountSession?
+    func read() throws -> AccountSession? { value }
+    func save(_ session: AccountSession) throws { value = session }
+    func clear() throws { value = nil }
+}
+private struct LibraryPreviewAPI: AccountServing {
+    func challenge() async throws -> LoginChallenge { throw AccountError.unavailable }
+    func weChatChallenge() async throws -> LoginChallenge { throw AccountError.unavailable }
+    func loginWeChat(challenge: String, code: String) async throws -> AccountSession { throw AccountError.unavailable }
+    func login(challenge: String, code: String, identityToken: String) async throws -> AccountSession { throw AccountError.unavailable }
+    func account(token: String) async throws -> AppAccount { AppAccount(id: "preview-account", provider: "apple") }
+    func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount { throw AccountError.unavailable }
+    func logout(token: String) async throws {}
+    func delete(token: String) async throws { throw AccountError.unavailable }
+}
+#endif

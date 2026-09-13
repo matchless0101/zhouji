@@ -4,6 +4,7 @@ import UIKit
 
 struct ProfileView: View {
     @Environment(AccountStore.self) private var account
+    @Environment(LocalLibraryStore.self) private var libraries
     @Query private var tasks: [TodoTask]
     @Query private var sessions: [TimingSession]
 
@@ -43,6 +44,7 @@ struct ProfileView: View {
                         header
                         identityCard
                         AccountControls()
+                        LocalLibraryCard()
                         metrics(statistics)
                         encouragementBanner
                         settingsCard
@@ -132,7 +134,7 @@ struct ProfileView: View {
             .accessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("游客模式")
+                Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
                     .font(.title3.weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
 

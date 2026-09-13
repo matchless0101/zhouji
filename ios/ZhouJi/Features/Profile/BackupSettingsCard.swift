@@ -6,8 +6,9 @@ import UniformTypeIdentifiers
 struct BackupSettingsCard: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(TimerController.self) private var timer
+    @Environment(LocalLibraryStore.self) private var libraries
     @State private var isReading = false
-    @State private var protectionAvailable = BackupSafetyStore.exists
+    @State private var protectionAvailable = false
     @State private var expectedContent: ZhouJiBackupDocument?
     @State private var isExporting = false
     @State private var isImporting = false
@@ -76,10 +77,20 @@ struct BackupSettingsCard: View {
                 .disabled(isReading)
                 .accessibilityIdentifier("backup.protection")
             }
+            if libraries.authenticatedScope == nil, libraries.current.scope == LibraryScope.guest,
+               let url = libraries.deletedBackupURL {
+                Button { exportSavedFile(url) } label: {
+                    ProfileSettingRow(title: "导出注销前备份", detail: "最近一次注销账户的本机内容",
+                                      systemImage: "archivebox", showsChevron: true)
+                }
+                .buttonStyle(.plain)
+                .disabled(isReading)
+                .accessibilityIdentifier("backup.deletedAccount")
+            }
             if isReading {
                 ProgressView("正在校验备份…").padding(14)
             }
-            Text("仅恢复到本机，不会上传到账户。恢复前会自动保留一份保护副本。")
+            Text("仅恢复到当前记录，不会上传。备份需属于同一账户或同为游客记录。")
                 .font(.footnote)
                 .foregroundStyle(ZJTheme.secondaryInk)
                 .padding(.horizontal, 14)
@@ -95,6 +106,7 @@ struct BackupSettingsCard: View {
             }
         }
         .zjCard()
+        .onAppear { protectionAvailable = BackupSafetyStore.exists(in: modelContext) }
         .fileExporter(
             isPresented: $isExporting,
             document: exportDocument.map(BackupFile.init),
@@ -182,12 +194,14 @@ struct BackupSettingsCard: View {
         pendingDocument = nil
         pendingPreview = nil
         expectedContent = nil
-        protectionAvailable = BackupSafetyStore.exists
+        protectionAvailable = BackupSafetyStore.exists(in: modelContext)
     }
 
-    private func exportProtection() {
+    private func exportProtection() { exportSavedFile(BackupSafetyStore.fileURL(in: modelContext)) }
+
+    private func exportSavedFile(_ url: URL) {
         do {
-            let data = try Data(contentsOf: BackupSafetyStore.fileURL)
+            let data = try Data(contentsOf: url)
             // Protection files are generated locally and may legitimately contain an empty pre-import library.
             let decoder = JSONDecoder()
             decoder.dateDecodingStrategy = .secondsSince1970

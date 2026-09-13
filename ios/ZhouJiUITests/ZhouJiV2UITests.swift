@@ -2,6 +2,33 @@ import XCTest
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testAccountLibrarySwitchRebuildsListsAndStatistics() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-ZJIsolationSampleData", "-ZJInitialTab", "profile"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["library.current"].waitForExistence(timeout: 4))
+        XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
+        let guest = app.buttons["library.guest"]
+        for _ in 0..<3 where !guest.isHittable { app.swipeUp() }
+        guest.tap()
+        XCTAssertTrue(app.buttons["library.account"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["profile.completed"].label, "7 件")
+        app.buttons["tab.today"].tap()
+        XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["账户独有任务"].exists)
+        app.buttons["tab.profile"].tap()
+        let account = app.buttons["library.account"]
+        for _ in 0..<3 where !account.isHittable { app.swipeUp() }
+        account.tap()
+        XCTAssertTrue(app.buttons["library.guest"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
+        app.buttons["tab.today"].tap()
+        XCTAssertTrue(app.staticTexts["账户独有任务"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["整理开题资料"].exists)
+    }
+
+    @MainActor
     func testBackupRestoreProtectsCurrentRunningTimer() throws {
         continueAfterFailure = false
         let app = makeApp()

@@ -87,14 +87,14 @@ struct AccountSessionActions: View {
                 .confirmationDialog("退出登录？", isPresented: $showsLogout, titleVisibility: .visible) {
                     Button("退出登录", role: .destructive) { Task { await account.logout(); await account.prepare() } }
                 } message: {
-                    Text("本机任务、目标和计时记录会继续保留。")
+                    Text("将返回游客记录。此账户的本机记录单独保留，重新登录原账户后可查看。请先结束当前计时。")
                 }
                 .confirmationDialog("永久注销粥记账户？", isPresented: $showsDeletion, titleVisibility: .visible) {
                     Button("注销账户", role: .destructive) { Task { await account.deleteAccount() } }
                 } message: {
                     Text(account.account?.provider == "wechat"
-                         ? "将永久删除粥记服务端账户及保存的授权凭据，本机记录保留。微信中的应用授权请在微信设置中管理。"
-                         : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机任务、目标和计时记录仍会保留。")
+                         ? "将永久删除粥记服务端账户及保存的授权凭据，本机内容会先保存为可导出的备份，再返回游客记录。微信中的应用授权请在微信设置中管理。"
+                         : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机内容会先保存为可导出的备份，再返回游客记录。")
                 }
             }
         }

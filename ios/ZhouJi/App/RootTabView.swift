@@ -4,10 +4,13 @@ import SwiftUI
 struct RootTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(TimerController.self) private var timer
-    @State private var selection: AppTab
+    @Environment(LocalLibraryStore.self) private var libraries
+    @Binding private var selection: AppTab
 
-    init() {
-        _selection = State(initialValue: Self.debugInitialTab ?? .today)
+    static var initialTab: AppTab { debugInitialTab ?? .today }
+
+    init(selection: Binding<AppTab>) {
+        _selection = selection
     }
 
     var body: some View {
@@ -40,6 +43,13 @@ struct RootTabView: View {
                     .tabItem {
                         Label("我的", systemImage: "person")
                     }
+            }
+            if libraries.current.scope != LibraryScope.guest && libraries.authenticatedScope == nil {
+                Text("账户本机记录 · 请重新登录原账户")
+                    .font(.caption).foregroundStyle(ZJTheme.secondaryInk)
+            } else if libraries.current.scope == LibraryScope.guest && libraries.authenticatedScope != nil {
+                Text("正在查看游客记录 · 未合并到账户")
+                    .font(.caption).foregroundStyle(ZJTheme.secondaryInk)
             }
             navigationBar
         }
@@ -111,7 +121,7 @@ struct RootTabView: View {
     }
 }
 
-private enum AppTab: String, Hashable, CaseIterable {
+enum AppTab: String, Hashable, CaseIterable {
     case today
     case goals
     case records
