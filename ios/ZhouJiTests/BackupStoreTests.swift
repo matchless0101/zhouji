@@ -36,7 +36,7 @@ struct BackupStoreTests {
         #expect(decoded == document)
 
         let empty = try makeContext()
-        let result = try BackupStore.restore(decoded, in: empty)
+        let result = try BackupStore.restore(decoded, in: empty, protectionWriter: { _ in })
         #expect(result.verifiedGoalCount == 1)
         #expect(result.verifiedTaskCount == 2)
         #expect(result.verifiedSessionCount == 1)
@@ -75,7 +75,7 @@ struct BackupStoreTests {
         let preview = try BackupStore.preview(document, in: context)
         #expect(preview.tasksInsert == 0)
         #expect(preview.tasksUpdate == 1)
-        _ = try BackupStore.restore(document, in: context)
+        _ = try BackupStore.restore(document, in: context, protectionWriter: { _ in })
 
         let tasks = try context.fetch(FetchDescriptor<TodoTask>())
         #expect(tasks.count == 2)

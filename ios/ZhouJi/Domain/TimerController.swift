@@ -36,6 +36,8 @@ final class TimerController {
         restorePersistedSession()
     }
 
+    func reloadAfterBackupRestore() { restorePersistedSession() }
+
     func requestStart(for task: TodoTask) -> TimerStartDecision {
         guard let activeSession else {
             return start(task: task) ? .started : .failed

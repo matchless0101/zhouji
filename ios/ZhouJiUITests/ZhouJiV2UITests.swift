@@ -2,6 +2,27 @@ import XCTest
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testBackupRestoreProtectsCurrentRunningTimer() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData"]
+        app.launch()
+        app.buttons["开始计时"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["收起"].waitForExistence(timeout: 3))
+        app.buttons["收起"].tap()
+        app.buttons["tab.profile"].tap()
+        let restore = app.buttons["backup.import"]
+        for _ in 0..<5 where !restore.isHittable { app.swipeUp() }
+        XCTAssertTrue(restore.isHittable)
+        restore.tap()
+        let message = app.staticTexts["backup.message"]
+        XCTAssertTrue(message.waitForExistence(timeout: 3))
+        XCTAssertTrue(message.label.contains("请先结束当前计时"))
+        app.buttons["tab.today"].tap()
+        XCTAssertTrue(app.buttons["查看当前计时"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
     func testColdLaunchUsesV3NavigationAndStartsOnToday() throws {
         continueAfterFailure = false
         let app = makeApp()

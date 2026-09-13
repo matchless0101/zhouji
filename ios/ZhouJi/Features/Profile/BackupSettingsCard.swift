@@ -5,6 +5,10 @@ import UniformTypeIdentifiers
 /// Local versioned JSON backup. Independent of cloud sync (PRD 增量 D10).
 struct BackupSettingsCard: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(TimerController.self) private var timer
+    @State private var isReading = false
+    @State private var protectionAvailable = BackupSafetyStore.exists
+    @State private var expectedContent: ZhouJiBackupDocument?
     @State private var isExporting = false
     @State private var isImporting = false
     @State private var exportDocument: ZhouJiBackupDocument?
@@ -33,12 +37,13 @@ struct BackupSettingsCard: View {
             } label: {
                 ProfileSettingRow(
                     title: "导出备份",
-                    detail: "完整可恢复文件",
+                    detail: "包含任务内容，请妥善保管",
                     systemImage: "square.and.arrow.up",
                     showsChevron: true
                 )
             }
             .buttonStyle(.plain)
+            .disabled(isReading)
             .accessibilityIdentifier("backup.export")
 
             Divider()
@@ -46,7 +51,10 @@ struct BackupSettingsCard: View {
                 .padding(.leading, 62)
 
             Button {
-                isImporting = true
+                do {
+                    try BackupStore.ensureCanRestore(in: modelContext)
+                    isImporting = true
+                } catch { presentedMessage = error.localizedDescription }
             } label: {
                 ProfileSettingRow(
                     title: "从备份恢复",
@@ -56,7 +64,26 @@ struct BackupSettingsCard: View {
                 )
             }
             .buttonStyle(.plain)
+            .disabled(isReading)
             .accessibilityIdentifier("backup.import")
+
+            if protectionAvailable {
+                Button { exportProtection() } label: {
+                    ProfileSettingRow(title: "导出恢复前备份", detail: "保留最近一次恢复前的数据",
+                                      systemImage: "clock.arrow.circlepath", showsChevron: true)
+                }
+                .buttonStyle(.plain)
+                .disabled(isReading)
+                .accessibilityIdentifier("backup.protection")
+            }
+            if isReading {
+                ProgressView("正在校验备份…").padding(14)
+            }
+            Text("仅恢复到本机，不会上传到账户。恢复前会自动保留一份保护副本。")
+                .font(.footnote)
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
 
             if let presentedMessage {
                 Text(presentedMessage)
@@ -90,7 +117,7 @@ struct BackupSettingsCard: View {
             switch result {
             case .success(let urls):
                 guard let url = urls.first else { return }
-                prepareImport(from: url)
+                Task { await prepareImport(from: url) }
             case .failure(let error):
                 presentedMessage = error.localizedDescription
             }
@@ -104,9 +131,10 @@ struct BackupSettingsCard: View {
             Button("取消", role: .cancel) {
                 pendingDocument = nil
                 pendingPreview = nil
+                expectedContent = nil
             }
         } message: {
-            Text(pendingPreview?.summary ?? "将按备份内容新增或更新本机数据，不会删除备份中不存在的本机记录。")
+            Text((pendingPreview?.summary ?? "") + " 同 ID 记录将按备份更新，其他本机记录保留。备份中的运行计时将恢复为暂停。")
         }
     }
 
@@ -121,13 +149,15 @@ struct BackupSettingsCard: View {
         }
     }
 
-    private func prepareImport(from url: URL) {
+    private func prepareImport(from url: URL) async {
+        isReading = true
+        defer { isReading = false }
         let accessing = url.startAccessingSecurityScopedResource()
         defer { if accessing { url.stopAccessingSecurityScopedResource() } }
         do {
-            let data = try Data(contentsOf: url)
-            let document = try BackupStore.decode(data)
+            let document = try await Task.detached { try BackupStore.readFile(url) }.value
             let preview = try BackupStore.preview(document, in: modelContext)
+            expectedContent = try BackupStore.exportDocument(from: modelContext)
             pendingDocument = document
             pendingPreview = preview
             presentedMessage = nil
@@ -135,6 +165,7 @@ struct BackupSettingsCard: View {
         } catch {
             pendingDocument = nil
             pendingPreview = nil
+            expectedContent = nil
             presentedMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
     }
@@ -142,13 +173,28 @@ struct BackupSettingsCard: View {
     private func performRestore() {
         guard let document = pendingDocument else { return }
         do {
-            let result = try BackupStore.restore(document, in: modelContext)
+            let result = try BackupStore.restore(document, in: modelContext, expectedContent: expectedContent)
+            timer.reloadAfterBackupRestore()
             presentedMessage = result.summary
         } catch {
             presentedMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
         pendingDocument = nil
         pendingPreview = nil
+        expectedContent = nil
+        protectionAvailable = BackupSafetyStore.exists
+    }
+
+    private func exportProtection() {
+        do {
+            let data = try Data(contentsOf: BackupSafetyStore.fileURL)
+            // Protection files are generated locally and may legitimately contain an empty pre-import library.
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .secondsSince1970
+            exportDocument = try decoder.decode(ZhouJiBackupDocument.self, from: data)
+            presentedMessage = nil
+            isExporting = true
+        } catch { presentedMessage = "未能读取恢复前备份，请检查设备存储后重试。" }
     }
 
     private static func exportFilename() -> String {

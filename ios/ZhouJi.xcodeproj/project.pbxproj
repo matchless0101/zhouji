@@ -27,6 +27,7 @@
 		41D14A4D877104C6569584D3 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330445BD9756850EFD1D5B36 /* AppAppearance.swift */; };
 		447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */; };
 		461E587FC99FA97A74AEBE8B /* WeChatLoginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */; };
+		46BB3D5F0F1865ED5B109AD5 /* BackupRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */; };
 		46EB6E15F04DADEB14FA1AF8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E01969A83CD9F462B172766C /* PrivacyInfo.xcprivacy */; };
 		49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247A04FBA5BEED1351742A62 /* ProfileEditor.swift */; };
 		4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */; };
@@ -100,6 +101,7 @@
 		330445BD9756850EFD1D5B36 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStoreTests.swift; sourceTree = "<group>"; };
 		409B7EA59769107E561759AD /* ElapsedTimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeText.swift; sourceTree = "<group>"; };
+		41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryTests.swift; sourceTree = "<group>"; };
 		4339224F869B244AD0294B9F /* BackupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStore.swift; sourceTree = "<group>"; };
 		49B0CE29A0DF122A284A6F1D /* AccountKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountKeychain.swift; sourceTree = "<group>"; };
 		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
@@ -239,6 +241,7 @@
 			isa = PBXGroup;
 			children = (
 				369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */,
+				41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */,
 				9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */,
 				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
 				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
@@ -581,6 +584,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				973DA768BCD323FDA88B5127 /* AccountStoreTests.swift in Sources */,
+				46BB3D5F0F1865ED5B109AD5 /* BackupRecoveryTests.swift in Sources */,
 				4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */,
 				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
 				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
