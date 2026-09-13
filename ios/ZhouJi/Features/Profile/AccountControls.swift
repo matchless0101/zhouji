@@ -5,11 +5,14 @@ import SwiftUI
 struct AccountControls: View {
     @Environment(AccountStore.self) private var account
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(ContentSyncStore.self) private var contentSync
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if account.account == nil {
-                Text("登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。")
+                Text(contentSync.isEnabled
+                     ? "登录后可使用测试云同步；未上传前数据仍仅保存在本机。"
+                     : "登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。")
                     .font(.footnote)
                     .foregroundStyle(ZJTheme.secondaryInk)
                 if let challenge = account.challenge {
@@ -50,7 +53,9 @@ struct AccountControls: View {
                     .font(.caption)
                     .foregroundStyle(ZJTheme.secondaryInk)
             } else {
-                Text("任务与计时记录仍保存在本机，云同步尚未上线。")
+                Text(contentSync.isEnabled
+                     ? "任务与计时默认保存在本机。仅在你主动同步后才会上传已结束的计时。"
+                     : "任务与计时记录仍保存在本机，云同步尚未上线。")
                     .font(.footnote)
                     .foregroundStyle(ZJTheme.secondaryInk)
             }

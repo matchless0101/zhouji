@@ -80,6 +80,23 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["tab.profile"].isSelected)
         XCTAssertTrue(app.staticTexts["游客模式"].exists)
         XCTAssertTrue(app.staticTexts["登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。"].exists)
+        XCTAssertFalse(app.staticTexts["sync.title"].exists)
+    }
+
+    @MainActor
+    func testContentSyncCardAppearsOnlyWhenFlagEnabled() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "profile", "-ZJSyncContent", "-ZJIsolationSampleData"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["sync.title"].waitForExistence(timeout: 4))
+        XCTAssertTrue(app.staticTexts["登录后可使用测试云同步；未上传前数据仍仅保存在本机。"].exists)
+        // Logged into preview account library → upload/restore controls visible.
+        let upload = app.buttons["sync.upload"]
+        for _ in 0..<5 where !upload.exists { app.swipeUp() }
+        XCTAssertTrue(upload.exists)
+        XCTAssertTrue(app.buttons["sync.restore"].exists)
+        XCTAssertTrue(app.buttons["sync.pushPending"].exists)
     }
 
     @MainActor
