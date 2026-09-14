@@ -42,7 +42,7 @@ sync_entities = Table('sync_entities', metadata,
     Column('server_seq', BigInteger, nullable=False, index=True),
     Column('updated_at', BigInteger, nullable=False),
     Column('deleted_at', BigInteger, nullable=True),
-    Column('payload', Text, nullable=False, server_default='{}'),
+    Column('payload', Text, nullable=False),
     Column('client_op_id', identifier(64), nullable=True),
 )
 

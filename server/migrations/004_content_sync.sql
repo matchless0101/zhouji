@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS sync_entities (
     server_seq BIGINT NOT NULL,
     updated_at BIGINT NOT NULL,
     deleted_at BIGINT NULL,
-    payload TEXT NOT NULL DEFAULT '{}',
+    payload TEXT NOT NULL,
     client_op_id VARCHAR(64) COLLATE utf8mb4_bin NULL,
     PRIMARY KEY (account_id, entity_type, entity_id),
     KEY sync_entities_seq_idx (account_id, server_seq),

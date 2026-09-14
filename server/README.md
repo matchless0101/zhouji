@@ -8,7 +8,7 @@
 - iOS 使用系统 Apple 登录按钮与微信 OpenSDK 登录入口，登录状态保存在设备钥匙串，支持恢复、退出和注销。登录不上传本机任务、目标或计时记录。
 - 微信 AppID 与 AppSecret 已由用户提供并私下保存；服务端微信 OAuth、账户多 provider 模型与迁移 `003_wechat_login.sql` 已完成，**003 已在生产执行**。用户已确认真机微信登录成功；退出、重新登录、注销与异常路径仍应分别验收并记录。
 - Apple 平台 App ID、专用密钥与服务器配置已完成。用户已在真机确认 Apple 登录与退出正常；真机注销尚未人工验收，其成功、失败与重试路径已由自动化测试覆盖。
-- 云同步尚未实现，登录界面与游客界面均明确说明数据仍在本机。产品规则见 `docs/05-云同步产品需求增量.md`；开放同步前须完成服务端备份与恢复演练。
+- 云同步：服务端协议已部署生产（`content-sync-20260914-01`，迁移 `004` 已执行）；**iOS 功能开关仍默认关闭**，待真机联调后再对用户开放。规则见 `docs/05-云同步产品需求增量.md` 与 `docs/08-云同步部署与真机联调.md`。
 
 验证记录（2026-09-12）：后端 22 项测试本地和服务器均通过；iOS 原 29 项单元测试及新增钥匙串读取异常测试、2 项游客界面测试、模拟器构建和真机签名构建通过，已安装到配对 iPhone。真实 MySQL 的账户与会话生命周期验证通过，其中 Apple 返回使用隔离测试适配器。生产服务未安装任何模拟登录入口。Apple 官方令牌端点对故意无效的授权码返回预期错误，该检查只证明连通；随后用户已在真机确认真实登录与退出成功。
 
@@ -54,13 +54,16 @@ python3.12 -m venv .venv
 | `GET /api/v1/sync/pull` | 按 `server_seq` 游标拉取本账户变更 |
 | `GET /api/v1/sync/status` | 最新游标与软删除计数（阶段 B 基础，客户端同步 UI 尚未接通） |
 
-## 内容同步（阶段 B 基础，未对用户开放）
+## 内容同步（阶段 B–D 服务端已部署，iOS 默认关闭）
 
-- 表：`sync_entities`（迁移 `004_content_sync.sql`），按 `account_id` 隔离；注销账户时级联/显式删除内容。
+- 表：`sync_entities`（迁移 `004_content_sync.sql`，2026-09-14 已在生产执行）。
+- 发布：`/opt/zhouji-api/releases/content-sync-20260914-01`，`current` 已切换；回退可指回 `wechat-20260912-03`。
 - R1：客户端 `version` 小于服务端 → `conflicts` 返回服务端版本与 payload，不静默覆盖。
-- R2：软删除写入 `deleted_at`；`purge_soft_deleted(..., older_than_seconds=7*86400)` 按 7 天物理清理（需运维定时任务，尚未挂 cron）。
-- R3：服务端只存客户端推送的事实；应用层约定仅推送已结束计时会话。
-- 本阶段**不**在 iOS 打开自动同步，也不改变现有界面文案；首次上传与客户端协议对接属阶段 C。
+- R2：软删除写入 `deleted_at`；`purge_soft_deleted(..., older_than_seconds=7*86400)` 按 7 天物理清理（**cron 尚未挂载**，见 `deploy/BACKUP-DRILL.md`）。
+- R3：应用层约定仅推送已结束计时会话。
+- 健康探针：`/usr/local/sbin/zhouji-health-probe`，每 5 分钟 cron；2026-09-14 首次安装。
+- 生产部署前备份：`/var/backups/zhouji/zhouji-20260914-160830.sql.gz`（zhouji_app 权限限制下含 3 张 auth 表结构；正式灾备建议用 debian-sys-maint 全量 dump）。
+- 服务器侧 pytest：50 项通过。公网 `GET /api/v1/health/ready`=200，未登录 `/sync/pull`=401。
 
 健康响应均禁止缓存，不返回数据库地址、账号、SQL 错误或密钥。登录启用时，就绪检查同时检查账户、会话和一次性请求表的列。公网不提供 Swagger/OpenAPI 文档。
 
