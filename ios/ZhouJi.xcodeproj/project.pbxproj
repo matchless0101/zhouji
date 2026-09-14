@@ -70,6 +70,7 @@
 		E9DB91015B2E08B16C43D69C /* GoalDigital.png in Resources */ = {isa = PBXBuildFile; fileRef = F563F5E85F82688888ED00FA /* GoalDigital.png */; };
 		EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3602CC160CF15F9EE8A7EA /* TaskService.swift */; };
 		F16ECC25C431FC829086CEFB /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2699FF4AB95E602B07219343 /* libc++.tbd */; };
+		F2851822A0F4327E36619364 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F603C0EA9CC9519AB6D49B6E /* Assets.xcassets */; };
 		F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */; };
 		F46FC5A56CBF92CF7D38C5EA /* TodayJourney.png in Resources */ = {isa = PBXBuildFile; fileRef = E6C07800FED59A353B4EDCF1 /* TodayJourney.png */; };
 		FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */; };
@@ -162,6 +163,7 @@
 		EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLoginTests.swift; sourceTree = "<group>"; };
 		F435CF614869DD2BFB974BA9 /* AccountControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountControls.swift; sourceTree = "<group>"; };
 		F563F5E85F82688888ED00FA /* GoalDigital.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalDigital.png; sourceTree = "<group>"; };
+		F603C0EA9CC9519AB6D49B6E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F9FE7B80BB92D300651E1455 /* ZJTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJTheme.swift; sourceTree = "<group>"; };
 		FE21D920EFE89D19F314717C /* BackupSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSettingsCard.swift; sourceTree = "<group>"; };
 		FF801AF1512F4520691A5C32 /* ZhouJiTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -211,6 +213,7 @@
 		2FBD4BAB996290A8A484C6DB /* ZhouJi */ = {
 			isa = PBXGroup;
 			children = (
+				F603C0EA9CC9519AB6D49B6E /* Assets.xcassets */,
 				BD4B87165654A2AA2783DF61 /* Info.plist */,
 				014FD451941CFBFD37F28785 /* ZhouJi.entitlements */,
 				5407A086F29986A1274E57F3 /* App */,
@@ -550,6 +553,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2851822A0F4327E36619364 /* Assets.xcassets in Resources */,
 				E52C7A415BA6BB4CDFFC8656 /* GoalCareer.png in Resources */,
 				E9DB91015B2E08B16C43D69C /* GoalDigital.png in Resources */,
 				E198CF76119B22225D58195C /* GoalMilestone.png in Resources */,
