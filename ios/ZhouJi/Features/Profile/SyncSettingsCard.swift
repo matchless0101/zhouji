@@ -81,6 +81,13 @@ struct SyncSettingsCard: View {
                             .accessibilityIdentifier("sync.conflicts")
                         }
 
+                        if sync.localOnlyCount > 0 {
+                            Text("本机保留副本 \(sync.localOnlyCount) 项：云端记录已永久删除；这些副本仅存于本机，不再上传。")
+                                .font(.footnote)
+                                .foregroundStyle(ZJTheme.timerAccent)
+                                .accessibilityIdentifier("sync.localOnlyCopies")
+                        }
+
                         if let progress = sync.progress {
                             ProgressView(value: Double(progress.completed), total: Double(max(progress.total, 1))) {
                                 Text(progress.phase)
@@ -141,13 +148,18 @@ struct SyncSettingsCard: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(conflictTitle(conflict))
                 .font(.footnote.weight(.medium))
+            if isPurgedCloudConflict(conflict) {
+                Text("云端记录已永久删除；你可以保留一份仅存于本机、不再上传的副本。")
+                    .font(.caption)
+                    .foregroundStyle(ZJTheme.secondaryInk)
+            }
             HStack {
-                Button("保留本机") {
+                Button(isPurgedCloudConflict(conflict) ? "保留本机副本" : "保留本机") {
                     resolve(conflict, keepLocal: true)
                 }
                 .buttonStyle(.bordered)
                 .accessibilityIdentifier("sync.conflict.local.\(conflict.entityId)")
-                Button("使用云端") {
+                Button(isPurgedCloudConflict(conflict) ? "接受云端删除" : "使用云端") {
                     resolve(conflict, keepLocal: false)
                 }
                 .buttonStyle(.bordered)
@@ -173,6 +185,13 @@ struct SyncSettingsCard: View {
     }
 
     private func conflictTitle(_ conflict: SyncJournalConflict) -> String {
+        if isPurgedCloudConflict(conflict) {
+            switch conflict.entityType {
+            case "goal": return "目标（云端记录已永久删除）"
+            case "task": return "任务（云端记录已永久删除）"
+            default: return "计时（云端记录已永久删除）"
+            }
+        }
         switch conflict.entityType {
         case "goal":
             if case .string(let name) = conflict.serverPayload["name"] { return "目标「\(name)」" }
@@ -186,5 +205,9 @@ struct SyncSettingsCard: View {
             }
             return "计时"
         }
+    }
+
+    private func isPurgedCloudConflict(_ conflict: SyncJournalConflict) -> Bool {
+        conflict.serverDeletedAt != nil && conflict.serverPayload.isEmpty
     }
 }

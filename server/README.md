@@ -2,6 +2,16 @@
 
 用户于 2026-09-11 确认使用 Python + FastAPI + MySQL。复用 `yj` 的 MySQL 8.0 实例，为粥记配置独立数据库和受限账号，iOS 本地继续使用 SwiftData。
 
+## 2026-09-20 可靠性修复（已部署）
+
+当前生产版本 `sync-reliability-20260920-01`，迁移 005 已执行，服务器侧 72 项测试通过；三个定时任务与一次完整隔离恢复演练已通过。外部通知、异地副本与正式保留期仍待配置。
+
+同版本并发修改只有内容/操作/时间一致时去重，否则返回冲突。迁移 `005_sync_tombstones.sql` 保存不含正文的最小删除凭据；七天清理正文后，旧 ID 不能被离线设备复活，同步序号不回退，注销一并删除凭据。push、purge 与注销通过账户行锁协调，空账户库也可安全并发推送。
+
+iOS 按已确认内容检测增量，处理改名、图标、取消完成及撤销删除；接收已清理内容的删除冲突时保留本地历史事实。同步仍默认关闭，用户自行真机验收。
+
+运维脚本和三组 systemd 单元见 `deploy/BACKUP-DRILL.md`。最新部署与演练结果统一记录在 `docs/08-云同步部署与真机联调.md`，历史记录不代表本次变更已经部署。
+
 ## 当前交付范围
 
 - FastAPI 与独立 MySQL 已部署，提供健康检查、Apple / 微信登录准备与换码、授权验证、账户读取、昵称头像编辑、退出及注销接口。
@@ -59,9 +69,9 @@ python3.12 -m venv .venv
 - 表：`sync_entities`（迁移 `004_content_sync.sql`，2026-09-14 已在生产执行）。
 - 发布：`/opt/zhouji-api/releases/content-sync-20260914-01`，`current` 已切换；回退可指回 `wechat-20260912-03`。
 - R1：客户端 `version` 小于服务端 → `conflicts` 返回服务端版本与 payload，不静默覆盖。
-- R2：软删除写入 `deleted_at`；`purge_soft_deleted(..., older_than_seconds=7*86400)` 按 7 天物理清理（**cron 尚未挂载**，见 `deploy/BACKUP-DRILL.md`）。
+- R2：软删除写入 `deleted_at`；`purge_soft_deleted(..., older_than_seconds=7*86400)` 按 7 天清理正文并保留最小删除凭据（定时任务状态见 `docs/08-云同步部署与真机联调.md`）。
 - R3：应用层约定仅推送已结束计时会话。
-- 健康探针：`/usr/local/sbin/zhouji-health-probe`，每 5 分钟 cron；2026-09-14 首次安装。
+- 健康探针：`/usr/local/sbin/zhouji-health-probe`；原“每 5 分钟 cron”记录未通过核验，2026-09-20 已由 `zhouji-ops-check.timer` 每五分钟调用并验证。
 - 生产部署前备份：`/var/backups/zhouji/zhouji-20260914-160830.sql.gz`（zhouji_app 权限限制下含 3 张 auth 表结构；正式灾备建议用 debian-sys-maint 全量 dump）。
 - 服务器侧 pytest：50 项通过。公网 `GET /api/v1/health/ready`=200，未登录 `/sync/pull`=401。
 
@@ -95,7 +105,7 @@ python3.12 -m venv .venv
 - Apple / 微信的刷新令牌加密保存，粥记会话只保存 SHA-256 摘要。授权码与 identity token 不落库、不写日志；接口校验失败也不回显提交值。
 - 粥记 Nginx `/api/` 保留路径代理到 8011，覆盖真实客户端地址，禁用访问日志，限制 32KB 请求体和请求速率。应用授权接口额外按来源限制每分钟 20 次，当前实现限定单进程；增加 worker 或副本前须改用共享限流存储。
 - 配置备份：`/etc/zhouji/api.env.before-apple`、`/etc/nginx/sites-available/zhouji-site.before-apple`。官网、两个 AASA 地址及 `/wechat/` 应在每次部署后验证。
-- 本次账号功能不删除本机 SwiftData 数据；尚无云端任务表。后续同步必须增加游客数据归属和账号隔离，再接通自动同步。
+- 账号功能不删除本机 SwiftData 数据；云端事实存于 `sync_entities`，本机使用独立账户库。同步默认关闭。
 
 ## 备份与故障探针（阶段 A）
 

@@ -1,0 +1,17 @@
+[Unit]
+Description=Create a complete ZhouJi restore backup
+After=mysql.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+# Uses /etc/mysql/debian.cnf. Do not import the API's business TCP credentials.
+ExecStart=/usr/local/sbin/zhouji-backup /var/backups/zhouji
+UMask=0077
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+NoNewPrivileges=true
+StandardOutput=journal
+StandardError=journal

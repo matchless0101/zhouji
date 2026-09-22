@@ -46,3 +46,12 @@ sync_entities = Table('sync_entities', metadata,
     Column('client_op_id', identifier(64), nullable=True),
 )
 
+# No content: keeps purged IDs terminal and cursors monotonic until account deletion.
+sync_tombstones = Table('sync_tombstones', metadata,
+    Column('account_id', identifier(36), ForeignKey('auth_accounts.id', ondelete='CASCADE'), primary_key=True),
+    Column('entity_type', String(32), primary_key=True),
+    Column('entity_id', identifier(36), primary_key=True),
+    Column('version', BigInteger, nullable=False),
+    Column('server_seq', BigInteger, nullable=False),
+    Column('deleted_at', BigInteger, nullable=False),
+)

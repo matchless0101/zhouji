@@ -1,0 +1,11 @@
+[Unit]
+Description=Check ZhouJi operations every five minutes
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=zhouji-ops-check.service
+
+[Install]
+WantedBy=timers.target

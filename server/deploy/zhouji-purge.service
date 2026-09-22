@@ -1,0 +1,19 @@
+[Unit]
+Description=Purge expired ZhouJi soft-deleted content
+After=mysql.service
+
+[Service]
+Type=oneshot
+User=zhouji-api
+Group=zhouji-api
+WorkingDirectory=/opt/zhouji-api/current
+EnvironmentFile=/etc/zhouji/api.env
+Environment=PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=/opt/zhouji-api/current/src
+ExecStart=/opt/zhouji-api/current/.venv/bin/python -m zhouji_api.maintenance purge
+UMask=0077
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+NoNewPrivileges=true
+StandardOutput=journal
+StandardError=journal

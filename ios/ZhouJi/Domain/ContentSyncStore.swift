@@ -48,6 +48,7 @@ final class ContentSyncStore {
     private(set) var latestSeq = 0
     private(set) var softDeletedCount = 0
     private(set) var pendingCount = 0
+    private(set) var localOnlyCount = 0
     private(set) var conflicts: [SyncJournalConflict] = []
     private(set) var needsFullReconcile = false
 
@@ -82,14 +83,21 @@ final class ContentSyncStore {
         let journal = journalStore(for: scope).load()
         conflicts = journal.conflicts
         needsFullReconcile = journal.needsFullReconcile
+        localOnlyCount = journal.entries.values.filter { $0.localOnlyCopy == true }.count
     }
 
-    /// Incremental changes not yet in the journal (or with a newer local updatedAt).
+    /// Incremental changes not yet confirmed by the server.
     static func pendingChanges(in context: ModelContext, journal: SyncJournal) throws -> [SyncChangePayload] {
         let all = try factChanges(in: context)
         return all.filter { change in
             guard let entry = journal.entries[change.entityType + "/" + change.entityId] else { return true }
-            return change.updatedAt > entry.updatedAt || change.version > entry.version
+            if entry.cloudTombstone == true { return false }
+            if let confirmedOp = entry.op, let confirmedPayload = entry.payload {
+                return change.op != confirmedOp || !payloadsAreEquivalent(change.payload, confirmedPayload)
+            }
+            // A legacy journal cannot prove that mutable content is unchanged. Recheck it once,
+            // then the applied response records a snapshot and subsequent scans stay quiet.
+            return true
         }.map { change in
             let key = change.entityType + "/" + change.entityId
             let nextVersion = (journal.entries[key]?.version ?? 0) + 1
@@ -142,7 +150,9 @@ final class ContentSyncStore {
                             entityType: change.entityType,
                             entityId: change.entityId,
                             version: item.version,
-                            updatedAt: change.updatedAt
+                            updatedAt: change.updatedAt,
+                            op: change.op,
+                            payload: change.payload
                         )
                     }
                 }
@@ -164,10 +174,19 @@ final class ContentSyncStore {
             try store.save(journal)
             conflicts = journal.conflicts
             needsFullReconcile = false
-            pendingCount = max(0, changes.count - journal.conflicts.count)
-            message = journal.conflicts.isEmpty
-                ? "已上传 \(changes.count) 条记录到此账户。本机记录未删除。"
-                : ContentSyncError.conflictCount(journal.conflicts.count).localizedDescription
+            localOnlyCount = journal.entries.values.filter { $0.localOnlyCopy == true }.count
+            pendingCount = try Self.pendingChanges(in: context, journal: journal).count
+            if !journal.conflicts.isEmpty {
+                message = ContentSyncError.conflictCount(journal.conflicts.count).localizedDescription
+            } else if pendingCount > 0, localOnlyCount > 0 {
+                message = "已上传 \(changes.count) 条记录；仍有 \(pendingCount) 项新变更待同步，另有 \(localOnlyCount) 项副本仅存于本机、不再上传。"
+            } else if pendingCount > 0 {
+                message = "已上传 \(changes.count) 条记录；仍有 \(pendingCount) 项新变更待同步。"
+            } else if localOnlyCount > 0 {
+                message = "已上传 \(changes.count) 条记录；另有 \(localOnlyCount) 项副本仅存于本机，不再上传。"
+            } else {
+                message = "已上传 \(changes.count) 条记录到此账户。本机记录未删除。"
+            }
             return changes.count
         } catch {
             message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -187,7 +206,7 @@ final class ContentSyncStore {
         let store = journalStore(for: scope)
         var journal = store.load()
         do {
-            var changes = try Self.pendingChanges(in: context, journal: journal)
+            let changes = try Self.pendingChanges(in: context, journal: journal)
             if changes.count > SyncJournal.maxPending {
                 journal.needsFullReconcile = true
                 try store.save(journal)
@@ -209,7 +228,9 @@ final class ContentSyncStore {
                             entityType: change.entityType,
                             entityId: change.entityId,
                             version: item.version,
-                            updatedAt: change.updatedAt
+                            updatedAt: change.updatedAt,
+                            op: change.op,
+                            payload: change.payload
                         )
                     }
                 }
@@ -229,10 +250,19 @@ final class ContentSyncStore {
             }
             try store.save(journal)
             conflicts = journal.conflicts
-            pendingCount = 0
-            message = journal.conflicts.isEmpty
-                ? "已同步 \(changes.count) 项变更。"
-                : ContentSyncError.conflictCount(journal.conflicts.count).localizedDescription
+            localOnlyCount = journal.entries.values.filter { $0.localOnlyCopy == true }.count
+            pendingCount = try Self.pendingChanges(in: context, journal: journal).count
+            if !journal.conflicts.isEmpty {
+                message = ContentSyncError.conflictCount(journal.conflicts.count).localizedDescription
+            } else if pendingCount > 0, localOnlyCount > 0 {
+                message = "已同步 \(changes.count) 项变更；仍有 \(pendingCount) 项新变更待同步，另有 \(localOnlyCount) 项副本仅存于本机、不再上传。"
+            } else if pendingCount > 0 {
+                message = "已同步 \(changes.count) 项变更；仍有 \(pendingCount) 项新变更待同步。"
+            } else if localOnlyCount > 0 {
+                message = "已同步 \(changes.count) 项变更；另有 \(localOnlyCount) 项副本仅存于本机，不再上传。"
+            } else {
+                message = "已同步 \(changes.count) 项变更。"
+            }
             return changes.count
         } catch {
             message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -254,7 +284,20 @@ final class ContentSyncStore {
         let store = journalStore(for: scope)
         var journal = store.load()
         do {
-            if keepLocal {
+            let isPurgedCloudEntity = conflict.serverDeletedAt != nil && conflict.serverPayload.isEmpty
+            if keepLocal && isPurgedCloudEntity {
+                journal.noteApplied(
+                    entityType: conflict.entityType,
+                    entityId: conflict.entityId,
+                    version: conflict.serverVersion,
+                    updatedAt: conflict.serverUpdatedAt,
+                    op: "delete",
+                    payload: [:],
+                    cloudTombstone: true,
+                    localOnlyCopy: true
+                )
+                message = "云端记录已永久删除；保留的副本仅存于本机，不再上传。"
+            } else if keepLocal {
                 guard var local = conflict.localChange else {
                     message = "本机版本不可用，请从云端恢复。"
                     return
@@ -274,7 +317,9 @@ final class ContentSyncStore {
                         entityType: local.entityType,
                         entityId: local.entityId,
                         version: item.version,
-                        updatedAt: local.updatedAt
+                        updatedAt: local.updatedAt,
+                        op: local.op,
+                        payload: local.payload
                     )
                     message = "已保留本机版本。"
                 } else if let next = response.conflicts.first {
@@ -306,12 +351,16 @@ final class ContentSyncStore {
                     entityType: conflict.entityType,
                     entityId: conflict.entityId,
                     version: conflict.serverVersion,
-                    updatedAt: conflict.serverUpdatedAt
+                    updatedAt: conflict.serverUpdatedAt,
+                    op: conflict.serverDeletedAt == nil ? "upsert" : "delete",
+                    payload: conflict.serverPayload,
+                    cloudTombstone: isPurgedCloudEntity
                 )
-                message = "已使用云端版本。"
+                message = isPurgedCloudEntity ? "已接受云端删除记录。" : "已使用云端版本。"
             }
             try store.save(journal)
             conflicts = journal.conflicts
+            localOnlyCount = journal.entries.values.filter { $0.localOnlyCopy == true }.count
         } catch {
             message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
         }
@@ -339,7 +388,10 @@ final class ContentSyncStore {
                         entityType: entity.entityType,
                         entityId: entity.entityId,
                         version: entity.version,
-                        updatedAt: entity.updatedAt
+                        updatedAt: entity.updatedAt,
+                        op: entity.deletedAt == nil ? "upsert" : "delete",
+                        payload: entity.payload,
+                        cloudTombstone: entity.deletedAt != nil && entity.payload.isEmpty
                     )
                 }
                 applied += page.entities.count
@@ -351,7 +403,12 @@ final class ContentSyncStore {
             }
             try store.save(journal)
             conflicts = journal.conflicts
-            message = "已从此账户云端恢复 \(applied) 条记录。未删除本机多出的记录。"
+            localOnlyCount = journal.entries.values.filter { $0.localOnlyCopy == true }.count
+            if localOnlyCount > 0 {
+                message = "已从云端恢复 \(applied) 条记录；另有 \(localOnlyCount) 项副本仅存于本机，不再上传。"
+            } else {
+                message = "已从此账户云端恢复 \(applied) 条记录。未删除本机多出的记录。"
+            }
             return applied
         } catch {
             message = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
@@ -360,6 +417,34 @@ final class ContentSyncStore {
     }
 
     // MARK: - Mapping
+
+    private static func payloadsAreEquivalent(
+        _ lhs: [String: SyncJSONValue],
+        _ rhs: [String: SyncJSONValue]
+    ) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        return lhs.allSatisfy { key, value in
+            guard let other = rhs[key] else { return false }
+            return jsonValuesAreEquivalent(value, other)
+        }
+    }
+
+    private static func jsonValuesAreEquivalent(_ lhs: SyncJSONValue, _ rhs: SyncJSONValue) -> Bool {
+        switch (lhs, rhs) {
+        case (.int(let lhs), .double(let rhs)):
+            return Double(lhs) == rhs
+        case (.double(let lhs), .int(let rhs)):
+            return lhs == Double(rhs)
+        case (.array(let lhs), .array(let rhs)):
+            return lhs.count == rhs.count && zip(lhs, rhs).allSatisfy {
+                jsonValuesAreEquivalent($0.0, $0.1)
+            }
+        case (.object(let lhs), .object(let rhs)):
+            return payloadsAreEquivalent(lhs, rhs)
+        default:
+            return lhs == rhs
+        }
+    }
 
     static func factChanges(in context: ModelContext) throws -> [SyncChangePayload] {
         let goals = try context.fetch(FetchDescriptor<Goal>())
@@ -446,6 +531,14 @@ final class ContentSyncStore {
 
         for entity in entities where entity.entityType == "goal" {
             guard let id = UUID(uuidString: entity.entityId) else { continue }
+            if let deletedAt = entity.deletedAt, entity.payload.isEmpty {
+                guard let model = goalsByID[id] else { continue }
+                model.deletedAt = Date(timeIntervalSince1970: TimeInterval(deletedAt))
+                for task in tasksByID.values where task.goal?.id == id {
+                    task.goal = nil
+                }
+                continue
+            }
             let name: String = {
                 if case .string(let value) = entity.payload["name"] { return value }
                 return ""
@@ -465,6 +558,11 @@ final class ContentSyncStore {
 
         for entity in entities where entity.entityType == "task" {
             guard let id = UUID(uuidString: entity.entityId) else { continue }
+            if let deletedAt = entity.deletedAt, entity.payload.isEmpty {
+                guard let model = tasksByID[id] else { continue }
+                model.deletedAt = Date(timeIntervalSince1970: TimeInterval(deletedAt))
+                continue
+            }
             let title: String = {
                 if case .string(let value) = entity.payload["title"] { return value }
                 return ""

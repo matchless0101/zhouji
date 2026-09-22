@@ -1,61 +1,48 @@
 # 粥记服务端备份与恢复演练
 
-_阶段 A 数据保护：在开放云同步前完成账户库备份策略与一次可复现的恢复演练。_
+正式开放同步前，必须完成备份恢复演练及异地存储、外部通知配置。实际执行结果见 `docs/08-云同步部署与真机联调.md`；本文件说明脚本行为，不代表已在生产执行。
 
-## 备份范围
+## 同批备份范围
 
-| 项 | 说明 |
-| --- | --- |
-| MySQL `zhouji` 库 | 账户、会话、challenge；云同步上线后含用户内容表 |
-| `/etc/zhouji/api.env` | 配置（root 600） |
-| Apple 私钥 / 微信 AppSecret | 路径见 `server/README.md` |
-| **令牌加密密钥** | `/etc/zhouji/token-encryption-key`，与库必须同批备份；丢失则已存 refresh 无法解密 |
+`backup-zhouji-db.sh /var/backups/zhouji` 成功时产出：
 
-密钥与数据库备份放在同一受控目录，权限 `600`，不进入 Git。
+- `zhouji-时间.sql.gz`：完整 `zhouji` 数据库，包括账户、会话、登录挑战、同步正文和删除凭据。
+- `zhouji-时间.bundle.tar.gz`：同份 SQL，加 `configuration/api.env`、`secrets/token-encryption-key`、`secrets/apple-login.p8`、`secrets/wechat-app-secret`。
 
-## 自动备份
+数据库与密钥必须同批保存。输出目录权限 700、文件 600；包内含私密配置，仅 root 可读，不提交 Git 或上传公开位置。备份包目前依赖文件权限保护，异地副本应使用加密存储及独立访问权限，位置待用户确认。
 
-脚本：`deploy/backup-zhouji-db.sh`
+脚本优先使用 `/etc/mysql/debian.cnf`，也支持 `ZHOUJI_MYSQL_DEFAULTS_FILE`、环境密码或 `ZHOUJI_DB_PASSWORD_FILE`。`mysqldump` 使用单事务和 `--no-tablespaces`；配置或密钥缺失、dump/压缩失败均返回非零，不发布完整备份包。压缩包最后原子改名，作为完成标志。原始 dump 错误留在私有临时文件并随临时目录清理，不打印凭据。
 
-```sh
-# 一次性
-sudo install -m 750 deploy/backup-zhouji-db.sh /usr/local/sbin/zhouji-backup-db
-sudo mkdir -p /var/backups/zhouji
-sudo chown root:root /var/backups/zhouji
-sudo chmod 700 /var/backups/zhouji
+导出的 SQL 不包含 `CREATE DATABASE` / `USE`，恢复时必须明确选择预先创建的目标库；不得直接将包导入生产库。
 
-# 建议每日 cron（root）
-# 17 3 * * * /usr/local/sbin/zhouji-backup-db /var/backups/zhouji >>/var/log/zhouji-backup.log 2>&1
-```
+## 定时任务
 
-保留策略建议：本地 14 天；至少再有一份异地拷贝（私有对象存储或另一台主机）。
+| 单元 | 频率 | 行为 |
+| --- | --- | --- |
+| `zhouji-backup.timer` | 每日 03:17，最多随机延后 10 分钟 | 生成数据库与密钥完整包 |
+| `zhouji-purge.timer` | 每日 04:05，最多随机延后 10 分钟 | 清理七天前删除正文，保留无正文凭据 |
+| `zhouji-ops-check.timer` | 每 5 分钟 | 检查本地/公网 ready，以及最近完整备份非空、gzip 完整且不超过 36 小时 |
 
-## 恢复演练步骤（每次开放同步前或季度至少一次）
+运行时区沿用服务器。失败通过 systemd failed 状态和 journal 记录；这不是已接通外部消息通知。目前不自动删除旧备份，正式保留期、异地副本、RPO/RTO 和通知接收渠道待确认后配置。
 
-1. **准备空库**（隔离实例或临时库名，**不要**直接覆盖生产）  
-   `CREATE DATABASE zhouji_restore CHARACTER SET utf8mb4;`
-2. **导入最近备份**  
-   `gunzip -c /var/backups/zhouji/zhouji-YYYYmmdd-HHMMSS.sql.gz | mysql -u root zhouji_restore`
-3. **校验**  
-   - 表存在：`auth_accounts` / `auth_sessions` / `auth_challenges`  
-   - `SELECT COUNT(*)` 与备份前记录的行数一致  
-   - `SHOW CREATE TABLE auth_accounts` 含 provider 约束（003 之后）
-4. **密钥可用性**  
-   确认 `token-encryption-key` 与备份同期；用隔离测试账户验证能完成一次 `GET /account` 刷新（勿用生产用户做破坏性操作）。
-5. **记录**  
-   在运维笔记写明：备份文件名、时间、导入耗时、行数、演练人、是否成功。
+安装位置：`backup-zhouji-db.sh` → `/usr/local/sbin/zhouji-backup`，`health-probe.sh` → `/usr/local/sbin/zhouji-health-probe`，`check-zhouji-ops.sh` → `/usr/local/sbin/zhouji-ops-check`。三个 service/timer 复制至 `/etc/systemd/system/` 后先运行 `systemd-analyze verify`，再 reload、手动执行与启用 timer。清理服务要求 API 与 005 迁移已部署。
 
-失败时：停止演练，保留现场，不删除原备份。
+## 隔离恢复演练
 
-## 回滚与数据保留
+1. 在服务器私有临时目录解包指定 bundle；不要将密钥复制到工作区或日志。
+2. 创建随机命名的 `zhouji_restore_...` 空库，确认与 `zhouji` 不同。
+3. 对 SQL 先做 `gzip -t`，再解压至私有临时文件，使用 `mysql ... 隔离库名 < 文件`；分别检查解压与导入的退出码，不能用无 pipefail 的管道吞错。
+4. 核对所有表结构和数量；同步正文及 `sync_tombstones` 均应纳入。记录备份生成与验证时刻，避免把备份后的合法新写入误当恢复丢失。
+5. 用备份中对应 `token-encryption-key` 验证备份内加密令牌可解密，只记录成功/失败，不输出令牌。没有令牌时，用该密钥进行隔离加解密回环并记录验证范围。
+6. 隔离库运行适当查询后仅删除本次创建的隔离库和临时解包目录；不覆盖生产，不删除原备份。
+7. 归档包名、权限、表数量、耗时、密钥验证范围与结果。
 
-- 应用版本回退 **不** 自动删库。  
-- 恢复生产库仅在确认备份完整且业务窗口允许时由管理员执行。  
-- 云同步上线后，用户内容表纳入同一 mysqldump；注销删除路径的备份窗口策略在同步 PRD 阶段 E 再补。
+恢复生产是独立操作：旧备份可能包含后来注销的账户，恢复前必须处理注销/删除记录与旧游标重新对账；本轮正常清理凭据不能代替完整灾备回滚协议。在完成该专项验收前，不能声称任意旧备份均可直接恢复上线。
 
 ## 验收
 
-- [ ] 脚本在服务器可执行且产出 `600` 权限 `.sql.gz`
-- [ ] 完成一次向隔离库的恢复演练并有行数记录
-- [ ] 加密密钥与数据库备份同批存放且可读
-- [ ] 告警探针 `health-probe.sh` 可被 cron/systemd timer 调用
+- [x] 服务器成功产出完整 600 权限备份包（2026-09-20）
+- [x] 向隔离库恢复并记录所有表的数量（2026-09-20；见 08 联调记录）
+- [x] 同批密钥可用性验证（2 个既有令牌解密成功）
+- [x] 三个定时任务已安装、启用并手动运行成功（2026-09-20）
+- [ ] 外部故障通知和异地副本配置并演练

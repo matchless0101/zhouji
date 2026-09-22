@@ -1,0 +1,17 @@
+[Unit]
+Description=Check ZhouJi local/public health and backup freshness
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/zhouji-ops-check /var/backups/zhouji https://zhouji.xiangdangdang.top 129600
+UMask=0077
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+NoNewPrivileges=true
+StandardOutput=journal
+StandardError=journal

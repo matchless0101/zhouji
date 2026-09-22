@@ -1,0 +1,11 @@
+[Unit]
+Description=Purge expired ZhouJi soft-deleted content daily
+
+[Timer]
+OnCalendar=*-*-* 04:05:00
+Persistent=true
+RandomizedDelaySec=10min
+Unit=zhouji-purge.service
+
+[Install]
+WantedBy=timers.target

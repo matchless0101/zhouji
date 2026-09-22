@@ -14,9 +14,9 @@ import uuid
 
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from .models import sync_entities
+from .models import accounts, sync_entities, sync_tombstones
 
 ENTITY_TYPES = frozenset({'goal', 'task', 'timing_session'})
 MAX_BATCH = 200
@@ -61,16 +61,55 @@ class SyncPush(BaseModel):
 
 
 def purge_soft_deleted(database, *, older_than_seconds: int = 7 * 86400, now: int | None = None) -> int:
-    """Physical-delete soft-deleted rows older than retention (R2 = 7 days)."""
+    """Remove expired content, retaining only terminal deletion receipts."""
     cutoff = (now if now is not None else int(time.time())) - older_than_seconds
-    with database.begin() as conn:
-        result = conn.execute(
-            sync_entities.delete().where(
-                sync_entities.c.deleted_at.is_not(None),
+    removed = 0
+    with database.connect() as conn:
+        account_ids = conn.execute(select(sync_entities.c.account_id).where(
+            sync_entities.c.deleted_at <= cutoff,
+        ).distinct().order_by(sync_entities.c.account_id)).scalars().all()
+    for account_id in account_ids:
+        with database.begin() as conn:
+            # Same lock order as push/account deletion, including empty libraries.
+            if conn.execute(select(accounts.c.id).where(
+                accounts.c.id == account_id,
+            ).with_for_update()).scalar_one_or_none() is None:
+                continue
+            rows = conn.execute(select(sync_entities).where(
+                sync_entities.c.account_id == account_id,
                 sync_entities.c.deleted_at <= cutoff,
-            )
-        )
-        return int(result.rowcount or 0)
+            ).with_for_update()).mappings().all()
+            for row in rows:
+                conn.execute(sync_tombstones.insert().values(**{
+                    key: row[key] for key in (
+                        'account_id', 'entity_type', 'entity_id', 'version', 'server_seq', 'deleted_at'
+                    )
+                }))
+                conn.execute(sync_entities.delete().where(
+                    sync_entities.c.account_id == account_id,
+                    sync_entities.c.entity_type == row['entity_type'],
+                    sync_entities.c.entity_id == row['entity_id'],
+                ))
+                removed += 1
+    return removed
+
+
+def latest_sequence(conn, account_id):
+    return max(int(conn.execute(select(func.max(table.c.server_seq)).where(
+        table.c.account_id == account_id,
+    )).scalar() or 0) for table in (sync_entities, sync_tombstones))
+
+
+def _conflict(change, row, *, purged=False):
+    return {
+        'client_op_id': change.client_op_id,
+        'entity_type': change.entity_type,
+        'entity_id': change.entity_id,
+        'server_version': int(row['version']),
+        'server_updated_at': row['deleted_at'] if purged else row['updated_at'],
+        'server_deleted_at': row['deleted_at'],
+        'server_payload': {} if purged else json.loads(row['payload']),
+    }
 
 
 def sync_router(database, authenticate):
@@ -111,19 +150,24 @@ def sync_router(database, authenticate):
 
         with database.begin() as conn:
             # Serialize writers per account so server_seq is monotonic.
-            conn.execute(select(sync_entities).where(sync_entities.c.account_id == account_id).with_for_update())
-            current_max = conn.execute(
-                select(sync_entities.c.server_seq)
-                .where(sync_entities.c.account_id == account_id)
-                .order_by(sync_entities.c.server_seq.desc())
-                .limit(1)
-            ).scalar()
-            next_seq = int(current_max or 0)
+            if conn.execute(select(accounts.c.id).where(
+                accounts.c.id == account_id,
+            ).with_for_update()).scalar_one_or_none() is None:
+                raise HTTPException(401, '账户已注销，请重新登录')
+            next_seq = latest_sequence(conn, account_id)
 
             for change in body.changes:
                 if change.updated_at > now + 300:
                     raise HTTPException(422, '同步时间异常，请检查设备时间后重试')
                 encoded = _encode_payload(change)
+                tombstone = conn.execute(select(sync_tombstones).where(
+                    sync_tombstones.c.account_id == account_id,
+                    sync_tombstones.c.entity_type == change.entity_type,
+                    sync_tombstones.c.entity_id == change.entity_id,
+                )).mappings().first()
+                if tombstone is not None:
+                    conflicts.append(_conflict(change, tombstone, purged=True))
+                    continue
                 existing = conn.execute(
                     select(sync_entities).where(
                         sync_entities.c.account_id == account_id,
@@ -132,20 +176,20 @@ def sync_router(database, authenticate):
                     ).with_for_update()
                 ).mappings().first()
 
-                if existing is not None and change.version < int(existing['version']):
-                    conflicts.append({
-                        'client_op_id': change.client_op_id,
-                        'entity_type': change.entity_type,
-                        'entity_id': change.entity_id,
-                        'server_version': int(existing['version']),
-                        'server_updated_at': int(existing['updated_at']),
-                        'server_deleted_at': existing['deleted_at'],
-                        'server_payload': _row_payload(existing),
-                    })
+                deleted_at = change.updated_at if change.op == 'delete' else None
+                same_facts = existing is not None and (
+                    change.version == int(existing['version'])
+                    and change.updated_at == existing['updated_at']
+                    and deleted_at == existing['deleted_at']
+                    and encoded == json.dumps(_row_payload(existing), ensure_ascii=False,
+                                              separators=(',', ':'), sort_keys=True)
+                )
+                if existing is not None and change.version <= int(existing['version']) and not same_facts:
+                    conflicts.append(_conflict(change, existing))
                     continue
 
-                # Idempotent replay of the same version is a success, not a conflict.
-                if existing is not None and change.version == int(existing['version']):
+                # Retries may have a fresh operation ID, but must carry identical facts.
+                if same_facts:
                     applied.append({
                         'client_op_id': change.client_op_id,
                         'entity_type': change.entity_type,
@@ -157,7 +201,6 @@ def sync_router(database, authenticate):
                     continue
 
                 next_seq += 1
-                deleted_at = change.updated_at if change.op == 'delete' else None
                 values = {
                     'account_id': account_id,
                     'entity_type': change.entity_type,
@@ -222,18 +265,13 @@ def sync_router(database, authenticate):
         _, account = authenticate(authorization)
         account_id = account['id']
         with database.connect() as conn:
-            row = conn.execute(
-                select(sync_entities.c.server_seq)
-                .where(sync_entities.c.account_id == account_id)
-                .order_by(sync_entities.c.server_seq.desc())
-                .limit(1)
-            ).scalar()
+            row = latest_sequence(conn, account_id)
             soft_deleted = conn.execute(
-                select(sync_entities).where(
+                select(func.count()).select_from(sync_entities).where(
                     sync_entities.c.account_id == account_id,
                     sync_entities.c.deleted_at.is_not(None),
                 )
-            ).rowcount
+            ).scalar_one()
         return {
             'account_id': account_id,
             'latest_seq': int(row or 0),

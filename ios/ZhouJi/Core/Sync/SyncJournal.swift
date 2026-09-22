@@ -5,6 +5,29 @@ import Foundation
 struct SyncJournalEntry: Codable, Equatable, Sendable {
     var version: Int
     var updatedAt: Int
+    /// Optional for compatibility with journals written before content-aware change detection.
+    var op: String?
+    var payload: [String: SyncJSONValue]?
+    /// A purged cloud identifier cannot be recreated by uploading the old local entity again.
+    var cloudTombstone: Bool?
+    /// The user kept a local-only copy after the cloud record was permanently deleted.
+    var localOnlyCopy: Bool?
+
+    init(
+        version: Int,
+        updatedAt: Int,
+        op: String? = nil,
+        payload: [String: SyncJSONValue]? = nil,
+        cloudTombstone: Bool? = nil,
+        localOnlyCopy: Bool? = nil
+    ) {
+        self.version = version
+        self.updatedAt = updatedAt
+        self.op = op
+        self.payload = payload
+        self.cloudTombstone = cloudTombstone
+        self.localOnlyCopy = localOnlyCopy
+    }
 }
 
 struct SyncJournalConflict: Codable, Equatable, Identifiable, Sendable {
@@ -38,9 +61,25 @@ struct SyncJournal: Codable, Equatable, Sendable {
 
     static let maxPending = 5_000
 
-    mutating func noteApplied(entityType: String, entityId: String, version: Int, updatedAt: Int) {
+    mutating func noteApplied(
+        entityType: String,
+        entityId: String,
+        version: Int,
+        updatedAt: Int,
+        op: String? = nil,
+        payload: [String: SyncJSONValue]? = nil,
+        cloudTombstone: Bool = false,
+        localOnlyCopy: Bool = false
+    ) {
         let key = entityType + "/" + entityId
-        entries[key] = SyncJournalEntry(version: version, updatedAt: updatedAt)
+        entries[key] = SyncJournalEntry(
+            version: version,
+            updatedAt: updatedAt,
+            op: op,
+            payload: payload,
+            cloudTombstone: cloudTombstone ? true : nil,
+            localOnlyCopy: localOnlyCopy ? true : nil
+        )
         conflicts.removeAll { $0.entityType == entityType && $0.entityId == entityId }
     }
 

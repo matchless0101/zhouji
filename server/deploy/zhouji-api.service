@@ -12,6 +12,7 @@ LoadCredential=apple-private-key:/etc/zhouji/apple-login.p8
 LoadCredential=wechat-app-secret:/etc/zhouji/wechat-app-secret
 LoadCredential=token-encryption-key:/etc/zhouji/token-encryption-key
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONPATH=/opt/zhouji-api/current/src
 ExecStart=/opt/zhouji-api/current/.venv/bin/uvicorn zhouji_api.app:create_app --factory --host 127.0.0.1 --port 8011 --workers 1 --no-access-log
 Restart=on-failure
 RestartSec=5
