@@ -3,63 +3,63 @@ import UIKit
 
 enum ZJTheme {
     static let background = Color.dynamic(
-        light: UIColor(red: 0.978, green: 0.976, blue: 0.968, alpha: 1),
-        dark: UIColor(red: 0.055, green: 0.070, blue: 0.100, alpha: 1)
+        light: UIColor(red: 0.972, green: 0.941, blue: 0.877, alpha: 1),
+        dark: UIColor(red: 0.105, green: 0.12, blue: 0.094, alpha: 1)
     )
 
     static let surface = Color.dynamic(
-        light: UIColor(red: 0.995, green: 0.997, blue: 1.000, alpha: 1),
-        dark: UIColor(red: 0.095, green: 0.118, blue: 0.165, alpha: 1)
+        light: UIColor(red: 0.994, green: 0.967, blue: 0.91, alpha: 1),
+        dark: UIColor(red: 0.155, green: 0.174, blue: 0.141, alpha: 1)
     )
 
     static let mutedSurface = Color.dynamic(
-        light: UIColor(red: 0.937, green: 0.940, blue: 0.946, alpha: 1),
-        dark: UIColor(red: 0.135, green: 0.160, blue: 0.215, alpha: 1)
+        light: UIColor(red: 0.917, green: 0.873, blue: 0.788, alpha: 1),
+        dark: UIColor(red: 0.208, green: 0.226, blue: 0.185, alpha: 1)
     )
 
     static let ink = Color.dynamic(
-        light: UIColor(red: 0.045, green: 0.048, blue: 0.055, alpha: 1),
-        dark: UIColor(red: 0.925, green: 0.945, blue: 0.980, alpha: 1)
+        light: UIColor(red: 0.2, green: 0.224, blue: 0.176, alpha: 1),
+        dark: UIColor(red: 0.95, green: 0.924, blue: 0.841, alpha: 1)
     )
 
     static let secondaryInk = Color.dynamic(
-        light: UIColor(red: 0.405, green: 0.445, blue: 0.550, alpha: 1),
-        dark: UIColor(red: 0.635, green: 0.690, blue: 0.790, alpha: 1)
+        light: UIColor(red: 0.42, green: 0.425, blue: 0.35, alpha: 1),
+        dark: UIColor(red: 0.726, green: 0.738, blue: 0.647, alpha: 1)
     )
 
     static let divider = Color.dynamic(
-        light: UIColor(red: 0.915, green: 0.920, blue: 0.936, alpha: 1),
-        dark: UIColor(red: 0.205, green: 0.245, blue: 0.330, alpha: 1)
+        light: UIColor(red: 0.855, green: 0.806, blue: 0.712, alpha: 1),
+        dark: UIColor(red: 0.287, green: 0.307, blue: 0.25, alpha: 1)
     )
 
     static let accent = Color.dynamic(
-        light: UIColor(red: 0.025, green: 0.440, blue: 1.000, alpha: 1),
-        dark: UIColor(red: 0.340, green: 0.650, blue: 1.000, alpha: 1)
+        light: UIColor(red: 0.753, green: 0.361, blue: 0.239, alpha: 1),
+        dark: UIColor(red: 0.922, green: 0.549, blue: 0.388, alpha: 1)
     )
 
     static let accentSoft = Color.dynamic(
-        light: UIColor(red: 0.875, green: 0.930, blue: 1.000, alpha: 1),
-        dark: UIColor(red: 0.105, green: 0.230, blue: 0.410, alpha: 1)
+        light: UIColor(red: 0.951, green: 0.849, blue: 0.738, alpha: 1),
+        dark: UIColor(red: 0.31, green: 0.202, blue: 0.146, alpha: 1)
     )
 
     static let onAccent = Color.dynamic(
-        light: UIColor(red: 0.985, green: 0.992, blue: 1.000, alpha: 1),
-        dark: UIColor(red: 0.035, green: 0.055, blue: 0.090, alpha: 1)
+        light: UIColor(red: 0.997, green: 0.974, blue: 0.922, alpha: 1),
+        dark: UIColor(red: 0.997, green: 0.974, blue: 0.922, alpha: 1)
     )
 
     static let success = Color.dynamic(
-        light: UIColor(red: 0.450, green: 0.475, blue: 0.545, alpha: 1),
-        dark: UIColor(red: 0.560, green: 0.630, blue: 0.745, alpha: 1)
+        light: UIColor(red: 0.386, green: 0.463, blue: 0.322, alpha: 1),
+        dark: UIColor(red: 0.671, green: 0.753, blue: 0.537, alpha: 1)
     )
 
     static let timerAccent = Color.dynamic(
-        light: UIColor(red: 0.985, green: 0.545, blue: 0.060, alpha: 1),
-        dark: UIColor(red: 1.000, green: 0.660, blue: 0.250, alpha: 1)
+        light: UIColor(red: 0.753, green: 0.361, blue: 0.239, alpha: 1),
+        dark: UIColor(red: 0.922, green: 0.549, blue: 0.388, alpha: 1)
     )
 
     static let timerSoft = Color.dynamic(
-        light: UIColor(red: 1.000, green: 0.940, blue: 0.825, alpha: 1),
-        dark: UIColor(red: 0.310, green: 0.205, blue: 0.075, alpha: 1)
+        light: UIColor(red: 0.951, green: 0.849, blue: 0.738, alpha: 1),
+        dark: UIColor(red: 0.31, green: 0.202, blue: 0.146, alpha: 1)
     )
 
     static let pagePadding: CGFloat = 18
@@ -71,26 +71,10 @@ enum ZJTheme {
     static let compactCornerRadius: CGFloat = 14
     static let hairlineOpacity = 0.62
 
-    static var pageBackground: LinearGradient {
-        LinearGradient(
-            colors: [accentSoft.opacity(0.30), background, background],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
-    }
+    static var pageBackground: ZJPaperBackground { ZJPaperBackground() }
 
     static func goalAccent(for iconName: String) -> Color {
-        switch iconName {
-        case "book.closed": goalOrange
-        case "graduationcap": goalIndigo
-        case "briefcase": accent
-        case "iphone": goalPurple
-        case "figure.run": goalCyan
-        case "heart": goalRose
-        case "paintpalette": goalPurple
-        case "leaf": goalGreen
-        default: accent
-        }
+        iconName == "heart" ? accent : success
     }
 
     static func goalSoft(for iconName: String) -> Color {
@@ -108,83 +92,19 @@ enum ZJTheme {
         }
     }
 
-    static func goalProgress(for iconName: String) -> Color {
-        switch iconName {
-        case "briefcase": Color(red: 0.49, green: 0.65, blue: 1)
-        case "iphone", "paintpalette": Color(red: 0.66, green: 0.54, blue: 1)
-        default: goalAccent(for: iconName)
-        }
-    }
-
-    private static let goalOrange = Color.dynamic(
-        light: UIColor(red: 0.995, green: 0.555, blue: 0.055, alpha: 1),
-        dark: UIColor(red: 1.000, green: 0.680, blue: 0.260, alpha: 1)
-    )
-    private static let goalIndigo = Color.dynamic(
-        light: UIColor(red: 0.345, green: 0.430, blue: 0.960, alpha: 1),
-        dark: UIColor(red: 0.555, green: 0.625, blue: 1.000, alpha: 1)
-    )
-    private static let goalCyan = Color.dynamic(
-        light: UIColor(red: 0.035, green: 0.650, blue: 0.810, alpha: 1),
-        dark: UIColor(red: 0.250, green: 0.790, blue: 0.920, alpha: 1)
-    )
-    private static let goalRose = Color.dynamic(
-        light: UIColor(red: 0.880, green: 0.330, blue: 0.470, alpha: 1),
-        dark: UIColor(red: 1.000, green: 0.525, blue: 0.650, alpha: 1)
-    )
-    private static let goalPurple = Color.dynamic(
-        light: UIColor(red: 0.470, green: 0.300, blue: 0.940, alpha: 1),
-        dark: UIColor(red: 0.675, green: 0.535, blue: 1.000, alpha: 1)
-    )
-    private static let goalGreen = Color.dynamic(
-        light: UIColor(red: 0.180, green: 0.650, blue: 0.420, alpha: 1),
-        dark: UIColor(red: 0.370, green: 0.800, blue: 0.565, alpha: 1)
-    )
+    static func goalProgress(for iconName: String) -> Color { success }
 }
 
 struct ZJGoalIcon: View {
-    @Environment(\.colorScheme) private var colorScheme
-
     let iconName: String
     var size: CGFloat = 32
     var isDecorative = true
 
     var body: some View {
-        let color = ZJTheme.goalAccent(for: iconName)
-        let isDark = colorScheme == .dark
-        let shape = RoundedRectangle(cornerRadius: size * 0.31, style: .continuous)
-
         Image(systemName: ZJTheme.goalSymbol(for: iconName))
-            .font(.system(size: size * 0.49, weight: .regular))
-            .foregroundStyle(LinearGradient(
-                colors: [color.opacity(0.78), color, color],
-                startPoint: .top, endPoint: .bottom
-            ))
-            .shadow(color: isDark ? color.opacity(0.18) : .white.opacity(0.9), radius: 1, y: 1)
+            .font(.system(size: size * 0.7, weight: .regular))
+            .foregroundStyle(ZJTheme.goalAccent(for: iconName))
             .frame(width: size, height: size)
-            .background {
-                shape
-                    .fill(LinearGradient(
-                        stops: [.init(color: color.opacity(isDark ? 0.13 : 0.10), location: 0),
-                                .init(color: color.opacity(isDark ? 0.25 : 0.24), location: 0.55),
-                                .init(color: color.opacity(isDark ? 0.12 : 0.08), location: 1)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ))
-                    .overlay {
-                        shape.fill(RadialGradient(
-                            colors: [.white.opacity(isDark ? 0.12 : 0.85), .clear],
-                            center: .topLeading, startRadius: 0, endRadius: size * 0.85
-                        ))
-                    }
-                    .overlay {
-                        shape.stroke(LinearGradient(
-                            colors: [.white.opacity(isDark ? 0.18 : 0.96), .clear,
-                                     .white.opacity(isDark ? 0.08 : 0.70)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing
-                        ), lineWidth: 1)
-                    }
-                    .shadow(color: color.opacity(isDark ? 0.05 : 0.08), radius: size * 0.13, y: size * 0.08)
-            }
             .accessibilityHidden(isDecorative)
     }
 }
@@ -241,9 +161,9 @@ private struct ZJCardModifier: ViewModifier {
             .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(ZJTheme.surface.opacity(0.9), lineWidth: 1)
+                    .stroke(ZJTheme.divider.opacity(0.35), lineWidth: 0.7)
             }
-            .shadow(color: ZJTheme.secondaryInk.opacity(0.055), radius: 14, x: 0, y: 6)
+            .shadow(color: ZJTheme.secondaryInk.opacity(0.055), radius: 6, x: 0, y: 2)
     }
 }
 
@@ -266,46 +186,6 @@ struct ZJPrimaryButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.82 : 1)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
-struct ZJFloatingGlassButtonStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func makeBody(configuration: Configuration) -> some View {
-        glassSurface(
-            configuration.label
-                .font(.body.weight(.semibold))
-                .padding(.horizontal, 24)
-                .padding(.vertical, 14)
-                .frame(minHeight: 54)
-                .contentShape(Capsule())
-        )
-        .shadow(color: .black.opacity(0.12), radius: 16, y: 8)
-        .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)
-    }
-
-    @ViewBuilder
-    private func glassSurface<Content: View>(_ content: Content) -> some View {
-        if reduceTransparency {
-            content
-                .background(ZJTheme.surface, in: Capsule())
-                .overlay { Capsule().stroke(ZJTheme.divider, lineWidth: 1) }
-        } else if #available(iOS 26, *) {
-            content
-                .glassEffect(.regular.tint(ZJTheme.accent.opacity(0.06)).interactive(), in: .capsule)
-        } else {
-            content
-                .background(.ultraThinMaterial, in: Capsule())
-                .overlay {
-                    Capsule().stroke(LinearGradient(
-                        colors: [.white.opacity(0.75), .white.opacity(0.12), .white.opacity(0.35)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ), lineWidth: 1)
-                }
-        }
     }
 }
 

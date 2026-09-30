@@ -75,7 +75,7 @@ enum StatisticsService {
         )
     }
 
-    private static func effectiveIntervals(
+    static func effectiveIntervals(
         for session: TimingSession,
         now: Date
     ) -> [TimingInterval] {

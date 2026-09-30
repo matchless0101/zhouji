@@ -30,11 +30,11 @@ struct RootTabView: View {
                         Label("目标", systemImage: "scope")
                     }
 
-                RecordsView()
+                CalendarView()
                     .toolbar(.hidden, for: .tabBar)
-                    .tag(AppTab.records)
+                    .tag(AppTab.calendar)
                     .tabItem {
-                        Label("记录", systemImage: "chart.bar")
+                        Label("日历", systemImage: "calendar")
                     }
 
                 ProfileView()
@@ -76,18 +76,7 @@ struct RootTabView: View {
                     }
                     .foregroundStyle(selection == tab ? ZJTheme.accent : ZJTheme.secondaryInk)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 72)
-                    .background {
-                        if selection == tab {
-                            Circle()
-                                .fill(RadialGradient(
-                                    colors: [ZJTheme.accentSoft, ZJTheme.accentSoft.opacity(0.35)],
-                                    center: .center, startRadius: 16, endRadius: 40
-                                ))
-                                .overlay { Circle().stroke(ZJTheme.surface, lineWidth: 1.5) }
-                                .frame(width: 76, height: 76)
-                        }
-                    }
+                    .frame(height: 58)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -96,12 +85,10 @@ struct RootTabView: View {
                 .accessibilityAddTraits(selection == tab ? .isSelected : [])
             }
         }
-        .padding(4)
-        .background(ZJTheme.surface.opacity(0.96), in: Capsule())
-        .overlay { Capsule().stroke(ZJTheme.surface, lineWidth: 1.5) }
-        .shadow(color: ZJTheme.secondaryInk.opacity(0.08), radius: 16, y: 5)
-        .padding(.horizontal, 10)
-        .padding(.bottom, 12)
+        .padding(.top, 8)
+        .padding(.bottom, 24)
+        .background(ZJTheme.surface)
+        .overlay(alignment: .top) { ZJTheme.divider.opacity(0.45).frame(height: 0.5) }
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("底部导航")
@@ -124,14 +111,14 @@ struct RootTabView: View {
 enum AppTab: String, Hashable, CaseIterable {
     case today
     case goals
-    case records
+    case calendar
     case profile
 
     var title: String {
         switch self {
         case .today: "今天"
         case .goals: "目标"
-        case .records: "记录"
+        case .calendar: "日历"
         case .profile: "我的"
         }
     }
@@ -140,7 +127,7 @@ enum AppTab: String, Hashable, CaseIterable {
         switch self {
         case .today: "house"
         case .goals: "target"
-        case .records: "chart.bar"
+        case .calendar: "calendar"
         case .profile: "person"
         }
     }
@@ -148,7 +135,8 @@ enum AppTab: String, Hashable, CaseIterable {
     var selectedSymbol: String {
         switch self {
         case .today: "house.fill"
-        case .records: "chart.bar.fill"
+        case .calendar: "calendar"
+        case .profile: "person.fill"
         default: symbol
         }
     }

@@ -1,0 +1,75 @@
+import Foundation
+import Testing
+@testable import ZhouJi
+
+@MainActor
+struct CalendarFactsTests {
+    private var calendar: Calendar {
+        var value = Calendar(identifier: .gregorian)
+        value.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+        return value
+    }
+
+    private func date(_ day: Int, hour: Int = 0, minute: Int = 0) -> Date {
+        calendar.date(from: DateComponents(year: 2026, month: 9, day: day, hour: hour, minute: minute))!
+    }
+
+    @Test func monthGridStartsOnSundayAndIncludesEveryDay() {
+        let cells = CalendarFactsService.monthDays(containing: date(15), calendar: calendar)
+        #expect(cells.count == 35)
+        #expect(cells.prefix(2).allSatisfy { $0 == nil })
+        #expect(cells.compactMap { $0 }.count == 30)
+        #expect(cells[2] == date(1))
+        #expect(cells[31] == date(30))
+    }
+
+    @Test func crossMidnightTimingSplitsAndExcludesPausedGap() {
+        let session = TimingSession(taskID: UUID(), taskTitleSnapshot: "读书", startedAt: date(8, hour: 23, minute: 50),
+            activeIntervals: [
+                TimingInterval(startedAt: date(8, hour: 23, minute: 50), endedAt: date(9, minute: 10)),
+                TimingInterval(startedAt: date(9, hour: 1), endedAt: date(9, hour: 1, minute: 20))
+            ], state: .finished)
+        let yesterday = CalendarFactsService.day(date(8), tasks: [], sessions: [session], now: date(10), calendar: calendar)
+        let today = CalendarFactsService.day(date(9), tasks: [], sessions: [session], now: date(10), calendar: calendar)
+        #expect(yesterday.seconds == 600)
+        #expect(today.seconds == 1_800)
+        #expect(today.timings.first?.time == date(9))
+        #expect(today.timings.first?.title == "读书")
+    }
+
+    @Test func runningTimeUsesNowAndDoesNotMarkFutureDays() {
+        let start = date(8, hour: 23, minute: 50)
+        let session = TimingSession(taskID: UUID(), taskTitleSnapshot: "跨夜投入", startedAt: start,
+            runningStartedAt: start, state: .running)
+        let result = CalendarFactsService.day(date(9), tasks: [], sessions: [session], now: date(9, minute: 20), calendar: calendar)
+        #expect(result.seconds == 1_200)
+        #expect(result.timings.first?.state == .running)
+        let activity = CalendarFactsService.activityDays(tasks: [], sessions: [session], month: date(15), now: date(9, minute: 20), calendar: calendar)
+        #expect(activity == Set([date(8), date(9)]))
+    }
+
+    @Test func deletedTasksAndGoalSnapshotsRemainInHistory() {
+        let task = TodoTask(title: "完成小事", completedAt: date(9, hour: 8))
+        task.deletedAt = date(10)
+        let session = TimingSession(taskID: task.id, taskTitleSnapshot: "原任务名称", goalIDSnapshot: UUID(),
+            goalNameSnapshot: "原目标", startedAt: date(9, hour: 7),
+            activeIntervals: [TimingInterval(startedAt: date(9, hour: 7), endedAt: date(9, hour: 8))], state: .finished)
+        let result = CalendarFactsService.day(date(9), tasks: [task], sessions: [session], now: date(10), calendar: calendar)
+        #expect(result.completions.count == 1)
+        #expect(result.timings.first?.title == "原任务名称")
+        #expect(result.timings.first?.goalName == "原目标")
+        #expect(result.seconds == 3_600)
+    }
+
+    @Test func midnightCompletionBelongsOnlyToNewDay() {
+        let task = TodoTask(title: "午夜完成", completedAt: date(9))
+        #expect(CalendarFactsService.day(date(8), tasks: [task], sessions: [], calendar: calendar).completions.isEmpty)
+        #expect(CalendarFactsService.day(date(9), tasks: [task], sessions: [], calendar: calendar).completions.count == 1)
+    }
+
+    @Test func pausedSessionWithoutActiveTimeDoesNotMarkADay() {
+        let session = TimingSession(taskID: UUID(), taskTitleSnapshot: "尚未投入", startedAt: date(9), state: .paused)
+        #expect(CalendarFactsService.day(date(9), tasks: [], sessions: [session], calendar: calendar).timings.isEmpty)
+        #expect(CalendarFactsService.activityDays(tasks: [], sessions: [session], month: date(9), calendar: calendar).isEmpty)
+    }
+}

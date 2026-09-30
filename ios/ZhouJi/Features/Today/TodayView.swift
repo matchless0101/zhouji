@@ -202,15 +202,10 @@ struct TodayView: View {
             NavigationLink {
                 NewTaskView()
             } label: {
-                Label {
-                    Text("添加任务")
-                        .foregroundStyle(ZJTheme.ink)
-                } icon: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(ZJTheme.accent)
-                }
+                Image(systemName: "plus")
             }
-            .buttonStyle(ZJFloatingGlassButtonStyle())
+            .buttonStyle(ZJAddButtonStyle())
+            .accessibilityLabel("添加任务")
             .frame(maxWidth: .infinity, alignment: .trailing)
             .padding(.horizontal, ZJTheme.pagePadding)
         }
@@ -337,80 +332,50 @@ struct TodayView: View {
 
 private struct TodayHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.colorScheme) private var colorScheme
     let date: Date
 
-    @MainActor
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
-        formatter.dateFormat = "M月d日  EEE"
-        return formatter
-    }()
-
-    var body: some View {
-        headerCopy
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, ZJTheme.pageTopSpacing)
-            .padding(.bottom, 24)
-            .background(alignment: .bottomTrailing) {
-                if !dynamicTypeSize.isAccessibilitySize,
-                   let illustration = UIImage(named: colorScheme == .dark ? "TodayJourneyDark" : "TodayJourney") {
-                    Image(uiImage: illustration)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: colorScheme == .dark ? 163 : 184,
-                               height: colorScheme == .dark ? 218 : 246)
-                        .blendMode(colorScheme == .light ? .multiply : .normal)
-                        .compositingGroup()
-                        // Apply the dark blend outside the group so it can merge with the page behind it.
-                        .blendMode(colorScheme == .dark ? .lighten : .normal)
-                        .mask {
-                            if colorScheme == .dark {
-                                Color.black
-                            } else {
-                                LinearGradient(
-                                    stops: [.init(color: .clear, location: 0),
-                                            .init(color: .black, location: 0.16),
-                                            .init(color: .black, location: 0.92),
-                                            .init(color: .clear, location: 1)],
-                                    startPoint: .top, endPoint: .bottom
-                                )
-                            }
-                        }
-                        .offset(x: colorScheme == .dark ? 0 : 18,
-                                y: colorScheme == .dark ? 0 : 38)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
-                }
-            }
+    private var greeting: String {
+        switch Calendar.current.component(.hour, from: date) {
+        case 5..<11: "早上好！"
+        case 11..<14: "中午好！"
+        case 14..<18: "下午好！"
+        default: "晚上好！"
+        }
     }
 
-    private var headerCopy: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("粥记")
-                .font(.title.weight(.bold))
-                .foregroundStyle(ZJTheme.ink)
-
-            HStack(alignment: .firstTextBaseline, spacing: 7) {
-                Text("你好，今天")
-                    .font(.title2)
-                    .foregroundStyle(ZJTheme.ink)
-                Image(systemName: "sparkle")
-                    .font(.title2.weight(.light))
-                    .foregroundStyle(ZJTheme.timerAccent)
-                    .accessibilityHidden(true)
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(greeting)
+                        .font(.system(.largeTitle, design: .serif, weight: .bold))
+                        .foregroundStyle(ZJTheme.ink)
+                    Text(date.formatted(.dateTime.month(.defaultDigits).day().weekday(.wide).locale(Locale(identifier: "zh_CN"))))
+                        .font(.subheadline)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                }
+                Spacer(minLength: 8)
+                VStack(spacing: 4) {
+                    Image(systemName: "sun.max.fill")
+                        .font(.system(size: 30, weight: .light))
+                        .foregroundStyle(Color(red: 0.88, green: 0.65, blue: 0.29))
+                    Text("粥记")
+                        .font(.caption)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                }
+                .accessibilityHidden(true)
             }
-
-            Text("专注当下，一件件完成吧。")
-                .font(.subheadline)
+            Text("新的一天，从一件小事开始。")
+                .font(.system(.subheadline, design: .serif))
                 .foregroundStyle(ZJTheme.secondaryInk)
-
-            Text(Self.dateFormatter.string(from: date))
-                .font(.subheadline)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .padding(.top, 22)
+            if !dynamicTypeSize.isAccessibilitySize {
+                ZJIllustration(name: "LiuliToday", height: 220)
+                    .padding(.horizontal, -10)
+                    .padding(.top, -8)
+            }
         }
+        .padding(.top, 24)
+        .padding(.bottom, 4)
         .fixedSize(horizontal: false, vertical: true)
     }
 }

@@ -55,11 +55,11 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["粥记"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["添加任务"].exists)
         XCTAssertTrue(app.buttons["tab.today"].isSelected)
         XCTAssertTrue(app.buttons["tab.goals"].exists)
-        XCTAssertTrue(app.buttons["tab.records"].exists)
+        XCTAssertTrue(app.buttons["tab.calendar"].exists)
         XCTAssertTrue(app.buttons["tab.profile"].exists)
     }
 
@@ -70,10 +70,11 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "profile"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["我的"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["一粥又一周"].firstMatch.waitForExistence(timeout: 3))
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "0 件")
         XCTAssertEqual(app.staticTexts["profile.weekFocus"].label, "0分钟")
         XCTAssertEqual(app.staticTexts["profile.completionRate"].label, "0%")
+        for _ in 0..<6 where !app.staticTexts["数据与存储"].exists { app.swipeUp() }
         XCTAssertTrue(app.staticTexts["数据与存储"].exists)
         XCTAssertTrue(app.buttons["外观"].exists)
         XCTAssertTrue(app.buttons["关于粥记"].exists)
@@ -91,7 +92,7 @@ final class ZhouJiUITests: XCTestCase {
             "-ZJPreviewSampleData", "-ZJIsolationSampleData", "-ZJInitialTab", "profile", "-ZJSyncContent"
         ]
         app.launch()
-        XCTAssertTrue(app.staticTexts["我的"].firstMatch.waitForExistence(timeout: 4))
+        XCTAssertTrue(app.staticTexts["一粥又一周"].firstMatch.waitForExistence(timeout: 4))
         XCTAssertTrue(app.staticTexts["账户记录 · 离线"].waitForExistence(timeout: 3)
                       || app.staticTexts["账户的本机记录"].waitForExistence(timeout: 2)
                       || app.buttons["library.guest"].waitForExistence(timeout: 2))
@@ -134,7 +135,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "goals"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["目标"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["我的目标"].firstMatch.waitForExistence(timeout: 3))
         app.buttons["新建目标"].tap()
 
         let goalField = app.textFields["目标名称"]
@@ -296,7 +297,7 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testCompletedTimedGoalAppearsInRecords() async throws {
+    func testCompletedTimedGoalAppearsInCalendar() async throws {
         continueAfterFailure = false
         let app = makeApp()
         app.launchArguments += ["-ZJInitialTab", "goals"]
@@ -315,14 +316,14 @@ final class ZhouJiUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["复习错题"].waitForExistence(timeout: 2))
         app.buttons["完成任务"].tap()
-        app.buttons["tab.records"].tap()
+        app.buttons["tab.calendar"].tap()
 
-        XCTAssertTrue(app.staticTexts["记录"].firstMatch.waitForExistence(timeout: 2))
-        XCTAssertEqual(app.staticTexts["records.today.completed"].label, "1 件")
-        XCTAssertEqual(app.staticTexts["records.week.completed"].label, "1 件")
-        XCTAssertNotEqual(app.staticTexts["records.today.duration"].label, "0分钟")
-        XCTAssertNotEqual(app.staticTexts["records.week.duration"].label, "0分钟")
-        XCTAssertTrue(app.staticTexts["准备考试"].exists)
+        XCTAssertTrue(app.staticTexts["calendar.selectedDate"].waitForExistence(timeout: 2))
+        XCTAssertEqual(app.staticTexts["calendar.completed"].label, "1 件完成")
+        XCTAssertFalse(app.staticTexts["calendar.duration"].label.contains("0分钟"))
+        XCTAssertTrue(app.staticTexts["复习错题"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "准备考试")).firstMatch.exists)
+
     }
 
     @MainActor
@@ -344,15 +345,17 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["这里还没有目标"].waitForExistence(timeout: 2))
         app.buttons["全部"].tap()
         XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
-        app.buttons["tab.records"].tap()
-        XCTAssertTrue(app.staticTexts["records.today.completed"].waitForExistence(timeout: 2))
-        XCTAssertEqual(app.staticTexts["records.today.completed"].label, "2 件")
-        saveScreenshot("records-light", app: app)
-        app.buttons["records.period.week"].tap()
-        XCTAssertTrue(app.buttons["records.period.week"].isSelected)
-        XCTAssertTrue(app.staticTexts["records.week.duration"].isHittable)
-        app.buttons["records.period.today"].tap()
-        XCTAssertTrue(app.staticTexts["records.today.completed"].isHittable)
+        app.buttons["tab.calendar"].tap()
+        XCTAssertTrue(app.staticTexts["calendar.completed"].waitForExistence(timeout: 2))
+        XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
+        saveScreenshot("calendar-light", app: app)
+        app.buttons["calendar.previousMonth"].tap()
+        XCTAssertTrue(app.staticTexts["calendar.empty"].waitForExistence(timeout: 2))
+        app.buttons["calendar.today"].tap()
+        XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
+        app.buttons["tab.profile"].tap()
+        XCTAssertTrue(app.staticTexts["一粥又一周"].waitForExistence(timeout: 2))
+        saveScreenshot("profile-light", app: app)
         app.buttons["tab.today"].tap()
         app.buttons["开始计时"].firstMatch.tap()
         XCTAssertTrue(app.buttons["结束计时"].waitForExistence(timeout: 2))
@@ -458,11 +461,34 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["tab.goals"].tap()
         XCTAssertTrue(app.buttons["全部"].waitForExistence(timeout: 2))
         saveScreenshot("goals-dark-large-text", app: app)
-        app.buttons["tab.records"].tap()
-        XCTAssertTrue(app.buttons["records.period.week"].waitForExistence(timeout: 2))
-        app.buttons["records.period.week"].tap()
-        XCTAssertTrue(app.staticTexts["records.week.completed"].isHittable)
-        saveScreenshot("records-dark-large-text", app: app)
+        app.buttons["tab.calendar"].tap()
+        XCTAssertTrue(app.buttons["calendar.previousMonth"].waitForExistence(timeout: 2))
+        app.buttons["calendar.previousMonth"].tap()
+        XCTAssertTrue(app.staticTexts["calendar.empty"].waitForExistence(timeout: 2))
+        saveScreenshot("calendar-dark-large-text", app: app)
+
+    }
+
+    @MainActor
+    func testCalendarChangesDateMonthAndReturnsToToday() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-ZJInitialTab", "calendar"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["calendar.completed"].waitForExistence(timeout: 3))
+        XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
+        XCTAssertFalse(app.buttons["tab.records"].exists)
+        let currentDay = Calendar.current.component(.day, from: Date.now)
+        XCTAssertTrue(app.buttons["calendar.day.\(currentDay)"].isSelected)
+        let otherDay = currentDay == 1 ? 2 : 1
+        app.buttons["calendar.day.\(otherDay)"].tap()
+        XCTAssertTrue(app.buttons["calendar.day.\(otherDay)"].isSelected)
+        XCTAssertTrue(app.staticTexts["calendar.selectedDate"].label.contains("\(otherDay)日"))
+        app.buttons["calendar.nextMonth"].tap()
+        XCTAssertTrue(app.staticTexts["calendar.empty"].waitForExistence(timeout: 2))
+        app.buttons["calendar.today"].tap()
+        XCTAssertTrue(app.buttons["calendar.day.\(currentDay)"].isSelected)
+        XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
     }
 
     @MainActor

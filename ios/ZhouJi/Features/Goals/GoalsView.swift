@@ -94,6 +94,10 @@ struct GoalsView: View {
                             }
                         }
                     }
+                    ZJIllustration(name: "LiuliGoals", height: 190)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 }
                 .listStyle(.plain)
                 .contentMargins(.top, 0, for: .scrollContent)
@@ -150,10 +154,15 @@ struct GoalsView: View {
     }
 
     private var pageHeader: some View {
-        Text("目标")
-            .font(.largeTitle.weight(.bold))
-            .foregroundStyle(ZJTheme.ink)
-            .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("我的目标")
+                .font(.system(.largeTitle, design: .serif, weight: .bold))
+                .foregroundStyle(ZJTheme.ink)
+            Text("慢一点，但一直向前。")
+                .font(.system(.subheadline, design: .serif))
+                .foregroundStyle(ZJTheme.secondaryInk)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var filterBar: some View {
@@ -226,15 +235,10 @@ struct GoalsView: View {
                 .padding(.horizontal, ZJTheme.pagePadding)
             } else {
                 Button(action: beginCreatingGoal) {
-                    Label {
-                        Text("新建目标")
-                            .foregroundStyle(ZJTheme.ink)
-                    } icon: {
-                        Image(systemName: "plus")
-                            .foregroundStyle(ZJTheme.accent)
-                    }
+                    Image(systemName: "plus")
                 }
-                .buttonStyle(ZJFloatingGlassButtonStyle())
+                .buttonStyle(ZJAddButtonStyle())
+                .accessibilityLabel("新建目标")
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
@@ -298,97 +302,34 @@ private enum GoalFilter: CaseIterable {
 }
 
 private struct GoalRow: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
     let goal: Goal
-
-    private var progress: GoalProgress {
-        GoalService.progress(for: goal)
-    }
-
-    private var illustrationAssetName: String {
-        switch goal.icon {
-        case .book, .study:
-            "GoalWriting"
-        case .work:
-            "GoalCareer"
-        case .digital:
-            "GoalDigital"
-        default:
-            "GoalMilestone"
-        }
-    }
+    private var progress: GoalProgress { GoalService.progress(for: goal) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 14) {
-                ZJGoalIcon(iconName: goal.displayIconName, size: 64)
-
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(goal.name)
-                        .font(.title3.weight(.semibold))
-                        .foregroundStyle(ZJTheme.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-
-                    Text(progress.total == 0 ? "从一个小任务开始" : "一步一步，靠近目标。")
-                        .font(.subheadline)
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .layoutPriority(1)
-
-                Image(systemName: "chevron.right")
-                    .font(.body.weight(.medium))
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                    .accessibilityHidden(true)
-            }
-
-            HStack(spacing: 16) {
-                Text("\(progress.percentage)%")
-                    .font(.body.weight(.semibold))
+        HStack(spacing: 16) {
+            ZJGoalIcon(iconName: goal.displayIconName, size: 42)
+            VStack(alignment: .leading, spacing: 12) {
+                Text(goal.name)
+                    .font(.title3.weight(.medium))
                     .foregroundStyle(ZJTheme.ink)
-                    .frame(minWidth: 60, alignment: .leading)
-
-                ProgressView(value: progress.fraction)
-                    .tint(ZJTheme.goalProgress(for: goal.displayIconName))
-                    .scaleEffect(x: 1, y: 1.5)
-                    .accessibilityLabel("目标进度")
-                    .accessibilityValue("百分之 \(progress.percentage)")
-
-                Text("\(progress.completed) / \(progress.total)")
-                    .font(.subheadline)
-                    .monospacedDigit()
-                    .foregroundStyle(ZJTheme.secondaryInk)
-            }
-        }
-        .padding(16)
-        .background(alignment: .topTrailing) {
-            if !dynamicTypeSize.isAccessibilitySize,
-               let illustration = UIImage(named: illustrationAssetName) {
-                let artwork = Image(uiImage: illustration)
-                    .resizable().scaledToFit()
-                    .frame(width: 112, height: 106)
-
-                Group {
-                    if colorScheme == .dark {
-                        artwork
-                            // Remove the white backdrop without introducing a dark rectangle.
-                            .mask { artwork.colorInvert().luminanceToAlpha() }
-                            .opacity(0.72)
-                    } else {
-                        artwork
-                            .opacity(0.52)
-                            .compositingGroup()
-                            .blendMode(.multiply)
-                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 12) {
+                    ProgressView(value: progress.fraction)
+                        .tint(ZJTheme.success)
+                        .accessibilityLabel("目标进度")
+                        .accessibilityValue("百分之 \(progress.percentage)")
+                    Text("\(progress.completed)/\(progress.total)")
+                        .font(.subheadline)
+                        .monospacedDigit()
+                        .foregroundStyle(ZJTheme.secondaryInk)
                 }
-                .padding(.trailing, 8)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
             }
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .accessibilityHidden(true)
         }
+        .padding(20)
         .zjCard()
     }
 }

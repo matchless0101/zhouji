@@ -3,6 +3,7 @@ import SwiftUI
 import UIKit
 
 struct ProfileView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(AccountStore.self) private var account
     @Environment(LocalLibraryStore.self) private var libraries
     @Query private var tasks: [TodoTask]
@@ -42,12 +43,12 @@ struct ProfileView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         header
+                        metrics(statistics)
+                        settingsCard
+                        encouragementBanner
                         identityCard
                         AccountControls()
                         LocalLibraryCard()
-                        metrics(statistics)
-                        encouragementBanner
-                        settingsCard
                         BackupSettingsCard()
                         SyncSettingsCard()
                         AccountSessionActions()
@@ -69,15 +70,22 @@ struct ProfileView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text("我的")
-                .font(.largeTitle.weight(.bold))
+        VStack(spacing: 10) {
+            ZJIllustration(name: "LiuliHeart", height: 156)
+                .padding(.top, 8)
+            Text("一粥又一周")
+                .accessibilityAddTraits(.isHeader)
+                .font(.system(.title, design: .serif, weight: .bold))
                 .foregroundStyle(ZJTheme.ink)
-
-            Text("持续积累，遇见更好的自己。")
-                .font(.subheadline)
+            Text("把平凡的日子，\n过成喜欢的样子。")
+                .font(.system(.subheadline, design: .serif))
+                .multilineTextAlignment(.center)
+                .lineSpacing(5)
                 .foregroundStyle(ZJTheme.secondaryInk)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.bottom, 8)
+
     }
 
     @ViewBuilder private var identityCard: some View {
@@ -154,14 +162,11 @@ struct ProfileView: View {
     }
 
     private func metrics(_ statistics: StatisticsSnapshot) -> some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .top, spacing: 10) {
-                metricCards(statistics)
-            }
-
-            VStack(spacing: 10) {
-                metricCards(statistics)
-            }
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+        return layout {
+            metricCards(statistics)
         }
     }
 
@@ -190,7 +195,7 @@ struct ProfileView: View {
             value: "\(completionRate)%",
             detail: "当前任务进度",
             systemImage: "chart.bar.fill",
-            tint: Color.green,
+            tint: ZJTheme.success,
             identifier: "profile.completionRate"
         )
     }
@@ -204,17 +209,9 @@ struct ProfileView: View {
 
             Spacer(minLength: 0)
 
-            if let illustration = UIImage(named: "TodayJourney") {
-                Image(uiImage: illustration)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 112, height: 74)
-                    .scaleEffect(1.12)
-                    .blendMode(.multiply)
-                    .compositingGroup()
-                    .clipShape(.rect(cornerRadius: 16))
-                    .accessibilityHidden(true)
-            }
+            ZJIllustration(name: "LiuliCalendar", height: 90)
+                .frame(width: 128)
+
         }
         .padding(.leading, 18)
         .padding(.trailing, 8)
