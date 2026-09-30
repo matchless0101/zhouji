@@ -7,6 +7,7 @@ struct CalendarView: View {
     @Query private var sessions: [TimingSession]
     @State private var month = Date.now
     @State private var selectedDate = Date.now
+    @State private var isDayPresented = false
 
     var body: some View {
         NavigationStack {
@@ -14,16 +15,21 @@ struct CalendarView: View {
                 let facts = CalendarFactsService.day(selectedDate, tasks: tasks, sessions: sessions, now: context.date)
                 let activity = CalendarFactsService.activityDays(tasks: tasks, sessions: sessions, month: month, now: context.date)
                 ScrollView {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 14) {
                         monthHeader
                         monthGrid(activity: activity, now: context.date)
-                        dailyJournal(facts, now: context.date)
-                        VStack(spacing: 0) {
-                            Text("好的时光，都在路上。")
-                                .font(.system(.subheadline, design: .serif))
-                                .foregroundStyle(ZJTheme.secondaryInk)
-                            ZJIllustration(name: "LiuliCalendar", height: 190)
-                        }
+                        daySummary(facts)
+                        ZJScene(name: "LiuliCalendar", height: 275)
+                            .padding(.horizontal, -ZJTheme.pagePadding)
+                            .overlay(alignment: .topTrailing) {
+                                Text("好的时光，\n都在路上。")
+                                    .font(ZJTheme.handwriting(20, relativeTo: .body))
+                                    .lineSpacing(5)
+                                    .foregroundStyle(ZJTheme.ink)
+                                    .rotationEffect(.degrees(-9))
+                                    .padding(.trailing, 28)
+                                    .padding(.top, 4)
+                            }
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
                     .padding(.top, 20)
@@ -32,6 +38,26 @@ struct CalendarView: View {
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
+            .sheet(isPresented: $isDayPresented) {
+                NavigationStack {
+                    TimelineView(.periodic(from: .now, by: sessions.contains { $0.state == .running } ? 1 : 60)) { context in
+                        ScrollView {
+                            dailyJournal(CalendarFactsService.day(selectedDate, tasks: tasks, sessions: sessions, now: context.date), now: context.date)
+                                .padding(ZJTheme.pagePadding)
+                        }
+                    }
+                    .background(ZJTheme.pageBackground.ignoresSafeArea())
+                    .navigationTitle("当天回顾")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("关闭") { isDayPresented = false }
+                                .accessibilityIdentifier("calendar.closeDetails")
+                        }
+                    }
+                }
+                .tint(ZJTheme.accent)
+            }
         }
     }
 
@@ -48,7 +74,7 @@ struct CalendarView: View {
                 selectedDate = .now
             } label: {
                 Text(String(format: "%d.%02d", Calendar.current.component(.year, from: month), Calendar.current.component(.month, from: month)))
-                    .font(.system(.title2, design: .rounded, weight: .semibold))
+                    .font(ZJTheme.handwriting(28, relativeTo: .title2))
                     .padding(.vertical, 10)
             }
             .accessibilityLabel("回到今天")
@@ -69,7 +95,7 @@ struct CalendarView: View {
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 4) {
             ForEach(Array(["日", "一", "二", "三", "四", "五", "六"].enumerated()), id: \.offset) { _, title in
                 Text(title)
-                    .font(.subheadline)
+                    .font(ZJTheme.handwriting(17, relativeTo: .subheadline))
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .frame(height: 32)
                     .accessibilityHidden(true)
@@ -78,7 +104,7 @@ struct CalendarView: View {
                 if let date = cells[index] {
                     dayButton(date, hasActivity: activity.contains(date), now: now)
                 } else {
-                    Color.clear.frame(height: 48).accessibilityHidden(true)
+                    Color.clear.frame(height: 44).accessibilityHidden(true)
                 }
             }
         }
@@ -98,7 +124,7 @@ struct CalendarView: View {
                 .background(selected ? ZJTheme.accent : .clear, in: Circle())
                 .overlay { if today && !selected { Circle().stroke(ZJTheme.accent, lineWidth: 1) } }
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
+                .frame(height: 44)
                 .overlay(alignment: .bottom) {
                     if hasActivity {
                         Circle().fill(ZJTheme.success).frame(width: 4, height: 4).padding(.bottom, 1)
@@ -111,6 +137,53 @@ struct CalendarView: View {
         .accessibilityValue([today ? "今天" : nil, hasActivity ? "有记录" : "无记录"].compactMap { $0 }.joined(separator: "，"))
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityIdentifier("calendar.day.\(dayNumber)")
+    }
+
+    private func daySummary(_ facts: CalendarDayFacts) -> some View {
+        Button { isDayPresented = true } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("\(Calendar.current.component(.month, from: selectedDate))月\(Calendar.current.component(.day, from: selectedDate))日")
+                        .font(ZJTheme.handwriting(20, relativeTo: .headline))
+                        .foregroundStyle(ZJTheme.ink)
+                        .accessibilityIdentifier("calendar.selectedDate")
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { summaryMetrics(facts) }
+                        VStack(alignment: .leading, spacing: 4) { summaryMetrics(facts) }
+                    }
+                    if facts.isEmpty {
+                        Text("从一件小事开始，也很好。")
+                            .font(.caption)
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                            .accessibilityIdentifier("calendar.empty")
+                    }
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .accessibilityHidden(true)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .zjCard()
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("calendar.summary")
+        .accessibilityHint("查看当天完成事项和实际投入明细")
+    }
+
+    @ViewBuilder
+    private func summaryMetrics(_ facts: CalendarDayFacts) -> some View {
+        Text("\(facts.completions.count) 件完成")
+            .accessibilityIdentifier("calendar.completed")
+            .font(.subheadline)
+            .foregroundStyle(ZJTheme.secondaryInk)
+        Label(ElapsedTimeText.string(for: facts.seconds), systemImage: "clock")
+            .accessibilityIdentifier("calendar.duration")
+            .font(.subheadline)
+            .foregroundStyle(ZJTheme.secondaryInk)
     }
 
     private func dailyJournal(_ facts: CalendarDayFacts, now: Date) -> some View {

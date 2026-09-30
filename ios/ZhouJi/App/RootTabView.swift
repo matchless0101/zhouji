@@ -66,17 +66,12 @@ struct RootTabView: View {
                 Button {
                     selection = tab
                 } label: {
-                    VStack(spacing: 5) {
-                        Image(systemName: selection == tab ? tab.selectedSymbol : tab.symbol)
-                            .symbolVariant(.none)
-                            .font(.system(size: 25, weight: .medium))
-                            .frame(height: 28)
-                        Text(tab.title)
-                            .font(.caption)
-                    }
+                    Image(systemName: selection == tab ? tab.selectedSymbol : tab.symbol)
+                        .symbolVariant(.none)
+                        .font(.system(size: 25, weight: .regular))
                     .foregroundStyle(selection == tab ? ZJTheme.accent : ZJTheme.secondaryInk)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 58)
+                    .frame(height: 48)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -85,7 +80,7 @@ struct RootTabView: View {
                 .accessibilityAddTraits(selection == tab ? .isSelected : [])
             }
         }
-        .padding(.top, 8)
+        .padding(.top, 4)
         .padding(.bottom, 24)
         .background(ZJTheme.surface)
         .overlay(alignment: .top) { ZJTheme.divider.opacity(0.45).frame(height: 0.5) }

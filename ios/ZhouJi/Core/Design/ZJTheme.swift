@@ -2,6 +2,10 @@ import SwiftUI
 import UIKit
 
 enum ZJTheme {
+    static func handwriting(_ size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
+        .custom("LXGWWenKai-Regular", size: size, relativeTo: style)
+    }
+
     static let background = Color.dynamic(
         light: UIColor(red: 0.972, green: 0.941, blue: 0.877, alpha: 1),
         dark: UIColor(red: 0.105, green: 0.12, blue: 0.094, alpha: 1)

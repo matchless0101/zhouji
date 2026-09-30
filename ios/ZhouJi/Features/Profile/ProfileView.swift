@@ -4,88 +4,272 @@ import UIKit
 
 struct ProfileView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(AccountStore.self) private var account
-    @Environment(LocalLibraryStore.self) private var libraries
     @Query private var tasks: [TodoTask]
     @Query private var sessions: [TimingSession]
+    @State private var presentedPanel: ProfilePanel?
 
-    @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
-    @State private var isAboutPresented = false
-    @State private var isProfileEditorPresented = false
-
-    private var appearance: AppAppearance {
-        AppAppearance(rawValue: appearanceRawValue) ?? .system
-    }
-
-    private var visibleTasks: [TodoTask] {
-        tasks.filter { $0.deletedAt == nil }
-    }
-
-    private var completedCount: Int {
-        tasks.count { $0.completedAt != nil }
-    }
+    private var completedCount: Int { tasks.count { $0.completedAt != nil } }
 
     private var completionRate: Int {
+        let visibleTasks = tasks.filter { $0.deletedAt == nil }
         guard !visibleTasks.isEmpty else { return 0 }
-        let completed = visibleTasks.count { $0.isCompleted }
-        return Int((Double(completed) / Double(visibleTasks.count) * 100).rounded())
+        return Int((Double(visibleTasks.count { $0.isCompleted }) / Double(visibleTasks.count) * 100).rounded())
     }
 
     var body: some View {
         NavigationStack {
-            TimelineView(.periodic(from: .now, by: sessions.contains(where: { $0.state == .running }) ? 1 : 60)) { context in
-                let statistics = StatisticsService.snapshot(
-                    tasks: tasks,
-                    sessions: sessions,
-                    now: context.date
-                )
-
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        header
-                        metrics(statistics)
-                        settingsCard
-                        encouragementBanner
-                        identityCard
-                        AccountControls()
-                        LocalLibraryCard()
-                        BackupSettingsCard()
-                        SyncSettingsCard()
-                        AccountSessionActions()
-                    }
-                    .padding(.horizontal, ZJTheme.pagePadding)
-                    .padding(.top, 12)
-                    .padding(.bottom, 44)
+            ScrollView {
+                VStack(spacing: 24) {
+                    header
+                    menuCard
+                    if !dynamicTypeSize.isAccessibilitySize { postcard }
                 }
+                .padding(.horizontal, ZJTheme.pagePadding + 6)
+                .padding(.top, 30)
+                .padding(.bottom, 28)
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
-            .sheet(isPresented: $isAboutPresented) {
-                AboutZhouJiView()
+            .overlay(alignment: .topTrailing) {
+                Button { presentedPanel = .preferences } label: {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 25, weight: .regular))
+                        .foregroundStyle(ZJTheme.ink)
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("偏好设置")
+                .accessibilityIdentifier("profile.settings")
+                .padding(.top, 12)
+                .padding(.trailing, ZJTheme.pagePadding + 6)
             }
-            .sheet(isPresented: $isProfileEditorPresented) {
-                if let profile = account.account { ProfileEditor(profile: profile) }
+            .sheet(item: $presentedPanel) { panel in
+                switch panel {
+                case .preferences:
+                    ProfilePreferencesView()
+                case .overview:
+                    overview
+                case .calendar:
+                    CalendarView()
+                        .safeAreaInset(edge: .top, spacing: 0) {
+                            HStack {
+                                Text("日历回顾").font(.headline).foregroundStyle(ZJTheme.ink)
+                                Spacer()
+                                closePanelButton
+                            }
+                            .padding(.horizontal, ZJTheme.pagePadding)
+                            .padding(.vertical, 10)
+                            .background(ZJTheme.surface)
+                        }
+                }
             }
         }
     }
 
     private var header: some View {
-        VStack(spacing: 10) {
-            ZJIllustration(name: "LiuliHeart", height: 156)
-                .padding(.top, 8)
+        VStack(spacing: 9) {
+            if !dynamicTypeSize.isAccessibilitySize {
+                ZJIllustration(name: "LiuliHeart", height: 175)
+                    .background {
+                        Circle().fill(ZJTheme.accentSoft.opacity(0.55)).frame(width: 166, height: 166)
+                    }
+            }
             Text("一粥又一周")
                 .accessibilityAddTraits(.isHeader)
-                .font(.system(.title, design: .serif, weight: .bold))
+                .font(ZJTheme.handwriting(dynamicTypeSize.isAccessibilitySize ? 28 : 32, relativeTo: .title2))
                 .foregroundStyle(ZJTheme.ink)
-            Text("把平凡的日子，\n过成喜欢的样子。")
-                .font(.system(.subheadline, design: .serif))
-                .multilineTextAlignment(.center)
-                .lineSpacing(5)
-                .foregroundStyle(ZJTheme.secondaryInk)
+            if !dynamicTypeSize.isAccessibilitySize {
+                Text("把平凡的日子，\n过成喜欢的样子。")
+                    .font(ZJTheme.handwriting(19, relativeTo: .body))
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(5)
+                    .foregroundStyle(ZJTheme.secondaryInk)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, 8)
+        .padding(.top, dynamicTypeSize.isAccessibilitySize ? 42 : 22)
+    }
 
+    private var menuCard: some View {
+        VStack(spacing: 0) {
+            panelButton(.overview, title: "我的概况", symbol: "star.fill", tint: Color(red: 0.88, green: 0.65, blue: 0.29), identifier: "profile.overview")
+            menuDivider
+            panelButton(.calendar, title: "日历回顾", symbol: "clock", tint: ZJTheme.secondaryInk, identifier: "profile.review")
+            menuDivider
+            panelButton(.preferences, title: "偏好设置", symbol: "leaf.fill", tint: ZJTheme.success, identifier: "profile.preferences")
+        }
+        .zjCard()
+    }
+
+    private var menuDivider: some View {
+        Divider().overlay(ZJTheme.divider.opacity(0.7)).padding(.horizontal, 18)
+    }
+
+    private func panelButton(_ panel: ProfilePanel, title: String, symbol: String, tint: Color, identifier: String) -> some View {
+        Button { presentedPanel = panel } label: {
+            HStack(spacing: 16) {
+                Image(systemName: symbol).font(.system(size: 26, weight: .regular))
+                    .foregroundStyle(tint).frame(width: 32).accessibilityHidden(true)
+                Text(title).font(ZJTheme.handwriting(20, relativeTo: .body)).foregroundStyle(ZJTheme.ink)
+                Spacer(minLength: 8)
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(ZJTheme.ink).accessibilityHidden(true)
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 16)
+            .frame(minHeight: 62)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
+    }
+
+    private var postcard: some View {
+        HStack(spacing: 0) {
+            Image("LiuliCalendar")
+                .resizable()
+                .scaledToFill()
+                .frame(width: 205, height: 132)
+                .clipped()
+                .background(ZJTheme.accentSoft)
+                .padding(8)
+                .background(ZJTheme.surface)
+                .overlay { Rectangle().strokeBorder(ZJTheme.divider, lineWidth: 1) }
+                .rotationEffect(.degrees(-8))
+            Text("MORE\nGOOD\nDAYS.")
+                .font(ZJTheme.handwriting(20, relativeTo: .body))
+                .tracking(2)
+                .lineSpacing(3)
+                .foregroundStyle(ZJTheme.ink)
+                .padding(12)
+                .background(ZJTheme.surface)
+                .rotationEffect(.degrees(7))
+                .padding(.leading, -18)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 10)
+        .padding(.bottom, 18)
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+
+    private var closePanelButton: some View {
+        Button { presentedPanel = nil } label: {
+            Text("关闭")
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+            .foregroundStyle(ZJTheme.accent)
+            .accessibilityIdentifier("profile.closePanel")
+    }
+
+    private var overview: some View {
+        NavigationStack {
+            TimelineView(.periodic(from: .now, by: sessions.contains { $0.state == .running } ? 1 : 60)) { context in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        Text("每一步，都算数。")
+                            .font(ZJTheme.handwriting(30, relativeTo: .title))
+                            .foregroundStyle(ZJTheme.ink)
+                        metrics(StatisticsService.snapshot(tasks: tasks, sessions: sessions, now: context.date))
+                    }
+                    .padding(ZJTheme.pagePadding)
+                }
+            }
+            .background(ZJTheme.pageBackground.ignoresSafeArea())
+            .navigationTitle("我的概况")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { closePanelButton } }
+        }
+    }
+
+    private func metrics(_ statistics: StatisticsSnapshot) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+        return layout {
+            metricCards(statistics)
+        }
+    }
+
+    @ViewBuilder
+    private func metricCards(_ statistics: StatisticsSnapshot) -> some View {
+        ProfileMetricCard(
+            title: "累计完成",
+            value: "\(completedCount) 件",
+            detail: "每一步都算数",
+            systemImage: "checkmark.circle.fill",
+            tint: ZJTheme.timerAccent,
+            identifier: "profile.completed"
+        )
+
+        ProfileMetricCard(
+            title: "本周专注",
+            value: ElapsedTimeText.string(for: statistics.secondsThisWeek),
+            detail: "来自真实计时",
+            systemImage: "clock.fill",
+            tint: ZJTheme.accent,
+            identifier: "profile.weekFocus"
+        )
+
+        ProfileMetricCard(
+            title: "任务完成率",
+            value: "\(completionRate)%",
+            detail: "当前任务进度",
+            systemImage: "chart.bar.fill",
+            tint: ZJTheme.success,
+            identifier: "profile.completionRate"
+        )
+    }
+
+}
+
+private enum ProfilePanel: String, Identifiable {
+    case overview, calendar, preferences
+    var id: String { rawValue }
+}
+
+private struct ProfilePreferencesView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(AccountStore.self) private var account
+    @Environment(LocalLibraryStore.self) private var libraries
+    @Query private var tasks: [TodoTask]
+    @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
+    @State private var isAboutPresented = false
+    @State private var isProfileEditorPresented = false
+
+    private var appearance: AppAppearance { AppAppearance(rawValue: appearanceRawValue) ?? .system }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    settingsCard
+                    identityCard
+                    AccountControls()
+                    LocalLibraryCard()
+                    BackupSettingsCard()
+                    SyncSettingsCard()
+                    AccountSessionActions()
+                }
+                .padding(.horizontal, ZJTheme.pagePadding)
+                .padding(.top, 16)
+                .padding(.bottom, 28)
+            }
+            .background(ZJTheme.pageBackground.ignoresSafeArea())
+            .navigationTitle("偏好设置")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("关闭", action: dismiss.callAsFunction)
+                        .accessibilityIdentifier("profile.closePanel")
+                }
+            }
+            .sheet(isPresented: $isAboutPresented) { AboutZhouJiView() }
+            .sheet(isPresented: $isProfileEditorPresented) {
+                if let profile = account.account { ProfileEditor(profile: profile) }
+            }
+        }
+        .tint(ZJTheme.accent)
     }
 
     @ViewBuilder private var identityCard: some View {
@@ -159,69 +343,6 @@ struct ProfileView: View {
         .zjCard()
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.guestNotice")
-    }
-
-    private func metrics(_ statistics: StatisticsSnapshot) -> some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: 10))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
-        return layout {
-            metricCards(statistics)
-        }
-    }
-
-    @ViewBuilder
-    private func metricCards(_ statistics: StatisticsSnapshot) -> some View {
-        ProfileMetricCard(
-            title: "累计完成",
-            value: "\(completedCount) 件",
-            detail: "每一步都算数",
-            systemImage: "checkmark.circle.fill",
-            tint: ZJTheme.timerAccent,
-            identifier: "profile.completed"
-        )
-
-        ProfileMetricCard(
-            title: "本周专注",
-            value: ElapsedTimeText.string(for: statistics.secondsThisWeek),
-            detail: "来自真实计时",
-            systemImage: "clock.fill",
-            tint: ZJTheme.accent,
-            identifier: "profile.weekFocus"
-        )
-
-        ProfileMetricCard(
-            title: "任务完成率",
-            value: "\(completionRate)%",
-            detail: "当前任务进度",
-            systemImage: "chart.bar.fill",
-            tint: ZJTheme.success,
-            identifier: "profile.completionRate"
-        )
-    }
-
-    private var encouragementBanner: some View {
-        HStack(spacing: 10) {
-            Text("每一个小小的坚持，\n都在让你靠近理想的自己。")
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer(minLength: 0)
-
-            ZJIllustration(name: "LiuliCalendar", height: 90)
-                .frame(width: 128)
-
-        }
-        .padding(.leading, 18)
-        .padding(.trailing, 8)
-        .frame(minHeight: 96)
-        .background(ZJTheme.accentSoft.opacity(0.78), in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                .stroke(ZJTheme.accent.opacity(0.12), lineWidth: 0.6)
-        }
-        .accessibilityElement(children: .combine)
     }
 
     private var settingsCard: some View {

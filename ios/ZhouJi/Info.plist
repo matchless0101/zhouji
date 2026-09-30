@@ -35,6 +35,10 @@
 		<string>weixinULAPI</string>
 		<string>weixinURLParamsAPI</string>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>LXGWWenKai-Regular.ttf</string>
+	</array>
 	<key>ZhouJiWeChatAppID</key>
 	<string>$(ZHOUJI_WECHAT_APP_ID)</string>
 </dict>

@@ -7,22 +7,30 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launchArguments += ["-ZJPreviewSampleData", "-ZJIsolationSampleData", "-ZJInitialTab", "profile"]
         app.launch()
-        XCTAssertTrue(app.staticTexts["library.current"].waitForExistence(timeout: 4))
+        openOverview(in: app)
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
+        app.buttons["profile.closePanel"].tap()
+        openPreferences(in: app)
+        XCTAssertTrue(app.staticTexts["library.current"].waitForExistence(timeout: 4))
         let guest = app.buttons["library.guest"]
         for _ in 0..<3 where !guest.isHittable { app.swipeUp() }
         guest.tap()
-        XCTAssertTrue(app.buttons["library.account"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["profile.settings"].waitForExistence(timeout: 4))
+        openOverview(in: app)
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "7 件")
+        app.buttons["profile.closePanel"].tap()
         app.buttons["tab.today"].tap()
         XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["账户独有任务"].exists)
         app.buttons["tab.profile"].tap()
+        openPreferences(in: app)
         let account = app.buttons["library.account"]
         for _ in 0..<3 where !account.isHittable { app.swipeUp() }
         account.tap()
-        XCTAssertTrue(app.buttons["library.guest"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["profile.settings"].waitForExistence(timeout: 4))
+        openOverview(in: app)
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
+        app.buttons["profile.closePanel"].tap()
         app.buttons["tab.today"].tap()
         XCTAssertTrue(app.staticTexts["账户独有任务"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["整理开题资料"].exists)
@@ -38,6 +46,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["收起"].waitForExistence(timeout: 3))
         app.buttons["收起"].tap()
         app.buttons["tab.profile"].tap()
+        openPreferences(in: app)
         let restore = app.buttons["backup.import"]
         for _ in 0..<5 where !restore.isHittable { app.swipeUp() }
         XCTAssertTrue(restore.isHittable)
@@ -45,6 +54,7 @@ final class ZhouJiUITests: XCTestCase {
         let message = app.staticTexts["backup.message"]
         XCTAssertTrue(message.waitForExistence(timeout: 3))
         XCTAssertTrue(message.label.contains("请先结束当前计时"))
+        app.buttons["profile.closePanel"].tap()
         app.buttons["tab.today"].tap()
         XCTAssertTrue(app.buttons["查看当前计时"].waitForExistence(timeout: 3))
     }
@@ -57,10 +67,18 @@ final class ZhouJiUITests: XCTestCase {
 
         XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.buttons["添加任务"].exists)
+        let firstTask = app.buttons["today.firstTask"]
+        XCTAssertTrue(firstTask.isHittable)
+        XCTAssertEqual(firstTask.frame.midX, app.frame.midX, accuracy: 2)
+        XCTAssertGreaterThan(firstTask.frame.height, 120)
+        XCTAssertLessThanOrEqual(firstTask.frame.maxY, app.buttons["tab.today"].frame.minY)
+        XCTAssertFalse(app.staticTexts["今天想做点什么？"].exists)
         XCTAssertTrue(app.buttons["tab.today"].isSelected)
         XCTAssertTrue(app.buttons["tab.goals"].exists)
         XCTAssertTrue(app.buttons["tab.calendar"].exists)
         XCTAssertTrue(app.buttons["tab.profile"].exists)
+        firstTask.tap()
+        XCTAssertTrue(app.textFields["今天要做什么？"].waitForExistence(timeout: 2))
     }
 
     @MainActor
@@ -71,17 +89,40 @@ final class ZhouJiUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.staticTexts["一粥又一周"].firstMatch.waitForExistence(timeout: 3))
+        openOverview(in: app)
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "0 件")
         XCTAssertEqual(app.staticTexts["profile.weekFocus"].label, "0分钟")
         XCTAssertEqual(app.staticTexts["profile.completionRate"].label, "0%")
+        app.buttons["profile.closePanel"].tap()
+        openPreferences(in: app)
         for _ in 0..<6 where !app.staticTexts["数据与存储"].exists { app.swipeUp() }
         XCTAssertTrue(app.staticTexts["数据与存储"].exists)
         XCTAssertTrue(app.buttons["外观"].exists)
         XCTAssertTrue(app.buttons["关于粥记"].exists)
-        XCTAssertTrue(app.buttons["tab.profile"].isSelected)
         XCTAssertTrue(app.staticTexts["游客模式"].exists)
         XCTAssertTrue(app.staticTexts["登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。"].exists)
         XCTAssertFalse(app.staticTexts["sync.title"].exists)
+        app.buttons["profile.closePanel"].tap()
+        XCTAssertTrue(app.buttons["tab.profile"].isSelected)
+    }
+
+    @MainActor
+    func testProfileMenuOpensCalendarAndNestedAbout() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "profile", "-appAppearance", "light"]
+        app.launch()
+        XCTAssertTrue(app.buttons["profile.review"].waitForExistence(timeout: 3))
+        app.buttons["profile.review"].tap()
+        XCTAssertTrue(app.buttons["calendar.today"].waitForExistence(timeout: 3))
+        app.buttons["profile.closePanel"].coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.04)).tap()
+        openPreferences(in: app)
+        app.buttons["关于粥记"].tap()
+        XCTAssertTrue(app.staticTexts["粥记"].waitForExistence(timeout: 3))
+        app.buttons["完成"].tap()
+        XCTAssertTrue(app.navigationBars["偏好设置"].waitForExistence(timeout: 3))
+        app.buttons["profile.closePanel"].tap()
+        XCTAssertTrue(app.buttons["profile.settings"].isHittable)
     }
 
     @MainActor
@@ -93,6 +134,7 @@ final class ZhouJiUITests: XCTestCase {
         ]
         app.launch()
         XCTAssertTrue(app.staticTexts["一粥又一周"].firstMatch.waitForExistence(timeout: 4))
+        openPreferences(in: app)
         XCTAssertTrue(app.staticTexts["账户记录 · 离线"].waitForExistence(timeout: 3)
                       || app.staticTexts["账户的本机记录"].waitForExistence(timeout: 2)
                       || app.buttons["library.guest"].waitForExistence(timeout: 2))
@@ -117,6 +159,7 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launchArguments += ["-ZJInitialTab", "profile"]
         app.launch()
+        openPreferences(in: app)
         let button = app.buttons["account.wechatLogin"]
         if !button.isHittable { app.swipeUp() }
         XCTAssertTrue(button.waitForExistence(timeout: 5))
@@ -321,8 +364,11 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["calendar.selectedDate"].waitForExistence(timeout: 2))
         XCTAssertEqual(app.staticTexts["calendar.completed"].label, "1 件完成")
         XCTAssertFalse(app.staticTexts["calendar.duration"].label.contains("0分钟"))
+        app.buttons["calendar.summary"].tap()
         XCTAssertTrue(app.staticTexts["复习错题"].exists)
         XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "准备考试")).firstMatch.exists)
+        app.buttons["calendar.closeDetails"].tap()
+        XCTAssertTrue(app.buttons["calendar.summary"].isHittable)
 
     }
 
@@ -340,9 +386,10 @@ final class ZhouJiUITests: XCTestCase {
         for _ in 0..<3 where !app.buttons["新建目标"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.buttons["新建目标"].isHittable)
         XCTAssertTrue(app.staticTexts["iOS App"].exists)
-        for _ in 0..<3 where !app.buttons["全部"].isHittable { app.swipeDown() }
+        app.buttons["目标筛选"].tap()
         app.buttons["已完成"].tap()
         XCTAssertTrue(app.staticTexts["这里还没有目标"].waitForExistence(timeout: 2))
+        app.buttons["目标筛选"].tap()
         app.buttons["全部"].tap()
         XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
         app.buttons["tab.calendar"].tap()
@@ -372,11 +419,11 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testFloatingNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel() throws {
+    func testHeaderNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel() throws {
         continueAfterFailure = false
         let app = makeApp()
         app.launchArguments += ["-ZJInitialTab", "goals", "-ZJPreviewSampleData", "-appAppearance", "dark",
-                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
         let newGoal = app.buttons["新建目标"]
         XCTAssertTrue(newGoal.waitForExistence(timeout: 3))
@@ -387,9 +434,10 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(newGoal.isHittable)
         XCTAssertEqual(newGoal.frame.minY, initialFrame.minY, accuracy: 1)
         XCTAssertGreaterThan(newGoal.frame.midX, app.frame.midX)
-        XCTAssertLessThanOrEqual(newGoal.frame.maxY, app.buttons["tab.goals"].frame.minY)
-        saveScreenshot("goals-floating-glass-scrolled", app: app)
-        newGoal.tap()
+        XCTAssertLessThan(newGoal.frame.midY, app.frame.midY)
+        saveScreenshot("goals-header-add-scrolled", app: app)
+        // Tap the edge of the 44pt target outside the painted 36pt circle.
+        newGoal.coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.04)).tap()
         XCTAssertTrue(app.textFields["目标名称"].waitForExistence(timeout: 2))
         XCTAssertFalse(newGoal.exists)
         app.buttons["取消"].tap()
@@ -433,12 +481,14 @@ final class ZhouJiUITests: XCTestCase {
                                         ("浅色模式", "today-switched-light"),
                                         ("深色模式", "today-switched-dark")] {
             app.buttons["tab.profile"].tap()
+            openPreferences(in: app)
             let settings = app.buttons["外观"]
             for _ in 0..<3 where !settings.isHittable { app.swipeUp() }
             XCTAssertTrue(settings.isHittable)
             settings.tap()
             app.buttons[appearance].tap()
             XCTAssertEqual(settings.value as? String, appearance)
+            app.buttons["profile.closePanel"].tap()
             app.buttons["tab.today"].tap()
             XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 2))
             XCTAssertTrue(app.buttons["开始计时"].firstMatch.isHittable)
@@ -459,14 +509,20 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
         saveScreenshot("today-dark-large-text", app: app)
         app.buttons["tab.goals"].tap()
-        XCTAssertTrue(app.buttons["全部"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["目标筛选"].waitForExistence(timeout: 2))
         saveScreenshot("goals-dark-large-text", app: app)
         app.buttons["tab.calendar"].tap()
         XCTAssertTrue(app.buttons["calendar.previousMonth"].waitForExistence(timeout: 2))
         app.buttons["calendar.previousMonth"].tap()
         XCTAssertTrue(app.staticTexts["calendar.empty"].waitForExistence(timeout: 2))
         saveScreenshot("calendar-dark-large-text", app: app)
-
+        app.buttons["tab.profile"].tap()
+        XCTAssertTrue(app.buttons["profile.overview"].isHittable)
+        XCTAssertTrue(app.buttons["profile.settings"].isHittable)
+        openOverview(in: app)
+        XCTAssertTrue(app.staticTexts["profile.weekFocus"].exists)
+        saveScreenshot("profile-overview-dark-large-text", app: app)
+        app.buttons["profile.closePanel"].tap()
     }
 
     @MainActor
@@ -489,6 +545,22 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["calendar.today"].tap()
         XCTAssertTrue(app.buttons["calendar.day.\(currentDay)"].isSelected)
         XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
+    }
+
+    @MainActor
+    private func openPreferences(in app: XCUIApplication) {
+        let settings = app.buttons["profile.settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 3))
+        settings.tap()
+        XCTAssertTrue(app.navigationBars["偏好设置"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    private func openOverview(in app: XCUIApplication) {
+        let overview = app.buttons["profile.overview"]
+        XCTAssertTrue(overview.waitForExistence(timeout: 3))
+        overview.tap()
+        XCTAssertTrue(app.staticTexts["profile.completed"].waitForExistence(timeout: 3))
     }
 
     @MainActor

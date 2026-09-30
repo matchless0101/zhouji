@@ -29,6 +29,8 @@ targets:
     info:
       path: ZhouJi/Info.plist
       properties:
+        UIAppFonts:
+          - LXGWWenKai-Regular.ttf
         ZhouJiWeChatAppID: $(ZHOUJI_WECHAT_APP_ID)
         CFBundleURLTypes:
           - CFBundleURLName: com.matchless.ZhouJi.wechat

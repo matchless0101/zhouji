@@ -19,7 +19,6 @@ struct GoalsView: View {
     @State private var pendingDeletion: Goal?
     @State private var presentedError: String?
     @State private var selectedFilter: GoalFilter = .all
-    @State private var floatingControlsHeight: CGFloat = 80
     @FocusState private var isGoalFieldFocused: Bool
 
     private var inProgressGoals: [Goal] {
@@ -53,16 +52,6 @@ struct GoalsView: View {
                 ZJTheme.pageBackground.ignoresSafeArea()
 
                 List {
-                    pageHeader
-                        .listRowInsets(EdgeInsets(top: ZJTheme.compactPageTopSpacing, leading: ZJTheme.pagePadding + 6, bottom: 12, trailing: ZJTheme.pagePadding))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-
-                    filterBar
-                        .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding, bottom: 12, trailing: ZJTheme.pagePadding))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-
                     if filteredGoals.isEmpty {
                         ZJEmptyState(
                             title: visibleGoals.isEmpty ? "想持续推进什么？" : "这里还没有目标",
@@ -94,27 +83,28 @@ struct GoalsView: View {
                             }
                         }
                     }
-                    ZJIllustration(name: "LiuliGoals", height: 190)
+                    Color.clear.frame(height: 255)
+                        .accessibilityHidden(true)
                         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
                 .listStyle(.plain)
                 .contentMargins(.top, 0, for: .scrollContent)
-                .contentMargins(.bottom, isAddingGoal ? 12 : floatingControlsHeight + 12, for: .scrollContent)
+                .contentMargins(.bottom, 16, for: .scrollContent)
                 .scrollContentBackground(.hidden)
-                .background(Color.clear)
+                .background(alignment: .bottom) {
+                    ZJScene(name: "LiuliGoals", height: 255).offset(y: 30)
+                }
+                .clipped()
             }
             .toolbar(.hidden, for: .navigationBar)
-            .overlay(alignment: .bottomTrailing) {
-                if !isAddingGoal {
-                    addGoalControls
-                        .onGeometryChange(for: CGFloat.self) { proxy in
-                            proxy.size.height
-                        } action: { height in
-                            floatingControlsHeight = height
-                        }
-                }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                pageHeader
+                    .padding(.horizontal, ZJTheme.pagePadding + 6)
+                    .padding(.top, 20)
+                    .padding(.bottom, 14)
+                    .background(ZJTheme.pageBackground)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if isAddingGoal { addGoalControls }
@@ -154,58 +144,51 @@ struct GoalsView: View {
     }
 
     private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("我的目标")
-                .font(.system(.largeTitle, design: .serif, weight: .bold))
-                .foregroundStyle(ZJTheme.ink)
-            Text("慢一点，但一直向前。")
-                .font(.system(.subheadline, design: .serif))
-                .foregroundStyle(ZJTheme.secondaryInk)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private var filterBar: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: 4))
-            : AnyLayout(HStackLayout(spacing: 4))
-
-        return layout {
-            filterButton(.all, count: visibleGoals.count)
-            filterButton(.inProgress, count: inProgressGoals.count)
-            filterButton(.completed, count: completedGoals.count)
-        }
-        .padding(2)
-        .background(
-            ZJTheme.mutedSurface.opacity(0.82),
-            in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-        )
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("目标筛选")
-    }
-
-    private func filterButton(_ filter: GoalFilter, count: Int) -> some View {
-        Button {
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
-                selectedFilter = filter
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center) {
+                Text("我的目标")
+                    .font(ZJTheme.handwriting(36, relativeTo: .largeTitle))
+                    .foregroundStyle(ZJTheme.ink)
+                Spacer(minLength: 8)
+                if !isAddingGoal {
+                    Button(action: beginCreatingGoal) {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(ZJAddButtonStyle(diameter: 36))
+                    .frame(width: 44, height: 44)
+                    .accessibilityLabel("新建目标")
+                }
             }
-        } label: {
-            Text("\(filter.title) \(count)")
-                .font(.subheadline.weight(selectedFilter == filter ? .semibold : .regular))
-                .foregroundStyle(selectedFilter == filter ? ZJTheme.ink : ZJTheme.secondaryInk)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .background(selectedFilter == filter ? ZJTheme.surface : Color.clear, in: Capsule())
-                .shadow(
-                    color: selectedFilter == filter ? ZJTheme.accent.opacity(0.08) : .clear,
-                    radius: 8,
-                    x: 0,
-                    y: 3
-                )
+            HStack(alignment: .bottom) {
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Text("慢一点，\n但一直向前。")
+                        .font(ZJTheme.handwriting(19, relativeTo: .body))
+                        .lineSpacing(4)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                }
+                Spacer(minLength: 8)
+                Menu {
+                    ForEach(GoalFilter.allCases, id: \.self) { filter in
+                        Button {
+                            selectedFilter = filter
+                        } label: {
+                            if selectedFilter == filter {
+                                Label(filter.title, systemImage: "checkmark")
+                            } else {
+                                Text(filter.title)
+                            }
+                        }
+                    }
+                } label: {
+                    Image(systemName: "line.3.horizontal.decrease")
+                        .font(.system(size: 18, weight: .regular))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .frame(width: 44, height: 44)
+                }
+                .accessibilityLabel("目标筛选")
+                .accessibilityValue(selectedFilter.title)
+            }
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel(filter.title)
-        .accessibilityValue("\(count) 个目标")
-        .accessibilityAddTraits(selectedFilter == filter ? .isSelected : [])
     }
 
     @ViewBuilder
@@ -232,14 +215,6 @@ struct GoalsView: View {
                 }
                 .padding(12)
                 .zjCard()
-                .padding(.horizontal, ZJTheme.pagePadding)
-            } else {
-                Button(action: beginCreatingGoal) {
-                    Image(systemName: "plus")
-                }
-                .buttonStyle(ZJAddButtonStyle())
-                .accessibilityLabel("新建目标")
-                .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.horizontal, ZJTheme.pagePadding)
             }
         }
@@ -287,7 +262,7 @@ struct GoalsView: View {
     }
 }
 
-private enum GoalFilter: CaseIterable {
+private enum GoalFilter: CaseIterable, Hashable {
     case all
     case inProgress
     case completed
@@ -307,29 +282,26 @@ private struct GoalRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            ZJGoalIcon(iconName: goal.displayIconName, size: 42)
-            VStack(alignment: .leading, spacing: 12) {
-                Text(goal.name)
-                    .font(.title3.weight(.medium))
-                    .foregroundStyle(ZJTheme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
-                HStack(spacing: 12) {
-                    ProgressView(value: progress.fraction)
-                        .tint(ZJTheme.success)
-                        .accessibilityLabel("目标进度")
-                        .accessibilityValue("百分之 \(progress.percentage)")
-                    Text("\(progress.completed)/\(progress.total)")
-                        .font(.subheadline)
-                        .monospacedDigit()
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                }
-            }
+            ZJGoalIcon(iconName: goal.displayIconName, size: 36)
+            Text(goal.name)
+                .font(.body.weight(.medium))
+                .foregroundStyle(ZJTheme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 8)
+            Text("\(progress.completed)/\(progress.total)")
+                .font(.subheadline)
+                .monospacedDigit()
+                .foregroundStyle(ZJTheme.secondaryInk)
             Image(systemName: "chevron.right")
                 .font(.caption)
                 .foregroundStyle(ZJTheme.secondaryInk)
                 .accessibilityHidden(true)
         }
-        .padding(20)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 18)
+        .frame(minHeight: 76)
         .zjCard()
+        .accessibilityElement(children: .combine)
+        .accessibilityValue("完成 \(progress.completed) 个，共 \(progress.total) 个任务，进度百分之 \(progress.percentage)")
     }
 }

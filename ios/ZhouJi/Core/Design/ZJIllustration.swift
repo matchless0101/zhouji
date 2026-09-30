@@ -40,15 +40,39 @@ struct ZJPaperBackground: View {
 
 struct ZJAddButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var diameter: CGFloat = 56
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 25, weight: .regular, design: .rounded))
+            .font(.system(size: diameter * 0.43, weight: .regular, design: .rounded))
             .foregroundStyle(ZJTheme.onAccent)
-            .frame(width: 56, height: 56)
+            .frame(width: diameter, height: diameter)
             .background(ZJTheme.accent, in: Circle())
             .overlay { Circle().strokeBorder(ZJTheme.onAccent.opacity(0.3), lineWidth: 1) }
             .shadow(color: ZJTheme.accent.opacity(0.12), radius: 6, y: 3)
+            .padding(max(0, (44 - diameter) / 2))
+            .contentShape(Rectangle())
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.95 : 1)
+    }
+}
+
+/// Edge-to-edge scenes use a viewport instead of shrinking into a small vignette.
+struct ZJScene: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let name: String
+    let height: CGFloat
+
+    var body: some View {
+        GeometryReader { proxy in
+            Image(name)
+                .resizable()
+                .scaledToFill()
+                .frame(width: proxy.size.width, height: proxy.size.height)
+                .clipped()
+                .opacity(colorScheme == .dark ? 0.88 : 1)
+        }
+        .frame(height: height)
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
     }
 }
