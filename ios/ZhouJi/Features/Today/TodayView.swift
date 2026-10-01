@@ -48,12 +48,12 @@ struct TodayView: View {
                     GeometryReader { proxy in
                         if completedTodayTasks.isEmpty {
                             ScrollView {
-                                quietTodayContent(height: proxy.size.height)
+                                quietTodayContent(size: proxy.size)
                                     .padding(.bottom, bottomControlsHeight + 12)
                             }
                         } else {
                             List {
-                                quietTodayContent(height: proxy.size.height)
+                                quietTodayContent(size: proxy.size)
                                     .frame(width: proxy.size.width)
                                     .frame(minHeight: proxy.size.height, alignment: .top)
                                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -174,13 +174,13 @@ struct TodayView: View {
         }
     }
 
-    private func quietTodayContent(height: CGFloat) -> some View {
-        VStack(spacing: 12) {
+    private func quietTodayContent(size: CGSize) -> some View {
+        VStack(spacing: 20) {
             TodayHeader(
                 date: referenceDate,
                 isEmpty: true,
                 isDayComplete: !completedTodayTasks.isEmpty,
-                heroHeight: min(415, max(260, height - 230))
+                heroHeight: min(size.width * 1.2, max(270, size.height - 212))
             )
             firstTaskButton
         }
@@ -262,8 +262,23 @@ struct TodayView: View {
                 Image(systemName: "plus")
                     .font(.system(size: 46, weight: .regular, design: .rounded))
                     .foregroundStyle(ZJTheme.onAccent)
-                    .frame(width: 108, height: 108)
-                    .background(ZJTheme.accent, in: Circle())
+                    .frame(width: 124, height: 124)
+                    .background {
+                        Circle().fill(ZJTheme.accent)
+                            .overlay {
+                                Canvas { context, size in
+                                    for index in 0..<420 {
+                                        let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
+                                        let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
+                                        let side: CGFloat = index.isMultiple(of: 5) ? 1.1 : 0.5
+                                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
+                                                     with: .color(ZJTheme.onAccent.opacity(0.22)))
+                                    }
+                                }
+                                .clipShape(Circle())
+                            }
+                            .allowsHitTesting(false)
+                    }
                     .overlay { Circle().strokeBorder(ZJTheme.onAccent.opacity(0.3), lineWidth: 1) }
                 Text("记一件事")
                     .font(ZJTheme.handwriting(24, relativeTo: .title3))
@@ -403,7 +418,7 @@ private struct TodayHeader: View {
     let date: Date
     let isEmpty: Bool
     var isDayComplete = false
-    var heroHeight: CGFloat = 415
+    var heroHeight: CGFloat = 480
 
     private var greeting: String {
         switch Calendar.current.component(.hour, from: date) {
@@ -415,30 +430,56 @@ private struct TodayHeader: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            VStack(alignment: .leading, spacing: 8) {
-                    Text(greeting)
-                        .font(ZJTheme.handwriting(36, relativeTo: .largeTitle))
-                        .foregroundStyle(ZJTheme.ink)
-                    Text(date.formatted(.dateTime.month(.defaultDigits).day().weekday(.wide).locale(Locale(identifier: "zh_CN"))))
-                        .font(ZJTheme.handwriting(16, relativeTo: .subheadline))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                    Text(isDayComplete ? "今天的事都完成了，\n给自己一点休息的时间。" : "新的一天，\n从一件小事开始。")
-                        .font(ZJTheme.handwriting(19, relativeTo: .body))
-                        .lineSpacing(4)
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .accessibilityIdentifier("today.message")
-            }
-            .padding(.horizontal, ZJTheme.pagePadding + 12)
-            .padding(.top, 22)
-            if !dynamicTypeSize.isAccessibilitySize {
-                ZJScene(name: "LiuliToday", height: nil)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+        Group {
+            if dynamicTypeSize > .large {
+                copy(scale: 1)
+                    .padding(.horizontal, ZJTheme.pagePadding + 12)
+                    .padding(.top, 22)
+                    .padding(.bottom, 16)
+            } else {
+                GeometryReader { proxy in
+                    let artworkWidth = min(proxy.size.width, proxy.size.height / 1.2)
+                    let artworkHeight = artworkWidth * 1.2
+
+                    // Keep the editable copy inside the illustration's empty upper-left area.
+                    ZStack(alignment: .topLeading) {
+                        Image("LiuliToday")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: artworkWidth, height: artworkHeight)
+                            .accessibilityHidden(true)
+                            .allowsHitTesting(false)
+
+                        copy(scale: min(1, artworkWidth / 402))
+                            .frame(width: artworkWidth * 0.48, alignment: .leading)
+                            .padding(.leading, artworkWidth * 0.085)
+                            .padding(.top, artworkHeight * 0.105)
+                    }
+                    .frame(width: artworkWidth, height: artworkHeight)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                }
+                .frame(height: isEmpty ? heroHeight : 325)
             }
         }
-        .frame(height: dynamicTypeSize.isAccessibilitySize ? nil : (isEmpty ? heroHeight : 325))
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.bottom, dynamicTypeSize.isAccessibilitySize ? 16 : 0)
+    }
+
+    private func copy(scale: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(greeting)
+                .font(ZJTheme.handwriting(34 * scale, relativeTo: .largeTitle).weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .accessibilityIdentifier("today.greeting")
+            Text(date.formatted(.dateTime.month(.defaultDigits).day().weekday(.wide).locale(Locale(identifier: "zh_CN"))))
+                .font(ZJTheme.handwriting(14 * scale, relativeTo: .subheadline))
+                .foregroundStyle(ZJTheme.secondaryInk)
+            Text(isDayComplete ? "今天的事都完成了，\n给自己一点休息的时间。" : "新的一天，\n从一件小事开始。")
+                .font(ZJTheme.handwriting(17 * scale, relativeTo: .body))
+                .lineSpacing(3)
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .accessibilityIdentifier("today.message")
+        }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

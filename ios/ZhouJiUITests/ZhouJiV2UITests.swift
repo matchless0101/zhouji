@@ -73,6 +73,11 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(firstTask.frame.midX, app.frame.midX, accuracy: 2)
         XCTAssertGreaterThan(firstTask.frame.height, 120)
         XCTAssertLessThanOrEqual(firstTask.frame.maxY, app.buttons["tab.today"].frame.minY)
+        let message = app.staticTexts["today.message"]
+        XCTAssertTrue(message.isHittable)
+        XCTAssertLessThan(message.frame.maxY, firstTask.frame.minY)
+        XCTAssertLessThanOrEqual(message.frame.maxX, app.frame.width * 0.6)
+        saveScreenshot("today-empty-reference", app: app)
         XCTAssertFalse(app.staticTexts["今天想做点什么？"].exists)
         XCTAssertTrue(app.buttons["tab.today"].isSelected)
         XCTAssertTrue(app.buttons["tab.goals"].exists)
