@@ -26,9 +26,10 @@ struct ZhouJiApp: App {
         if ProcessInfo.processInfo.arguments.contains("-ZJInMemoryStore") {
             let storage = LibraryPreviewSession()
             if ProcessInfo.processInfo.arguments.contains("-ZJIsolationSampleData") {
+                let profile = AppAccount(id: "preview-account", provider: "apple", nickname: "小粥", avatar: "leaf")
                 storage.value = AccountSession(token: "preview-only", expiresAt: Date.now.timeIntervalSince1970 + 3600,
-                    account: AppAccount(id: "preview-account", provider: "apple"))
-                return AccountStore(api: LibraryPreviewAPI(), storage: storage, checksAppleCredential: false, libraries: libraries)
+                    account: profile)
+                return AccountStore(api: LibraryPreviewAPI(profile: profile), storage: storage, checksAppleCredential: false, libraries: libraries)
             }
             return AccountStore(storage: storage, libraries: libraries)
         }
@@ -170,13 +171,19 @@ struct ZhouJiApp: App {
     func save(_ session: AccountSession) throws { value = session }
     func clear() throws { value = nil }
 }
-private struct LibraryPreviewAPI: AccountServing {
+private actor LibraryPreviewAPI: AccountServing {
+    private var profile: AppAccount
+    init(profile: AppAccount) { self.profile = profile }
     func challenge() async throws -> LoginChallenge { throw AccountError.unavailable }
     func weChatChallenge() async throws -> LoginChallenge { throw AccountError.unavailable }
     func loginWeChat(challenge: String, code: String) async throws -> AccountSession { throw AccountError.unavailable }
     func login(challenge: String, code: String, identityToken: String) async throws -> AccountSession { throw AccountError.unavailable }
-    func account(token: String) async throws -> AppAccount { AppAccount(id: "preview-account", provider: "apple") }
-    func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount { throw AccountError.unavailable }
+    func account(token: String) async throws -> AppAccount { profile }
+    func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount {
+        profile.nickname = nickname
+        profile.avatar = avatar
+        return profile
+    }
     func logout(token: String) async throws {}
     func delete(token: String) async throws { throw AccountError.unavailable }
 }

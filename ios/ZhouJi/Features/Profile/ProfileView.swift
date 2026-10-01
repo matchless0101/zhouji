@@ -4,6 +4,8 @@ import UIKit
 
 struct ProfileView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(AccountStore.self) private var account
+    @Environment(LocalLibraryStore.self) private var libraries
     @Query private var tasks: [TodoTask]
     @Query private var sessions: [TimingSession]
     @State private var presentedPanel: ProfilePanel?
@@ -47,38 +49,51 @@ struct ProfileView: View {
                     ProfilePreferencesView()
                 case .overview:
                     overview
-                case .calendar:
-                    CalendarView()
-                        .safeAreaInset(edge: .top, spacing: 0) {
-                            HStack {
-                                Text("日历回顾").font(.headline).foregroundStyle(ZJTheme.ink)
-                                Spacer()
-                                closePanelButton
-                            }
-                            .padding(.horizontal, ZJTheme.pagePadding)
-                            .padding(.vertical, 10)
-                            .background(ZJTheme.surface)
-                        }
+                case .editProfile:
+                    if let profile = account.account { ProfileEditor(profile: profile) }
                 }
             }
         }
     }
 
     private var header: some View {
-        VStack(spacing: 9) {
-            if !dynamicTypeSize.isAccessibilitySize {
-                ZJIllustration(name: "LiuliHeart", height: 175)
-            }
-            Text("一粥又一周")
-                .accessibilityAddTraits(.isHeader)
-                .font(ZJTheme.handwriting(dynamicTypeSize.isAccessibilitySize ? 28 : 32, relativeTo: .title2))
-                .foregroundStyle(ZJTheme.ink)
-            if !dynamicTypeSize.isAccessibilitySize {
-                Text("把平凡的日子，\n过成喜欢的样子。")
-                    .font(ZJTheme.handwriting(19, relativeTo: .body))
+        VStack(spacing: 12) {
+            if let profile = account.account {
+                let avatar = ProfileAvatar(rawValue: profile.avatar ?? "") ?? .sunrise
+                Button { presentedPanel = .editProfile } label: {
+                    VStack(spacing: 12) {
+                        ProfileAvatarView(avatar: avatar, size: dynamicTypeSize.isAccessibilitySize ? 88 : 112)
+                        Text(profile.displayName)
+                            .font(.title.weight(.semibold))
+                            .foregroundStyle(ZJTheme.ink)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Label(profile.providerName, systemImage: profile.providerIcon)
+                            .font(.caption)
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                        Text("编辑个人资料")
+                            .font(ZJTheme.handwriting(17, relativeTo: .subheadline))
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(account.isBusy)
+                .accessibilityLabel("\(profile.displayName)，编辑个人资料")
+                .accessibilityValue("头像：\(avatar.title)")
+                .accessibilityIdentifier("profile.identity")
+            } else {
+                ZJIcon(systemName: "person", size: 72)
+                    .frame(width: 112, height: 112)
+                    .background(ZJTheme.mutedSurface, in: Circle())
+                Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
+                    .font(.title.weight(.semibold))
+                    .foregroundStyle(ZJTheme.ink)
                     .multilineTextAlignment(.center)
-                    .lineSpacing(5)
-                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier("profile.guestName")
             }
         }
         .frame(maxWidth: .infinity)
@@ -88,8 +103,6 @@ struct ProfileView: View {
     private var menuCard: some View {
         VStack(spacing: 0) {
             panelButton(.overview, title: "我的概况", symbol: "star.fill", identifier: "profile.overview")
-            menuDivider
-            panelButton(.calendar, title: "日历回顾", symbol: "clock", identifier: "profile.review")
             menuDivider
             panelButton(.preferences, title: "偏好设置", symbol: "leaf.fill", identifier: "profile.preferences")
         }
@@ -214,7 +227,7 @@ struct ProfileView: View {
 }
 
 private enum ProfilePanel: String, Identifiable {
-    case overview, calendar, preferences
+    case overview, editProfile, preferences
     var id: String { rawValue }
 }
 
@@ -487,6 +500,11 @@ private struct AboutZhouJiView: View {
 }
 
 #Preview {
+    let container = try! ModelContainer(for: Goal.self, TodoTask.self, TimingSession.self,
+                                       configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    let libraries = try! LocalLibraryStore(guest: container, inMemory: true)
     ProfileView()
-        .modelContainer(for: [Goal.self, TodoTask.self, TimingSession.self], inMemory: true)
+        .modelContainer(container)
+        .environment(AccountStore())
+        .environment(libraries)
 }

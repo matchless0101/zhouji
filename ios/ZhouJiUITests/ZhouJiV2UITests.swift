@@ -144,7 +144,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "profile"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["一粥又一周"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["profile.guestName"].waitForExistence(timeout: 3))
         openOverview(in: app)
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "0 件")
         XCTAssertEqual(app.staticTexts["profile.weekFocus"].label, "0分钟")
@@ -163,21 +163,87 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testProfileMenuOpensCalendarAndNestedAbout() throws {
+    func testProfileUsesCalendarTabAndNestedAbout() throws {
         continueAfterFailure = false
         let app = makeApp()
         app.launchArguments += ["-ZJInitialTab", "profile", "-appAppearance", "light"]
         app.launch()
-        XCTAssertTrue(app.buttons["profile.review"].waitForExistence(timeout: 3))
-        app.buttons["profile.review"].tap()
+        XCTAssertTrue(app.buttons["profile.settings"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["profile.review"].exists)
+        XCTAssertFalse(app.buttons["日历回顾"].exists)
+        app.buttons["tab.calendar"].tap()
         XCTAssertTrue(app.buttons["calendar.today"].waitForExistence(timeout: 3))
-        app.buttons["profile.closePanel"].coordinate(withNormalizedOffset: CGVector(dx: 0.04, dy: 0.04)).tap()
+        app.buttons["tab.profile"].tap()
         openPreferences(in: app)
         app.buttons["关于粥记"].tap()
         XCTAssertTrue(app.staticTexts["粥记"].waitForExistence(timeout: 3))
         app.buttons["完成"].tap()
         XCTAssertTrue(app.navigationBars["偏好设置"].waitForExistence(timeout: 3))
         app.buttons["profile.closePanel"].tap()
+        XCTAssertTrue(app.buttons["profile.settings"].isHittable)
+    }
+
+    @MainActor
+    func testProfileIdentityEditsNameAndAvatarAndClearsAfterLogout() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJIsolationSampleData", "-ZJInitialTab", "profile"]
+        app.launch()
+        let identity = app.buttons["profile.identity"]
+        XCTAssertTrue(identity.waitForExistence(timeout: 3))
+        XCTAssertTrue(identity.label.contains("小粥"))
+        XCTAssertEqual(identity.value as? String, "头像：新芽")
+        saveScreenshot("profile-user", app: app)
+
+        identity.tap()
+        let nickname = app.textFields["profile.nickname"]
+        XCTAssertTrue(nickname.waitForExistence(timeout: 3))
+        XCTAssertEqual(nickname.value as? String, "小粥")
+        XCTAssertTrue(app.buttons["profile.avatar.leaf"].isSelected)
+        nickname.tap()
+        nickname.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
+        nickname.typeText("新的昵称")
+        app.buttons["profile.avatar.moon"].tap()
+        app.buttons["profile.save"].tap()
+        XCTAssertTrue(app.navigationBars["编辑个人资料"].waitForNonExistence(timeout: 3))
+        XCTAssertTrue(identity.label.contains("新的昵称"))
+        XCTAssertEqual(identity.value as? String, "头像：月夜")
+        saveScreenshot("profile-user-updated", app: app)
+
+        identity.tap()
+        XCTAssertTrue(nickname.waitForExistence(timeout: 3))
+        XCTAssertEqual(nickname.value as? String, "新的昵称")
+        XCTAssertTrue(app.buttons["profile.avatar.moon"].isSelected)
+        app.buttons["profile.avatar.sunrise"].tap()
+        app.buttons["取消"].tap()
+        XCTAssertEqual(identity.value as? String, "头像：月夜")
+
+        openPreferences(in: app)
+        let logout = app.buttons["account.logout"]
+        for _ in 0..<8 where !logout.isHittable { app.swipeUp() }
+        XCTAssertTrue(logout.isHittable)
+        logout.tap()
+        app.sheets.buttons["退出登录"].tap()
+        XCTAssertTrue(app.staticTexts["profile.guestName"].waitForExistence(timeout: 3))
+        XCTAssertFalse(identity.exists)
+        saveScreenshot("profile-guest", app: app)
+    }
+
+    @MainActor
+    func testProfileIdentityRemainsEditableWithLargeText() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJIsolationSampleData", "-ZJInitialTab", "profile",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+        app.launch()
+        let identity = app.buttons["profile.identity"]
+        XCTAssertTrue(identity.waitForExistence(timeout: 3))
+        XCTAssertTrue(identity.isHittable)
+        XCTAssertTrue(identity.label.contains("小粥"))
+        saveScreenshot("profile-user-large-text", app: app)
+        identity.tap()
+        XCTAssertTrue(app.textFields["profile.nickname"].waitForExistence(timeout: 3))
+        app.buttons["取消"].tap()
         XCTAssertTrue(app.buttons["profile.settings"].isHittable)
     }
 
@@ -189,7 +255,7 @@ final class ZhouJiUITests: XCTestCase {
             "-ZJPreviewSampleData", "-ZJIsolationSampleData", "-ZJInitialTab", "profile", "-ZJSyncContent"
         ]
         app.launch()
-        XCTAssertTrue(app.staticTexts["一粥又一周"].firstMatch.waitForExistence(timeout: 4))
+        XCTAssertTrue(app.buttons["profile.settings"].waitForExistence(timeout: 4))
         openPreferences(in: app)
         XCTAssertTrue(app.staticTexts["账户记录 · 离线"].waitForExistence(timeout: 3)
                       || app.staticTexts["账户的本机记录"].waitForExistence(timeout: 2)
@@ -524,7 +590,7 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["calendar.today"].tap()
         XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
         app.buttons["tab.profile"].tap()
-        XCTAssertTrue(app.staticTexts["一粥又一周"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["profile.guestName"].waitForExistence(timeout: 2))
         saveScreenshot("profile-light", app: app)
         app.buttons["tab.today"].tap()
         app.buttons["开始计时"].firstMatch.tap()
