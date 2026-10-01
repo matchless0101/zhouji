@@ -21,6 +21,7 @@ struct TodayView: View {
     @State private var presentedError: String?
     @State private var referenceDate = Date.now
     @State private var bottomControlsHeight: CGFloat = 80
+    @State private var navigationPath: [TodayDestination] = []
 
     private var incompleteTasks: [TodoTask] {
         visibleTasks.filter { !$0.isCompleted }
@@ -39,18 +40,34 @@ struct TodayView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 ZJTheme.pageBackground.ignoresSafeArea()
 
-                if visibleTasks.isEmpty {
+                if incompleteTasks.isEmpty {
                     GeometryReader { proxy in
-                        ScrollView {
-                            VStack(spacing: 12) {
-                                TodayHeader(date: referenceDate, isEmpty: true, heroHeight: min(415, max(260, proxy.size.height - 230)))
-                                firstTaskButton
+                        if completedTodayTasks.isEmpty {
+                            ScrollView {
+                                quietTodayContent(height: proxy.size.height)
+                                    .padding(.bottom, bottomControlsHeight + 12)
                             }
-                            .padding(.bottom, bottomControlsHeight + 12)
+                        } else {
+                            List {
+                                quietTodayContent(height: proxy.size.height)
+                                    .frame(width: proxy.size.width)
+                                    .frame(minHeight: proxy.size.height, alignment: .top)
+                                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
+                                completedTasksSection
+                            }
+                            .listStyle(.plain)
+                            .listSectionSpacing(16)
+                            .contentMargins(.top, 0, for: .scrollContent)
+                            .contentMargins(.bottom, bottomControlsHeight + 12, for: .scrollContent)
+                            .contentMargins(.horizontal, 0, for: .scrollContent)
+                            .scrollContentBackground(.hidden)
+                            .background(Color.clear)
                         }
                     }
                 } else {
@@ -61,37 +78,18 @@ struct TodayView: View {
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
 
-                        if incompleteTasks.isEmpty {
-                            Text("今天的事都完成了")
-                                .font(ZJTheme.handwriting(21, relativeTo: .title3))
-                                .foregroundStyle(ZJTheme.secondaryInk)
+                        Section {
+                            ZJSectionHeader(title: "未完成", count: incompleteTasks.count)
+                                .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
+                                .listRowBackground(ZJTheme.surface)
                                 .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
-                        } else {
-                            Section {
-                                ZJSectionHeader(title: "未完成", count: incompleteTasks.count)
-                                    .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
-                                    .listRowBackground(ZJTheme.surface)
-                                    .listRowSeparator(.hidden)
 
-                                ForEach(incompleteTasks) { task in
-                                    row(for: task)
-                                }
+                            ForEach(incompleteTasks) { task in
+                                row(for: task)
                             }
                         }
 
-                        if !completedTodayTasks.isEmpty {
-                            Section {
-                                ZJSectionHeader(title: "已完成", count: completedTodayTasks.count)
-                                    .listRowInsets(EdgeInsets(top: 12, leading: 18, bottom: 6, trailing: 18))
-                                    .listRowBackground(ZJTheme.surface)
-                                    .listRowSeparator(.hidden)
-
-                                ForEach(completedTodayTasks) { task in
-                                    row(for: task)
-                                }
-                            }
-                        }
+                        completedTasksSection
                     }
                     .listStyle(.insetGrouped)
                     .listSectionSpacing(16)
@@ -100,6 +98,11 @@ struct TodayView: View {
                     .contentMargins(.horizontal, ZJTheme.pagePadding, for: .scrollContent)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
+                }
+            }
+            .navigationDestination(for: TodayDestination.self) { destination in
+                switch destination {
+                case .newTask: NewTaskView()
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -171,6 +174,34 @@ struct TodayView: View {
         }
     }
 
+    private func quietTodayContent(height: CGFloat) -> some View {
+        VStack(spacing: 12) {
+            TodayHeader(
+                date: referenceDate,
+                isEmpty: true,
+                isDayComplete: !completedTodayTasks.isEmpty,
+                heroHeight: min(415, max(260, height - 230))
+            )
+            firstTaskButton
+        }
+    }
+
+    @ViewBuilder
+    private var completedTasksSection: some View {
+        if !completedTodayTasks.isEmpty {
+            Section {
+                ZJSectionHeader(title: "已完成", count: completedTodayTasks.count)
+                    .listRowInsets(EdgeInsets(top: 12, leading: 18, bottom: 6, trailing: 18))
+                    .listRowBackground(ZJTheme.surface)
+                    .listRowSeparator(.hidden)
+
+                ForEach(completedTodayTasks) { task in
+                    row(for: task)
+                }
+            }
+        }
+    }
+
     private func row(for task: TodoTask) -> some View {
         TaskRow(
             task: task,
@@ -207,7 +238,7 @@ struct TodayView: View {
                 activeTimerBar
             }
 
-            if !visibleTasks.isEmpty {
+            if !incompleteTasks.isEmpty {
                 NavigationLink {
                     NewTaskView()
                 } label: {
@@ -224,8 +255,8 @@ struct TodayView: View {
     }
 
     private var firstTaskButton: some View {
-        NavigationLink {
-            NewTaskView()
+        Button {
+            navigationPath.append(.newTask)
         } label: {
             VStack(spacing: 14) {
                 Image(systemName: "plus")
@@ -363,10 +394,15 @@ struct TodayView: View {
     }
 }
 
+private enum TodayDestination: Hashable {
+    case newTask
+}
+
 private struct TodayHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let date: Date
     let isEmpty: Bool
+    var isDayComplete = false
     var heroHeight: CGFloat = 415
 
     private var greeting: String {
@@ -391,10 +427,11 @@ private struct TodayHeader: View {
                     Text(date.formatted(.dateTime.month(.defaultDigits).day().weekday(.wide).locale(Locale(identifier: "zh_CN"))))
                         .font(ZJTheme.handwriting(16, relativeTo: .subheadline))
                         .foregroundStyle(ZJTheme.secondaryInk)
-                    Text("新的一天，\n从一件小事开始。")
+                    Text(isDayComplete ? "今天的事都完成了，\n给自己一点休息的时间。" : "新的一天，\n从一件小事开始。")
                         .font(ZJTheme.handwriting(19, relativeTo: .body))
                         .lineSpacing(4)
                         .foregroundStyle(ZJTheme.secondaryInk)
+                        .accessibilityIdentifier("today.message")
             }
             .padding(.horizontal, ZJTheme.pagePadding + 12)
             .padding(.top, 22)

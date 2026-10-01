@@ -82,6 +82,54 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-appAppearance", "light"]
+        app.launch()
+        app.buttons["today.firstTask"].tap()
+        let field = app.textFields["今天要做什么？"]
+        XCTAssertTrue(field.waitForExistence(timeout: 2))
+        field.tap()
+        field.typeText("读完一章书")
+        app.buttons["添加"].tap()
+        XCTAssertTrue(app.buttons["完成任务"].waitForExistence(timeout: 2))
+        app.buttons["完成任务"].tap()
+
+        let add = app.buttons["today.firstTask"]
+        XCTAssertTrue(add.waitForExistence(timeout: 3))
+        XCTAssertTrue(add.isHittable)
+        saveScreenshot("today-all-completed", app: app)
+        XCTAssertEqual(add.frame.midX, app.frame.midX, accuracy: 2)
+        XCTAssertGreaterThan(add.frame.height, 120)
+        XCTAssertLessThanOrEqual(add.frame.maxY, app.buttons["tab.today"].frame.minY)
+        XCTAssertTrue(app.staticTexts["today.message"].label.contains("今天的事都完成了"))
+        XCTAssertFalse(app.buttons["恢复任务"].isHittable)
+
+        add.tap()
+        XCTAssertTrue(field.waitForExistence(timeout: 2))
+        field.tap()
+        field.typeText("喝一杯水")
+        app.buttons["添加"].tap()
+        XCTAssertTrue(app.buttons["完成任务"].waitForExistence(timeout: 2))
+        XCTAssertFalse(add.exists)
+        app.buttons["完成任务"].tap()
+        XCTAssertTrue(add.waitForExistence(timeout: 3))
+        for _ in 0..<4 where !app.buttons["恢复任务"].firstMatch.isHittable { app.swipeUp() }
+        XCTAssertTrue(app.buttons["恢复任务"].firstMatch.isHittable)
+        app.cells.containing(.staticText, identifier: "喝一杯水").element.swipeLeft()
+        XCTAssertTrue(app.buttons["删除"].waitForExistence(timeout: 2))
+        app.buttons["删除"].tap()
+        XCTAssertTrue(app.buttons["撤销"].waitForExistence(timeout: 2))
+        app.buttons["撤销"].tap()
+        XCTAssertTrue(app.staticTexts["喝一杯水"].waitForExistence(timeout: 2))
+        for _ in 0..<4 where !app.buttons["恢复任务"].firstMatch.isHittable { app.swipeUp() }
+        app.buttons["恢复任务"].firstMatch.tap()
+        XCTAssertTrue(app.buttons["完成任务"].waitForExistence(timeout: 2))
+        XCTAssertFalse(add.exists)
+    }
+
+    @MainActor
     func testProfileTabShowsTruthfulLocalOverview() throws {
         continueAfterFailure = false
         let app = makeApp()
