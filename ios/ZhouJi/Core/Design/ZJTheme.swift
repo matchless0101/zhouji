@@ -2,7 +2,7 @@ import SwiftUI
 
 enum ZJTheme {
     static func handwriting(_ size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
-        .custom("LXGWWenKai-Regular", size: size, relativeTo: style)
+        .custom("Xiaolai", size: size, relativeTo: style)
     }
 
     static let background = Color(red: 0.972, green: 0.941, blue: 0.877, opacity: 1)

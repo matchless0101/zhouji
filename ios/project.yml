@@ -31,7 +31,7 @@ targets:
       properties:
         UIUserInterfaceStyle: Light
         UIAppFonts:
-          - LXGWWenKai-Regular.ttf
+          - Xiaolai-Regular.ttf
         ZhouJiWeChatAppID: $(ZHOUJI_WECHAT_APP_ID)
         CFBundleURLTypes:
           - CFBundleURLName: com.matchless.ZhouJi.wechat
