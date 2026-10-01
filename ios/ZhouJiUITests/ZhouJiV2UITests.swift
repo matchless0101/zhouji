@@ -303,6 +303,156 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testGoalTaskPageAddsUnderCurrentGoalAndOpensPrintedSettings() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-appAppearance", "light"]
+        app.launch()
+        createGoal(named: "多读书", in: app)
+        app.staticTexts["多读书"].tap()
+
+        let assignment = app.staticTexts["新任务会自动归属「多读书」"]
+        XCTAssertTrue(assignment.waitForExistence(timeout: 3))
+        let field = app.textFields["添加一个小任务"]
+        let add = app.buttons["添加"]
+        XCTAssertTrue(field.isHittable)
+        XCTAssertFalse(add.isEnabled)
+        saveScreenshot("goal-tasks-empty-printed", app: app)
+        field.tap()
+        field.typeText("读十页书")
+        XCTAssertTrue(add.isEnabled)
+        XCTAssertTrue(add.isHittable)
+        XCTAssertLessThanOrEqual(add.frame.maxY, app.keyboards.firstMatch.frame.minY)
+        saveScreenshot("goal-tasks-adding-printed", app: app)
+        add.tap()
+        XCTAssertTrue(app.staticTexts["读十页书"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["0/1"].exists)
+        XCTAssertEqual(field.value as? String, "添加一个小任务")
+        app.buttons["完成任务"].tap()
+        XCTAssertTrue(app.staticTexts["100%"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["1/1"].exists)
+        saveScreenshot("goal-tasks-completed-printed", app: app)
+
+        app.buttons["目标设置"].tap()
+        XCTAssertTrue(app.staticTexts["goal.settings.heading"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["tab.goals"].exists)
+        XCTAssertTrue(app.buttons["goal.icon.scope"].isSelected)
+        XCTAssertFalse(app.buttons["保存设置"].isEnabled)
+        app.buttons["goal.icon.book.closed"].tap()
+        XCTAssertTrue(app.buttons["goal.icon.book.closed"].isSelected)
+        saveScreenshot("goal-settings-printed", app: app)
+
+        let name = app.textFields["目标名称"]
+        name.tap()
+        name.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 3))
+        name.typeText("年度阅读")
+        let save = app.buttons["保存设置"]
+        XCTAssertTrue(save.isHittable)
+        save.tap()
+        XCTAssertTrue(app.buttons["目标设置"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["年度阅读"].exists)
+        XCTAssertTrue(app.buttons["tab.goals"].exists)
+        app.buttons["目标设置"].tap()
+        XCTAssertEqual(name.value as? String, "年度阅读")
+        XCTAssertTrue(app.buttons["goal.icon.book.closed"].isSelected)
+        app.buttons["返回目标"].tap()
+        app.buttons["返回目标列表"].tap()
+        app.buttons["tab.today"].tap()
+        for _ in 0..<4 where !app.staticTexts["读十页书"].isHittable { app.swipeUp() }
+        XCTAssertTrue(app.staticTexts["读十页书"].exists)
+    }
+
+    @MainActor
+    func testLongGoalNameKeepsInlineTaskAdditionReachable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+        app.launch()
+        let name = String(repeating: "阅读", count: 80)
+        app.buttons["新建目标"].tap()
+        let goalField = app.textFields["目标名称"]
+        XCTAssertTrue(goalField.waitForExistence(timeout: 3))
+        goalField.tap()
+        goalField.typeText(name)
+        app.buttons["创建"].tap()
+        let goalTitle = app.staticTexts.matching(NSPredicate(format: "label == %@", name)).firstMatch
+        XCTAssertTrue(goalTitle.waitForExistence(timeout: 3))
+        goalTitle.tap()
+        let field = app.textFields["添加一个小任务"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        saveScreenshot("goal-long-name-addition", app: app)
+        XCTAssertTrue(field.isHittable)
+        field.tap()
+        field.typeText("读十页书")
+        let add = app.buttons["添加"]
+        XCTAssertTrue(add.isHittable)
+        XCTAssertLessThanOrEqual(add.frame.maxY, app.keyboards.firstMatch.frame.minY)
+        saveScreenshot("goal-long-name-keyboard", app: app)
+        add.tap()
+        XCTAssertTrue(app.staticTexts["读十页书"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testGoalPagesKeepAdditionAndSaveReachableWithLargeText() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+        app.launch()
+        createGoal(named: "多读书", in: app)
+        app.staticTexts["多读书"].tap()
+        let field = app.textFields["添加一个小任务"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        field.tap()
+        field.typeText("读十页书")
+        let add = app.buttons["添加"]
+        XCTAssertTrue(add.isHittable)
+        XCTAssertLessThanOrEqual(add.frame.maxY, app.keyboards.firstMatch.frame.minY)
+        saveScreenshot("goal-tasks-large-text-keyboard", app: app)
+        add.tap()
+        XCTAssertTrue(app.staticTexts["读十页书"].waitForExistence(timeout: 3))
+        app.buttons["目标设置"].tap()
+        let reading = app.buttons["goal.icon.book.closed"]
+        for _ in 0..<5 where !reading.isHittable { app.swipeUp() }
+        XCTAssertTrue(reading.isHittable)
+        reading.tap()
+        let save = app.buttons["保存设置"]
+        XCTAssertTrue(save.isHittable)
+        saveScreenshot("goal-settings-large-text", app: app)
+        save.tap()
+        XCTAssertTrue(app.buttons["目标设置"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["tab.goals"].exists)
+    }
+
+    @MainActor
+    func testApprovedGoalTaskAndSettingsScreens() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-appAppearance", "light"]
+        app.launch()
+        createGoal(named: "多读书", in: app)
+        app.staticTexts["多读书"].tap()
+        for title in ["选好一本书", "读第一章", "读第二章"] {
+            createTask(named: title, in: app)
+            app.buttons["完成任务"].firstMatch.tap()
+        }
+        createTask(named: "读第三章", in: app)
+        createTask(named: "整理读书笔记", in: app)
+        XCTAssertTrue(app.staticTexts["3/5"].exists)
+        XCTAssertTrue(app.staticTexts["60%"].exists)
+        XCTAssertEqual(app.buttons.matching(identifier: "完成任务").count, 2)
+        XCTAssertEqual(app.buttons.matching(identifier: "恢复任务").count, 3)
+        saveScreenshot("goal-tasks-approved-design", app: app)
+        app.buttons["目标设置"].tap()
+        XCTAssertTrue(app.buttons["goal.icon.book.closed"].waitForExistence(timeout: 3))
+        app.buttons["goal.icon.book.closed"].tap()
+        XCTAssertTrue(app.buttons["保存设置"].isHittable)
+        saveScreenshot("goal-settings-approved-design", app: app)
+        app.buttons["保存设置"].tap()
+        app.buttons["返回目标列表"].tap()
+        XCTAssertTrue(app.staticTexts["3/5"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
     func testGoalTaskLifecycleUpdatesProgressAndSupportsUndo() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -358,7 +508,7 @@ final class ZhouJiUITests: XCTestCase {
         app.staticTexts["保持运动"].tap()
         createTask(named: "散步二十分钟", in: app)
 
-        let backButton = app.navigationBars.buttons.element(boundBy: 0)
+        let backButton = app.buttons["返回目标列表"]
         XCTAssertTrue(backButton.waitForExistence(timeout: 2))
         backButton.tap()
         let goalRow = app.cells.containing(.staticText, identifier: "保持运动").element
@@ -497,8 +647,8 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["goal.icon.briefcase"].isSelected)
         XCTAssertTrue(app.images["当前图标，工作"].exists)
 
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["返回目标"].tap()
+        app.buttons["返回目标列表"].tap()
         app.staticTexts["切记1"].tap()
         app.buttons["目标设置"].tap()
         XCTAssertTrue(app.images["当前图标，目标"].waitForExistence(timeout: 2))
@@ -506,7 +656,7 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["goal.icon.book.closed"].tap()
         app.buttons["保存设置"].tap()
 
-        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["返回目标列表"].tap()
         saveScreenshot("goals-independent-icons", app: app)
         app.staticTexts["高数"].tap()
         app.buttons["目标设置"].tap()
@@ -525,7 +675,7 @@ final class ZhouJiUITests: XCTestCase {
         app.staticTexts["年度阅读"].tap()
         app.buttons["目标设置"].tap()
 
-        XCTAssertTrue(app.navigationBars["目标设置"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.staticTexts["goal.settings.heading"].waitForExistence(timeout: 2))
         let bookIcon = app.buttons["goal.icon.book.closed"]
         XCTAssertTrue(bookIcon.waitForExistence(timeout: 2))
         bookIcon.tap()

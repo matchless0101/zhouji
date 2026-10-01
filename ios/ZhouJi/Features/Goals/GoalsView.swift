@@ -3,6 +3,8 @@ import SwiftUI
 import UIKit
 
 struct GoalsView: View {
+    @Binding var navigationPath: [GoalDestination]
+    @Binding var isEditingTask: Bool
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -14,7 +16,6 @@ struct GoalsView: View {
     private var visibleGoals: [Goal]
 
     @State private var isAddingGoal = false
-    @State private var selectedGoal: Goal?
     @State private var draftName = ""
     @State private var pendingDeletion: Goal?
     @State private var presentedError: String?
@@ -47,7 +48,7 @@ struct GoalsView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 ZJTheme.pageBackground.ignoresSafeArea()
 
@@ -66,7 +67,7 @@ struct GoalsView: View {
                     } else {
                         ForEach(filteredGoals) { goal in
                             Button {
-                                selectedGoal = goal
+                                navigationPath.append(.tasks(goal))
                             } label: {
                                 GoalRow(goal: goal)
                             }
@@ -109,8 +110,13 @@ struct GoalsView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if isAddingGoal { addGoalControls }
             }
-            .navigationDestination(item: $selectedGoal) { goal in
-                GoalDetailView(goal: goal)
+            .navigationDestination(for: GoalDestination.self) { destination in
+                switch destination {
+                case .tasks(let goal):
+                    GoalDetailView(goal: goal, isEditingTask: $isEditingTask)
+                case .settings(let goal):
+                    GoalSettingsView(goal: goal)
+                }
             }
             .confirmationDialog(
                 "删除“\(pendingDeletion?.name ?? "这个目标")”？",

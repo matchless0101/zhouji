@@ -6,6 +6,7 @@ struct TaskRow: View {
     let task: TodoTask
     let isActivelyTimed: Bool
     var showsGoal = true
+    var presentation: Presentation = .standard
     let onToggleCompletion: () -> Void
     let onStartTimer: () -> Void
 
@@ -40,6 +41,7 @@ struct TaskRow: View {
                 Text(task.title)
                     .font(.system(.body, design: .default, weight: .medium))
                     .foregroundStyle(task.isCompleted ? ZJTheme.secondaryInk : ZJTheme.ink)
+                    .strikethrough(presentation == .goal && task.isCompleted, color: ZJTheme.secondaryInk)
                     .lineLimit(3)
 
                 if showsGoal, !task.isCompleted, let goal = task.goal, goal.deletedAt == nil {
@@ -62,7 +64,7 @@ struct TaskRow: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             if task.isCompleted {
-                if let completedAt = task.completedAt {
+                if presentation == .standard, let completedAt = task.completedAt {
                     Text(completedAt, style: .time)
                         .font(.subheadline)
                         .monospacedDigit()
@@ -77,6 +79,11 @@ struct TaskRow: View {
                             .padding(.horizontal, 16)
                             .frame(minHeight: 44)
                             .background(ZJTheme.timerAccent, in: Capsule())
+                    } else if presentation == .goal {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(ZJTheme.success)
+                            .frame(width: 44, height: 44)
                     } else {
                         Image(systemName: "play.fill")
                             .font(.subheadline.weight(.semibold))
@@ -96,7 +103,12 @@ struct TaskRow: View {
                 .accessibilityHint(task.title)
             }
         }
-        .padding(.vertical, task.isCompleted ? 0 : 10)
+        .padding(.vertical, presentation == .goal ? 0 : (task.isCompleted ? 0 : 10))
         .contentShape(Rectangle())
+    }
+
+    enum Presentation {
+        case standard
+        case goal
     }
 }

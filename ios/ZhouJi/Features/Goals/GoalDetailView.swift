@@ -2,10 +2,12 @@ import SwiftData
 import SwiftUI
 
 struct GoalDetailView: View {
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(TimerController.self) private var timer
     let goal: Goal
+    @Binding var isEditingTask: Bool
 
     @State private var draftTitle = ""
     @State private var isTimerPresented = false
@@ -34,66 +36,23 @@ struct GoalDetailView: View {
         ZStack {
             ZJTheme.pageBackground.ignoresSafeArea()
 
-            List {
-                GoalProgressHeader(progress: progress, iconName: goal.displayIconName)
-                    .padding(18)
-                    .zjCard()
-                    .listRowInsets(EdgeInsets(top: 14, leading: ZJTheme.pagePadding, bottom: 24, trailing: ZJTheme.pagePadding))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-
-                if visibleTasks.isEmpty {
-                    ZJEmptyState(
-                        title: "把目标变成下一步",
-                        message: "从一个今天能完成的小任务开始。",
-                        systemImage: "checklist"
-                    )
-                        .padding(18)
-                        .zjCard()
-                        .listRowInsets(EdgeInsets(top: 30, leading: ZJTheme.pagePadding, bottom: 30, trailing: ZJTheme.pagePadding))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                } else {
-                    ForEach(visibleTasks) { task in
-                        TaskRow(
-                            task: task,
-                            isActivelyTimed: timer.activeTaskID == task.id,
-                            showsGoal: false,
-                            onToggleCompletion: { toggle(task) },
-                            onStartTimer: { startTimer(for: task) }
-                        )
-                            .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding, bottom: 0, trailing: ZJTheme.pagePadding))
-                            .listRowSeparatorTint(ZJTheme.divider)
-                            .listRowBackground(Color.clear)
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    delete(task)
-                                } label: {
-                                    Label("删除", systemImage: "trash")
-                                }
-                            }
-                    }
-                }
+            GeometryReader { proxy in
+                taskList(isCompact: proxy.size.height < 420 || isTaskFieldFocused)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
         }
+        .tint(ZJTheme.accent)
         .navigationTitle(goal.name)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(ZJTheme.surface.opacity(0.96), for: .navigationBar)
-        .toolbar(.visible, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                NavigationLink {
-                    GoalSettingsView(goal: goal)
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                }
-                .accessibilityLabel("目标设置")
-            }
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            navigationControls
         }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             addTaskBar
+        }
+        .onChange(of: isTaskFieldFocused) { isEditingTask = isTaskFieldFocused }
+        .onDisappear {
+            isTaskFieldFocused = false
+            isEditingTask = false
         }
         .sheet(isPresented: $isTimerPresented) {
             TimerSheet()
@@ -141,6 +100,98 @@ struct GoalDetailView: View {
         }
     }
 
+    private var navigationControls: some View {
+        HStack {
+            GoalBackButton(label: "返回目标列表", action: dismiss.callAsFunction)
+            Spacer()
+            NavigationLink(value: GoalDestination.settings(goal)) {
+                VStack(spacing: 2) {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 22, weight: .regular))
+                    Text("设置")
+                        .font(ZJTheme.handwriting(11, relativeTo: .caption2))
+                }
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("目标设置")
+        }
+        .padding(.horizontal, ZJTheme.pagePadding)
+        .padding(.vertical, 2)
+        .background(ZJTheme.pageBackground)
+    }
+
+    private func taskList(isCompact: Bool) -> some View {
+        let tasks = visibleTasks
+
+        return List {
+            GoalPageHeader(title: goal.name, illustration: "LiuliReading", isCompact: isCompact, illustrationWidth: 150)
+                .listRowInsets(EdgeInsets(top: 4, leading: ZJTheme.pagePadding, bottom: 10, trailing: ZJTheme.pagePadding))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+
+            GoalProgressHeader(progress: progress)
+                .padding(12)
+                .goalPaperCard()
+                .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding, bottom: 14, trailing: ZJTheme.pagePadding))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+
+            Text("目标任务")
+                .font(ZJTheme.handwriting(23, relativeTo: .title2).weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .accessibilityAddTraits(.isHeader)
+                .listRowInsets(EdgeInsets(top: 4, leading: ZJTheme.pagePadding, bottom: 10, trailing: ZJTheme.pagePadding))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+
+            if tasks.isEmpty {
+                ZJEmptyState(
+                    title: "把目标变成下一步",
+                    message: "从一个今天能完成的小任务开始。",
+                    systemImage: "checklist"
+                )
+                .padding(16)
+                .goalPaperCard()
+                .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding, bottom: 8, trailing: ZJTheme.pagePadding))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+            } else {
+                ForEach(tasks) { task in
+                    TaskRow(
+                        task: task,
+                        isActivelyTimed: timer.activeTaskID == task.id,
+                        showsGoal: false,
+                        presentation: .goal,
+                        onToggleCompletion: { toggle(task) },
+                        onStartTimer: { startTimer(for: task) }
+                    )
+                    .padding(.horizontal, 10)
+                    .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding, bottom: 0, trailing: ZJTheme.pagePadding))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(
+                        GoalTaskCardBackground(isFirst: task.id == tasks.first?.id, isLast: task.id == tasks.last?.id)
+                            .padding(.horizontal, ZJTheme.pagePadding)
+                    )
+                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                        Button(role: .destructive) { delete(task) } label: {
+                            Label("删除", systemImage: "trash")
+                        }
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+        .listRowSpacing(0)
+        .environment(\.defaultMinListRowHeight, 44)
+        .contentMargins(.top, 0, for: .scrollContent)
+        .contentMargins(.bottom, 8, for: .scrollContent)
+        .scrollContentBackground(.hidden)
+        .scrollDismissesKeyboard(.interactively)
+    }
+
     private var addTaskBar: some View {
         VStack(spacing: 0) {
             if let undoCandidate {
@@ -151,28 +202,61 @@ struct GoalDetailView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
-            Divider().overlay(ZJTheme.divider)
-            HStack(spacing: 10) {
-                TextField("添加一个小任务", text: $draftTitle)
+            VStack(alignment: .leading, spacing: 8) {
+                if !isTaskFieldFocused {
+                    Text("添加任务")
+                        .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                HStack(spacing: 0) {
+                    TextField("添加一个小任务", text: $draftTitle)
                     .textFieldStyle(.plain)
+                    .font(.body)
+                    .foregroundStyle(ZJTheme.ink)
                     .focused($isTaskFieldFocused)
                     .submitLabel(.done)
                     .onSubmit(createTask)
-                    .padding(.horizontal, 14)
-                    .frame(minHeight: ZJTheme.controlHeight)
-                    .background(ZJTheme.background, in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
-
-                Button("添加") {
-                    createTask()
+                    if !draftTitle.isEmpty {
+                        Button {
+                            draftTitle = ""
+                            isTaskFieldFocused = true
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(ZJTheme.secondaryInk.opacity(0.45))
+                                .frame(width: 44, height: 44)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("清空任务名称")
+                    }
                 }
-                .fontWeight(.semibold)
-                .foregroundStyle(normalizedTitle.isEmpty ? ZJTheme.secondaryInk.opacity(0.45) : ZJTheme.accent)
+                .padding(.leading, 12)
+                .padding(.trailing, draftTitle.isEmpty ? 12 : 0)
+                .frame(minHeight: 44)
+                .background(ZJTheme.background.opacity(0.45), in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
+                        .stroke(isTaskFieldFocused ? ZJTheme.accent : ZJTheme.divider, lineWidth: 0.8)
+                }
+
+                Text("新任务会自动归属「\(goal.name)」")
+                    .font(ZJTheme.handwriting(12, relativeTo: .caption))
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .lineLimit(2)
+                    .truncationMode(.middle)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityLabel("新任务会自动归属「\(goal.name)」")
+
+                GoalPrintedButton(title: "添加任务", symbol: "plus", action: createTask)
                 .disabled(normalizedTitle.isEmpty)
+                .accessibilityLabel("添加")
             }
+            .padding(12)
+            .goalPaperCard()
             .padding(.horizontal, ZJTheme.pagePadding)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
         }
-        .background(ZJTheme.surface)
+        .background(ZJTheme.pageBackground)
     }
 
     private var normalizedTitle: String {
@@ -180,6 +264,7 @@ struct GoalDetailView: View {
     }
 
     private func createTask() {
+        guard !normalizedTitle.isEmpty else { return }
         do {
             _ = try TaskService.create(title: draftTitle, goal: goal, in: modelContext)
             draftTitle = ""
@@ -264,9 +349,10 @@ struct GoalDetailView: View {
     }
 }
 
-private struct GoalSettingsView: View {
+struct GoalSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let goal: Goal
 
@@ -275,9 +361,9 @@ private struct GoalSettingsView: View {
     @State private var presentedError: String?
     @FocusState private var isNameFieldFocused: Bool
 
-    private let iconColumns = [
-        GridItem(.adaptive(minimum: 72), spacing: 10)
-    ]
+    private var iconColumns: [GridItem] {
+        [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 130 : 72), spacing: 8)]
+    }
 
     init(goal: Goal) {
         self.goal = goal
@@ -286,21 +372,39 @@ private struct GoalSettingsView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 26) {
-                preview
-                nameSection
-                iconSection
+        ZStack {
+            ZJTheme.pageBackground.ignoresSafeArea()
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        GoalPageHeader(
+                            title: "目标设置",
+                            illustration: "LiuliWriting",
+                            isCompact: proxy.size.height < 420 || isNameFieldFocused,
+                            illustrationWidth: 160,
+                            headingIdentifier: "goal.settings.heading"
+                        )
+                        preview
+                        nameSection
+                        iconSection
+                    }
+                    .padding(.horizontal, ZJTheme.pagePadding)
+                    .padding(.top, 8)
+                    .padding(.bottom, 18)
+                }
+                .scrollDismissesKeyboard(.interactively)
             }
-            .padding(.horizontal, ZJTheme.pagePadding)
-            .padding(.top, 18)
-            .padding(.bottom, 36)
         }
-        .scrollDismissesKeyboard(.interactively)
-        .background(ZJTheme.pageBackground.ignoresSafeArea())
+        .tint(ZJTheme.accent)
         .navigationTitle("目标设置")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(ZJTheme.background, for: .navigationBar)
+        .toolbar(.hidden, for: .navigationBar)
+        .safeAreaInset(edge: .top, spacing: 0) {
+            GoalBackButton(label: "返回目标", action: dismiss.callAsFunction)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, ZJTheme.pagePadding)
+                .padding(.vertical, 2)
+                .background(ZJTheme.pageBackground)
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             saveBar
         }
@@ -321,7 +425,7 @@ private struct GoalSettingsView: View {
         let resolvedIcon = selectedIcon.resolved(for: draftName)
 
         return HStack(spacing: 16) {
-            ZJGoalIcon(iconName: resolvedIcon.rawValue, size: 58, isDecorative: false)
+            ZJGoalIcon(iconName: resolvedIcon.rawValue, size: 48, isDecorative: false)
                 .accessibilityIdentifier("goal.settings.previewIcon")
                 .accessibilityLabel("当前图标，\(resolvedIcon.title)")
 
@@ -332,24 +436,28 @@ private struct GoalSettingsView: View {
                     .lineLimit(2)
 
                 Text(selectedIcon == .scope ? "根据名称推荐，也可以自己选" : "让每个目标一眼可认出")
-                    .font(.subheadline)
+                    .font(ZJTheme.handwriting(14, relativeTo: .subheadline))
                     .foregroundStyle(ZJTheme.secondaryInk)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 0)
         }
-        .padding(18)
-        .zjCard()
+        .padding(16)
+        .goalPaperCard()
     }
 
     private var nameSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("名称")
-                .font(.headline)
+                .font(ZJTheme.handwriting(21, relativeTo: .headline).weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
+                .accessibilityAddTraits(.isHeader)
 
             TextField("目标名称", text: $draftName)
                 .textFieldStyle(.plain)
+                .font(.body)
+                .foregroundStyle(ZJTheme.ink)
                 .focused($isNameFieldFocused)
                 .submitLabel(.done)
                 .onSubmit(save)
@@ -366,10 +474,11 @@ private struct GoalSettingsView: View {
     private var iconSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("图标")
-                .font(.headline)
+                .font(ZJTheme.handwriting(21, relativeTo: .headline).weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
+                .accessibilityAddTraits(.isHeader)
 
-            LazyVGrid(columns: iconColumns, spacing: 10) {
+            LazyVGrid(columns: iconColumns, spacing: 8) {
                 ForEach(GoalIcon.allCases) { icon in
                     let iconColor = ZJTheme.goalAccent(for: icon.rawValue)
 
@@ -377,14 +486,20 @@ private struct GoalSettingsView: View {
                         selectedIcon = icon
                     } label: {
                         VStack(spacing: 8) {
-                            ZJGoalIcon(iconName: icon.rawValue, size: 40)
+                            if icon == .scope {
+                                ZJIcon(systemName: "wand.and.stars", size: 40)
+                            } else {
+                                ZJGoalIcon(iconName: icon.rawValue, size: 40)
+                            }
                             Text(icon.title)
-                                .font(.caption)
-                                .lineLimit(1)
+                                .font(ZJTheme.handwriting(12, relativeTo: .caption))
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .foregroundStyle(selectedIcon == icon ? iconColor : ZJTheme.secondaryInk)
-                        .frame(maxWidth: .infinity, minHeight: 84)
-                        .background(selectedIcon == icon ? ZJTheme.goalSoft(for: icon.rawValue) : Color.clear)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 3)
+                        .frame(maxWidth: .infinity, minHeight: 82)
+                        .background(selectedIcon == icon ? ZJTheme.goalSoft(for: icon.rawValue) : ZJTheme.surface)
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
@@ -392,6 +507,16 @@ private struct GoalSettingsView: View {
                         RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous)
                             .stroke(selectedIcon == icon ? iconColor.opacity(0.55) : ZJTheme.divider, lineWidth: 1)
                             .allowsHitTesting(false)
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        if selectedIcon == icon {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(iconColor)
+                                .padding(5)
+                                .accessibilityHidden(true)
+                                .allowsHitTesting(false)
+                        }
                     }
                     .compositingGroup()
                     .clipShape(RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius, style: .continuous))
@@ -404,14 +529,11 @@ private struct GoalSettingsView: View {
     }
 
     private var saveBar: some View {
-        Button("保存设置", action: save)
-            .font(.headline)
-            .frame(maxWidth: .infinity, minHeight: ZJTheme.controlHeight)
-            .buttonStyle(.zjPrimary)
+        GoalPrintedButton(title: "保存设置", action: save)
             .disabled(isSaveDisabled)
             .padding(.horizontal, ZJTheme.pagePadding)
             .padding(.vertical, 8)
-            .background(ZJTheme.background)
+            .background(ZJTheme.pageBackground)
     }
 
     private var normalizedName: String {
@@ -440,33 +562,168 @@ private struct GoalSettingsView: View {
 
 private struct GoalProgressHeader: View {
     let progress: GoalProgress
-    let iconName: String
 
     var body: some View {
-        let goalColor = ZJTheme.goalAccent(for: iconName)
-
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Label("目标进度", systemImage: ZJTheme.goalSymbol(for: iconName))
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(goalColor)
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("已完成")
+                        .font(ZJTheme.handwriting(16, relativeTo: .subheadline))
+                    Text("\(progress.completed)/\(progress.total)")
+                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                        .monospacedDigit()
+                }
 
                 Spacer(minLength: 12)
 
-                Text(progress.percentage, format: .percent.scale(1))
-                    .font(.title2.weight(.semibold))
+                Text("\(progress.percentage)%")
+                    .font(.system(.title, design: .rounded, weight: .semibold))
                     .monospacedDigit()
-                    .foregroundStyle(goalColor)
             }
+            .foregroundStyle(ZJTheme.ink)
 
             ProgressView(value: progress.fraction)
-                .tint(goalColor)
+                .tint(ZJTheme.success)
+                .scaleEffect(x: 1, y: 3)
+                .frame(height: 12)
                 .accessibilityLabel("目标进度")
                 .accessibilityValue("百分之 \(progress.percentage)")
-
-            Text("已完成 \(progress.completed) 件，共 \(progress.total) 件")
-                .font(.caption)
-                .foregroundStyle(ZJTheme.secondaryInk)
         }
+    }
+}
+
+enum GoalDestination: Hashable {
+    case tasks(Goal)
+    case settings(Goal)
+
+    var isSettings: Bool {
+        if case .settings = self { return true }
+        return false
+    }
+}
+
+private struct GoalBackButton: View {
+    let label: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 22, weight: .medium))
+                .foregroundStyle(ZJTheme.ink)
+                .frame(width: 44, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+    }
+}
+
+private struct GoalPageHeader: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    let title: String
+    let illustration: String
+    let isCompact: Bool
+    var illustrationWidth: CGFloat = 182
+    var headingIdentifier = "goal.tasks.heading"
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 4) {
+                Text(title)
+                    .font(ZJTheme.handwriting(isCompact ? 30 : 36, relativeTo: .largeTitle).weight(.bold))
+                    .foregroundStyle(ZJTheme.ink)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 12)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityIdentifier(headingIdentifier)
+                    .accessibilityLabel(title)
+
+                if dynamicTypeSize <= .large {
+                    Image(decorative: illustration)
+                        .resizable()
+                        .scaledToFit()
+                        .containerRelativeFrame(.horizontal) { width, _ in
+                            min(isCompact ? 124 : illustrationWidth, max(0, width - ZJTheme.pagePadding * 2) * 0.5)
+                        }
+                        .allowsHitTesting(false)
+                }
+        }
+        .frame(minHeight: dynamicTypeSize <= .large ? (isCompact ? 84 : illustrationWidth * 2 / 3) : nil, alignment: .top)
+    }
+}
+
+private struct GoalPrintedButton: View {
+    @Environment(\.isEnabled) private var isEnabled
+    let title: String
+    var symbol: String?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                if let symbol {
+                    Image(systemName: symbol)
+                        .font(.system(size: 21, weight: .regular))
+                        .accessibilityHidden(true)
+                }
+                Text(title)
+                    .font(ZJTheme.handwriting(21, relativeTo: .headline))
+            }
+            .foregroundStyle(isEnabled ? ZJTheme.onAccent : ZJTheme.secondaryInk)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .padding(.vertical, 2)
+            .background {
+                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
+                    .fill(isEnabled ? ZJTheme.accent : ZJTheme.secondaryInk.opacity(0.35))
+                    .overlay {
+                        if isEnabled {
+                            Canvas { context, size in
+                                for index in 0..<650 {
+                                    let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
+                                    let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
+                                    let side: CGFloat = index.isMultiple(of: 5) ? 1.1 : 0.5
+                                    context.fill(
+                                        Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
+                                        with: .color(ZJTheme.onAccent.opacity(0.24))
+                                    )
+                                }
+                            }
+                            .clipShape(.rect(cornerRadius: ZJTheme.cornerRadius))
+                            .allowsHitTesting(false)
+                        }
+                    }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct GoalTaskCardBackground: View {
+    let isFirst: Bool
+    let isLast: Bool
+
+    var body: some View {
+        let shape = UnevenRoundedRectangle(
+            topLeadingRadius: isFirst ? ZJTheme.cornerRadius : 0,
+            bottomLeadingRadius: isLast ? ZJTheme.cornerRadius : 0,
+            bottomTrailingRadius: isLast ? ZJTheme.cornerRadius : 0,
+            topTrailingRadius: isFirst ? ZJTheme.cornerRadius : 0
+        )
+        shape.fill(ZJTheme.surface)
+            .overlay { shape.stroke(ZJTheme.divider.opacity(0.75), lineWidth: 0.8) }
+            .allowsHitTesting(false)
+    }
+}
+
+private extension View {
+    func goalPaperCard() -> some View {
+        background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
+            .overlay {
+                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
+                    .stroke(ZJTheme.divider.opacity(0.75), lineWidth: 0.8)
+                    .allowsHitTesting(false)
+            }
     }
 }

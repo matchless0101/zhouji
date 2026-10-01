@@ -1,0 +1,11 @@
+{
+  "tool": "image_gen.imagegen",
+  "mode": "built-in",
+  "output": "ios/ZhouJi/Assets.xcassets/LiuliReading.imageset/LiuliReading.png",
+  "prompt": "Use case: background-extraction.\nAsset type: Transparent PNG illustration asset for the implemented iPhone goal task page of 粥记.\nPrimary request: Extract/recreate ONLY the reading durian illustration from the upper-right header of Image 1, preserving its identity, exact style, proportions, outline and ink colors. Remove the surrounding UI, paper background, all text, status symbols, buttons, progress and task list. Image 2 is the matching writing mascot reference; do not change the reading pose to writing.\nComposition: One isolated small wide header illustration: happy green spiky durian reading an open dark green book, short brown stem, buttery yellow face, small black dot eyes, small curved smile, orange cheeks, round cream hands on the two book edges. A small cream mug with olive heart at its right and a short stack of dark green and terracotta books to the far right. A very small flat muted-terracotta speckled ground patch only under the group, two short terracotta accent strokes left of the mascot. Match Image 1 exactly.\nStyle: Authentic vintage silkscreen poster + hand-drawn flat illustration. Matte earthy olive, forest green, buttery yellow, terracotta, warm dark brown irregular thick contour. Flat spot-color shapes with dry ink grain and tiny white holes within ink. No gradient, no glow, no blurred drop shadow.\nBackground: Truly transparent alpha around the complete illustration, including through gaps between objects. No cream rectangle, paper, opaque backdrop, checkerboard painted into image or dark fringe. Keep solid colored artwork interiors opaque. Small neat padding, complete uncut book/mug/stem. No text or interface elements. This is an extracted app asset, not another full UI screenshot.",
+  "referenced_image_paths": [
+    "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/goal-tasks-design-20261001.png",
+    "/Users/matchless/Desktop/重要资源-同步/粥记/ios/ZhouJi/Assets.xcassets/LiuliWriting.imageset/LiuliWriting.png"
+  ],
+  "transparent_background": true
+}
