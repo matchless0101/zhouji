@@ -66,10 +66,8 @@ struct RootTabView: View {
                 Button {
                     selection = tab
                 } label: {
-                    Image(systemName: selection == tab ? tab.selectedSymbol : tab.symbol)
-                        .symbolVariant(.none)
-                        .font(.system(size: 25, weight: .regular))
-                    .foregroundStyle(selection == tab ? ZJTheme.accent : ZJTheme.secondaryInk)
+                    ZJIcon(systemName: tab.symbol, size: 40,
+                           tint: selection == tab ? ZJTheme.accent : ZJTheme.secondaryInk)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
                     .contentShape(Rectangle())
@@ -127,12 +125,4 @@ enum AppTab: String, Hashable, CaseIterable {
         }
     }
 
-    var selectedSymbol: String {
-        switch self {
-        case .today: "house.fill"
-        case .calendar: "calendar"
-        case .profile: "person.fill"
-        default: symbol
-        }
-    }
 }

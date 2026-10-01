@@ -53,21 +53,68 @@ struct ZJAddButtonStyle: ButtonStyle {
     }
 }
 
-/// Edge-to-edge scenes use a viewport instead of shrinking into a small vignette.
+/// Preserve each printed composition, including artwork near the edges on small screens.
 struct ZJScene: View {
     let name: String
-    let height: CGFloat
+    let height: CGFloat?
 
     var body: some View {
         GeometryReader { proxy in
             Image(name)
                 .resizable()
-                .scaledToFill()
-                .frame(width: proxy.size.width, height: proxy.size.height)
-                .clipped()
+                .scaledToFit()
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .bottom)
         }
         .frame(height: height)
         .accessibilityHidden(true)
         .allowsHitTesting(false)
+    }
+}
+
+/// Printed artwork replaces matching symbols; specialized controls keep their existing meaning.
+struct ZJIcon: View {
+    let systemName: String
+    var size: CGFloat = 40
+    var tint: Color?
+    var isDecorative = true
+
+    var body: some View {
+        Group {
+            if let name = assetName {
+                Image(name)
+                    .renderingMode(tint == nil ? .original : .template)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Image(systemName: systemName)
+                    .font(.system(size: size * 0.7, weight: .regular))
+            }
+        }
+        .foregroundStyle(tint ?? ZJTheme.success)
+        .frame(width: size, height: size)
+        .accessibilityHidden(isDecorative)
+    }
+
+    private var assetName: String? {
+        switch systemName {
+        case "leaf", "leaf.fill": "LiuliLeaf"
+        case "book", "book.fill", "book.closed": "LiuliBook"
+        case "graduationcap", "graduationcap.fill": "LiuliStudy"
+        case "briefcase", "briefcase.fill": "LiuliWork"
+        case "iphone": "LiuliDigital"
+        case "paintpalette", "paintpalette.fill": "LiuliCreate"
+        case "figure.run", "dumbbell", "dumbbell.fill": "LiuliDumbbell"
+        case "heart", "heart.fill": "LiuliLove"
+        case "star", "star.fill": "LiuliStar"
+        case "clock", "clock.fill": "LiuliClock"
+        case "sun.max", "sun.max.fill": "LiuliSun"
+        case "cloud", "cloud.fill": "LiuliCloud"
+        case "house", "house.fill": "LiuliHome"
+        case "calendar": "LiuliCalendarIcon"
+        case "target", "scope", "sparkles": "LiuliTarget"
+        case "person", "person.fill": "LiuliProfile"
+        case "gearshape", "gearshape.fill": "LiuliGear"
+        default: nil
+        }
     }
 }

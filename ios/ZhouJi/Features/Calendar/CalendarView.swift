@@ -180,7 +180,11 @@ struct CalendarView: View {
             .accessibilityIdentifier("calendar.completed")
             .font(.subheadline)
             .foregroundStyle(ZJTheme.secondaryInk)
-        Label(ElapsedTimeText.string(for: facts.seconds), systemImage: "clock")
+        Label {
+            Text(ElapsedTimeText.string(for: facts.seconds))
+        } icon: {
+            ZJIcon(systemName: "clock", size: 24)
+        }
             .accessibilityIdentifier("calendar.duration")
             .font(.subheadline)
             .foregroundStyle(ZJTheme.secondaryInk)
@@ -198,7 +202,11 @@ struct CalendarView: View {
             metricsLayout {
                 Text("\(facts.completions.count) 件完成")
                     .accessibilityIdentifier("calendar.completed")
-                Label(ElapsedTimeText.string(for: facts.seconds), systemImage: "clock")
+                Label {
+                    Text(ElapsedTimeText.string(for: facts.seconds))
+                } icon: {
+                    ZJIcon(systemName: "clock", size: 24)
+                }
                     .accessibilityIdentifier("calendar.duration")
             }
             .font(.subheadline)
@@ -237,8 +245,7 @@ struct CalendarView: View {
 
     private func journalRow(title: String, detail: String, symbol: String, completed: Bool) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).font(.title2).foregroundStyle(ZJTheme.success)
-                .frame(width: 28).accessibilityHidden(true)
+            ZJIcon(systemName: symbol, size: 38).frame(width: 28)
             VStack(alignment: .leading, spacing: 3) {
                 Text(title).font(.body.weight(.medium)).foregroundStyle(ZJTheme.ink)
                 Text(detail).font(.caption).foregroundStyle(ZJTheme.secondaryInk)

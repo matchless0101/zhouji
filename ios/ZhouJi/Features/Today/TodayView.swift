@@ -415,11 +415,7 @@ private struct TodayHeader: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            if !dynamicTypeSize.isAccessibilitySize {
-                ZJScene(name: "LiuliToday", height: isEmpty ? min(300, heroHeight * 0.72) : 220)
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-            }
+        VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 8) {
                     Text(greeting)
                         .font(ZJTheme.handwriting(36, relativeTo: .largeTitle))
@@ -435,6 +431,10 @@ private struct TodayHeader: View {
             }
             .padding(.horizontal, ZJTheme.pagePadding + 12)
             .padding(.top, 22)
+            if !dynamicTypeSize.isAccessibilitySize {
+                ZJScene(name: "LiuliToday", height: nil)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
         }
         .frame(height: dynamicTypeSize.isAccessibilitySize ? nil : (isEmpty ? heroHeight : 325))
         .frame(maxWidth: .infinity, alignment: .leading)

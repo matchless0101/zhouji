@@ -32,9 +32,7 @@ struct ProfileView: View {
             .toolbar(.hidden, for: .navigationBar)
             .overlay(alignment: .topTrailing) {
                 Button { presentedPanel = .preferences } label: {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 25, weight: .regular))
-                        .foregroundStyle(ZJTheme.ink)
+                    ZJIcon(systemName: "gearshape", size: 40)
                         .frame(width: 44, height: 44)
                 }
                 .buttonStyle(.plain)
@@ -70,9 +68,6 @@ struct ProfileView: View {
         VStack(spacing: 9) {
             if !dynamicTypeSize.isAccessibilitySize {
                 ZJIllustration(name: "LiuliHeart", height: 175)
-                    .background {
-                        Circle().fill(ZJTheme.accentSoft.opacity(0.55)).frame(width: 166, height: 166)
-                    }
             }
             Text("一粥又一周")
                 .accessibilityAddTraits(.isHeader)
@@ -92,11 +87,11 @@ struct ProfileView: View {
 
     private var menuCard: some View {
         VStack(spacing: 0) {
-            panelButton(.overview, title: "我的概况", symbol: "star.fill", tint: Color(red: 0.88, green: 0.65, blue: 0.29), identifier: "profile.overview")
+            panelButton(.overview, title: "我的概况", symbol: "star.fill", identifier: "profile.overview")
             menuDivider
-            panelButton(.calendar, title: "日历回顾", symbol: "clock", tint: ZJTheme.secondaryInk, identifier: "profile.review")
+            panelButton(.calendar, title: "日历回顾", symbol: "clock", identifier: "profile.review")
             menuDivider
-            panelButton(.preferences, title: "偏好设置", symbol: "leaf.fill", tint: ZJTheme.success, identifier: "profile.preferences")
+            panelButton(.preferences, title: "偏好设置", symbol: "leaf.fill", identifier: "profile.preferences")
         }
         .zjCard()
     }
@@ -105,11 +100,10 @@ struct ProfileView: View {
         Divider().overlay(ZJTheme.divider.opacity(0.7)).padding(.horizontal, 18)
     }
 
-    private func panelButton(_ panel: ProfilePanel, title: String, symbol: String, tint: Color, identifier: String) -> some View {
+    private func panelButton(_ panel: ProfilePanel, title: String, symbol: String, identifier: String) -> some View {
         Button { presentedPanel = panel } label: {
             HStack(spacing: 16) {
-                Image(systemName: symbol).font(.system(size: 26, weight: .regular))
-                    .foregroundStyle(tint).frame(width: 32).accessibilityHidden(true)
+                ZJIcon(systemName: symbol, size: 40).frame(width: 32)
                 Text(title).font(ZJTheme.handwriting(20, relativeTo: .body)).foregroundStyle(ZJTheme.ink)
                 Spacer(minLength: 8)
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(ZJTheme.ink).accessibilityHidden(true)
@@ -124,27 +118,23 @@ struct ProfileView: View {
     }
 
     private var postcard: some View {
-        HStack(spacing: 0) {
-            Image("LiuliCalendar")
+        ZStack(alignment: .bottomTrailing) {
+            Image("LiuliPostcard")
                 .resizable()
-                .scaledToFill()
-                .frame(width: 205, height: 132)
-                .clipped()
-                .background(ZJTheme.accentSoft)
-                .padding(8)
-                .background(ZJTheme.surface)
-                .overlay { Rectangle().strokeBorder(ZJTheme.divider, lineWidth: 1) }
-                .rotationEffect(.degrees(-8))
+                .scaledToFit()
             Text("MORE\nGOOD\nDAYS.")
-                .font(ZJTheme.handwriting(20, relativeTo: .body))
-                .tracking(2)
-                .lineSpacing(3)
+                .font(ZJTheme.handwriting(15, relativeTo: .body))
+                .tracking(1)
+                .lineSpacing(2)
+                .multilineTextAlignment(.center)
                 .foregroundStyle(ZJTheme.ink)
-                .padding(12)
-                .background(ZJTheme.surface)
+                .frame(width: 78)
                 .rotationEffect(.degrees(7))
-                .padding(.leading, -18)
+                .padding(.trailing, 7)
+                .padding(.bottom, 26)
         }
+        .aspectRatio(4 / 3, contentMode: .fit)
+        .frame(maxWidth: 300)
         .frame(maxWidth: .infinity)
         .padding(.top, 10)
         .padding(.bottom, 18)

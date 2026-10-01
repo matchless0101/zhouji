@@ -94,7 +94,7 @@ struct GoalsView: View {
                 .contentMargins(.bottom, 16, for: .scrollContent)
                 .scrollContentBackground(.hidden)
                 .background(alignment: .bottom) {
-                    ZJScene(name: "LiuliGoals", height: 255).offset(y: 30)
+                    ZJScene(name: "LiuliGoals", height: 255)
                 }
                 .clipped()
             }

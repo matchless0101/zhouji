@@ -68,9 +68,7 @@ struct ZJGoalIcon: View {
     var isDecorative = true
 
     var body: some View {
-        Image(systemName: ZJTheme.goalSymbol(for: iconName))
-            .font(.system(size: size * 0.7, weight: .regular))
-            .foregroundStyle(ZJTheme.goalAccent(for: iconName))
+        ZJIcon(systemName: iconName, size: size, isDecorative: isDecorative)
             .frame(width: size, height: size)
             .accessibilityHidden(isDecorative)
     }
@@ -232,9 +230,7 @@ struct ZJEmptyState: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
-            Image(systemName: systemImage)
-                .font(.system(size: symbolSize, weight: .semibold))
-                .foregroundStyle(ZJTheme.accent)
+            ZJIcon(systemName: systemImage, size: symbolSize * 1.6)
                 .frame(width: 42, height: 42)
                 .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
                 .accessibilityHidden(true)
