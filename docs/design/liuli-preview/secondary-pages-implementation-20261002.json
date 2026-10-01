@@ -1,0 +1,219 @@
+{
+  "date": "2026-10-02",
+  "scope": [
+    "计时",
+    "偏好设置",
+    "我的概况",
+    "关于粥记",
+    "个人资料编辑"
+  ],
+  "screenshots": [
+    {
+      "name": "secondary-profile-editor",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-profile-editor-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "9c83f2bc373f427d8843115126048d93f3ce571c8fe45a643cea3b544c2a81cc"
+    },
+    {
+      "name": "secondary-about",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-about-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "8700359cb714a3b83b01cbf892e315754102d4a0a89728c8fa167c1cfb3d58c5"
+    },
+    {
+      "name": "secondary-preferences",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-preferences-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "8cf7103a2d7e15f98eef2fdcea8678ab44cdb139c450f15859b5b5fd65140b85"
+    },
+    {
+      "name": "secondary-overview",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-overview-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "61093b5060932258cb286f285f40c53d7b9df5e8903811cfab4f0025f309413b"
+    },
+    {
+      "name": "secondary-profile-keyboard-large",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-profile-keyboard-large-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable()",
+      "sha256": "76d24dfb56ea864da73cbb00ea23a4526f03b6c7b2fd8ebc209ea5b3d1463922"
+    },
+    {
+      "name": "secondary-preferences-large",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-preferences-large-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable()",
+      "sha256": "05d80c924da73b8df47e9f8f0042a44573c7b1a008c4f729b81bb5117b26f2f9"
+    },
+    {
+      "name": "secondary-about-large",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-about-large-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable()",
+      "sha256": "76cf3ee289a5498f3f56279f57c950b6d9c92405b71f7af46066ad28ec35d220"
+    },
+    {
+      "name": "secondary-overview-large",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-overview-large-se-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable()",
+      "sha256": "afcacaf7c7e258bfdc7c759cf5bcaa3202eca19216c4da9e9fcaf88a0375d976"
+    },
+    {
+      "name": "secondary-profile-editor",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-profile-editor-pro-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "ed659b594d39d384e76671153a2d591f4218f0a1f615eb9987c2d8a7bc7111f8"
+    },
+    {
+      "name": "secondary-about",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-about-pro-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "453b4d5322420052ca18b60e25128ec02cd1df58ea2b0a052355b153df61e111"
+    },
+    {
+      "name": "secondary-preferences",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-preferences-pro-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "829c8d2ae44b70a8dd7324354cb0b446d534ac8aeaaae22c755e007da89f337a"
+    },
+    {
+      "name": "secondary-overview",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-overview-pro-20261002.png",
+      "test": "ZhouJiUITests/testSecondaryProfileDesignsKeepRealDataAndNavigation()",
+      "sha256": "7ee8ea6231208847fbbc07be59b6486bb2c0df13f7903c95effe0ea4d66c06e9"
+    },
+    {
+      "name": "secondary-timer-paused",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-timer-paused-se-20261002.png",
+      "test": "ZhouJiUITests/testTimerDesignKeepsGoalPauseAndFinishSemantics()",
+      "sha256": "f7be38cbfcf66d4bbbe9753cf52b4f116c21d6a299a11bd7e2ad14ffe2dcfedb"
+    },
+    {
+      "name": "secondary-timer-running",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-timer-running-se-20261002.png",
+      "test": "ZhouJiUITests/testTimerDesignKeepsGoalPauseAndFinishSemantics()",
+      "sha256": "8f43cc31ad2d1b056a4798e54de4b196bff689c210c029a233a7cffd64c36019"
+    },
+    {
+      "name": "secondary-timer-large",
+      "device": "se",
+      "file": "docs/design/liuli-preview/secondary-timer-large-se-20261002.png",
+      "test": "ZhouJiUITests/testTimerLargeTextKeepsControlsAndElapsedTimeReachable()",
+      "sha256": "a653498b51dc4d6fb910f02f83bcb5f6f810948f6c97de534a42df1afa2594b7"
+    },
+    {
+      "name": "secondary-timer-paused",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-timer-paused-pro-20261002.png",
+      "test": "ZhouJiUITests/testTimerDesignKeepsGoalPauseAndFinishSemantics()",
+      "sha256": "83cbccbcf52577b9a69deb7905eb6b4519f599f92803cb06e0668881059d208f"
+    },
+    {
+      "name": "secondary-timer-running",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-timer-running-pro-20261002.png",
+      "test": "ZhouJiUITests/testTimerDesignKeepsGoalPauseAndFinishSemantics()",
+      "sha256": "65e3a84a193bcddcfed4b4413603efd254536d7764089855720e986acc1b9fa3"
+    },
+    {
+      "name": "secondary-timer-large",
+      "device": "pro",
+      "file": "docs/design/liuli-preview/secondary-timer-large-pro-20261002.png",
+      "test": "ZhouJiUITests/testTimerLargeTextKeepsControlsAndElapsedTimeReachable()",
+      "sha256": "2918f63f40dfadce585eb68770f3e57749c80e74719b747bb74f7830806aec2e"
+    }
+  ],
+  "assets": [
+    {
+      "name": "LiuliTimer",
+      "file": "ios/ZhouJi/Assets.xcassets/LiuliTimer.imageset/LiuliTimer.png",
+      "sha256": "29928543200d84ca8377d592f29eb3d7eb1c78f207714e5e242145ce6512ef85"
+    },
+    {
+      "name": "LiuliPreferences",
+      "file": "ios/ZhouJi/Assets.xcassets/LiuliPreferences.imageset/LiuliPreferences.png",
+      "sha256": "aad8f42efc960070d122f1ea6aad3bbab726ca8f5797797801e2343b0907ee45"
+    },
+    {
+      "name": "LiuliOverview",
+      "file": "ios/ZhouJi/Assets.xcassets/LiuliOverview.imageset/LiuliOverview.png",
+      "sha256": "4c86378284860244b1ceee947cf709f0c0f0afaf7591acc18e1df684b5598d27"
+    },
+    {
+      "name": "LiuliAbout",
+      "file": "ios/ZhouJi/Assets.xcassets/LiuliAbout.imageset/LiuliAbout.png",
+      "sha256": "5824d34c3e8af3ff3dd28d35f224956bca286bcc1df218232c18711b13c9c268"
+    },
+    {
+      "name": "AvatarLeaf",
+      "file": "ios/ZhouJi/Assets.xcassets/AvatarLeaf.imageset/AvatarLeaf.png",
+      "sha256": "dd435b81a99302d39bce382e3afaeefed9379104cba6700dccba9d3d1590dbd1"
+    },
+    {
+      "name": "AvatarMoon",
+      "file": "ios/ZhouJi/Assets.xcassets/AvatarMoon.imageset/AvatarMoon.png",
+      "sha256": "0f0a306e04fc8070caf9ce3dd195f7f14aa9c7e48608e16acb44af3d5debc077"
+    },
+    {
+      "name": "AvatarOcean",
+      "file": "ios/ZhouJi/Assets.xcassets/AvatarOcean.imageset/AvatarOcean.png",
+      "sha256": "176dfefb2767ed627381407f2a20c005594faf3738d23fb7216c86a81eba6ca7"
+    },
+    {
+      "name": "AvatarFlower",
+      "file": "ios/ZhouJi/Assets.xcassets/AvatarFlower.imageset/AvatarFlower.png",
+      "sha256": "d277e6db113bf67b3c8802fa6fa51b42def0dacdb51526969c06f0489874f240"
+    },
+    {
+      "name": "AvatarMountain",
+      "file": "ios/ZhouJi/Assets.xcassets/AvatarMountain.imageset/AvatarMountain.png",
+      "sha256": "be6dd9aba6a7e39956f5d1f39e8fb83fe393feb4d157aac472ae19f1fd28ca44"
+    }
+  ],
+  "validation": [
+    {
+      "scope": "完整回归",
+      "unitTests": 82,
+      "uiTests": 33,
+      "failures": 0,
+      "bundle": "/private/tmp/zhouji-secondary-final-tests.xcresult"
+    },
+    {
+      "scope": "最终计时文字排版调整后补测",
+      "unitTests": 82,
+      "uiTests": 2,
+      "failures": 0,
+      "bundle": "/private/tmp/zhouji-secondary-timer-final.xcresult"
+    },
+    {
+      "scope": "小屏五页及最大字号、键盘保存",
+      "uiTests": 4,
+      "failures": 0,
+      "bundle": "/private/tmp/zhouji-secondary-se-tests.xcresult"
+    },
+    {
+      "scope": "最终计时文字排版调整后小屏补测",
+      "uiTests": 2,
+      "failures": 0,
+      "bundle": "/private/tmp/zhouji-secondary-se-timer-accessible-final.xcresult"
+    },
+    {
+      "scope": "最终模拟器通用构建",
+      "status": "passed",
+      "log": "/private/tmp/zhouji-secondary-build-final.log"
+    }
+  ],
+  "realDeviceVerified": false
+}

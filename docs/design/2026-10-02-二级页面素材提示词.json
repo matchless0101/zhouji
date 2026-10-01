@@ -1,0 +1,108 @@
+{
+  "date": "2026-10-02",
+  "tool": "image_gen.imagegen",
+  "mode": "built-in",
+  "prompts": [
+    {
+      "name": "LiuliTimer",
+      "page": "timer",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. The bottom reading illustration ONLY: smiling durian seated reading a dark green book, two stacked books on its LEFT, cream mug with terracotta heart and two steam lines on RIGHT, orange dry-ink ground patch. Wide landscape 3:2, artwork fills width.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/timer-design-20261002.png"
+    },
+    {
+      "name": "LiuliPreferences",
+      "page": "preferences",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. The upper-right header illustration ONLY: smiling durian standing next to a cream spiral notebook with a green sprout on its cover, short orange excitement marks, small warm printed ground patch. Wide landscape 3:2.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/preferences-design-20261002.png"
+    },
+    {
+      "name": "LiuliOverview",
+      "page": "overview",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. The lower scene ONLY: smiling durian seated reading a green book with a sprout on its cover, two stacked books on LEFT, large olive-leaf potted plant on RIGHT, orange dry-ink ground patch. Wide landscape 3:2.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/overview-design-20261002.png"
+    },
+    {
+      "name": "LiuliAbout",
+      "page": "about",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. The central durian holding a large terracotta heart ONLY, with its cream speckled circular backdrop and a small floating terracotta heart at upper-right. Square canvas. Preserve exactly the durian face proportions and feet.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/about-design-20261002.png"
+    },
+    {
+      "name": "AvatarLeaf",
+      "page": "profile-editor",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. Only the 新芽 avatar circle, center upper-row of avatar grid: a round pale yellow smiling face with orange cheeks and two tiny hands, green two-leaf sprout above, small terracotta rays, warm cream circular backdrop. Square, no characters/labels/text.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/profile-editor-design-20261002.png"
+    },
+    {
+      "name": "AvatarMoon",
+      "page": "profile-editor",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. Only the 月夜 avatar circle, right upper-row of avatar grid: sleepy smiling pale yellow crescent moon with orange cheek, tiny warm yellow stars on deep forest-green printed circle. Square, no text.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/profile-editor-design-20261002.png"
+    },
+    {
+      "name": "AvatarOcean",
+      "page": "profile-editor",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. Only the 海浪 avatar circle, left lower-row of grid: three curling moss/forest green waves with warm cream foam crests, terracotta round sun above, warm cream circular backdrop. Square, no text.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/profile-editor-design-20261002.png"
+    },
+    {
+      "name": "AvatarFlower",
+      "page": "profile-editor",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. Only the 花开 avatar circle, center lower-row of grid: white cream petals around a smiling round buttery yellow flower face with orange cheeks, dark brown contour, green stem and two leaves, small terracotta excitement rays, warm cream circle backdrop. Square, no text.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/profile-editor-design-20261002.png"
+    },
+    {
+      "name": "AvatarMountain",
+      "page": "profile-editor",
+      "prompt": "Use case: background-extraction. Asset type: isolated production PNG illustration for the ZhouJi iOS app. Extract/recreate ONLY the specified artwork from the input approved UI design, with actual transparent alpha outside the artwork. Preserve EXACT character identity, hand-drawn flat shapes, warm dark-brown thick imperfect outlines, olive/moss green, creamy pale yellow, terracotta orange, dry screen-print ink holes, rough printed edges, vintage screen-printed poster texture. No gradient, no blur, no glow, no 3D, no added text, no UI, no frame, no watermark. Generous but small transparent margin; sharp usable contours. All ink grain stays INSIDE the flat colored shapes. Only the 远山 avatar circle, right lower-row of grid: layered olive green hills and two forest green mountain peaks, winding pale cream path, terracotta round sun above, tiny clouds and a buttery yellow small star, warm cream circle backdrop. Square, no text.",
+      "reference": "/Users/matchless/Desktop/重要资源-同步/粥记/docs/design/liuli-preview/profile-editor-design-20261002.png"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "LiuliOverview",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-6ee54956-2ac1-4d33-a1a7-7e1b5d78a26d.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/LiuliOverview.imageset/LiuliOverview.png"
+    },
+    {
+      "name": "LiuliTimer",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-ef7633d5-6831-4c37-9745-1914ab17d765.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/LiuliTimer.imageset/LiuliTimer.png"
+    },
+    {
+      "name": "LiuliPreferences",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-0a34b6db-280f-478f-8d80-fc1034e3cbb4.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/LiuliPreferences.imageset/LiuliPreferences.png"
+    },
+    {
+      "name": "LiuliAbout",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-387fccc1-4cdb-4bfb-be89-36a244315af3.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/LiuliAbout.imageset/LiuliAbout.png"
+    },
+    {
+      "name": "AvatarLeaf",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-cd5746b1-a9e8-47de-a92c-3c30bbcb14fe.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/AvatarLeaf.imageset/AvatarLeaf.png"
+    },
+    {
+      "name": "AvatarMoon",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-19665fa8-f267-462c-b3cd-5092ecfeeafa.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/AvatarMoon.imageset/AvatarMoon.png"
+    },
+    {
+      "name": "AvatarOcean",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-b8c0764c-4242-45d0-ba6e-7c6b4f53eefe.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/AvatarOcean.imageset/AvatarOcean.png"
+    },
+    {
+      "name": "AvatarFlower",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-4f535af2-26ee-4254-b3ff-06daae618539.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/AvatarFlower.imageset/AvatarFlower.png"
+    },
+    {
+      "name": "AvatarMountain",
+      "source": "/Users/matchless/.codex/generated_images/01a0f2d2-07da-74c1-84f6-58e02287cbe6/exec-92c729e0-6388-475c-9cbf-98d1a2604424.png",
+      "destination": "ios/ZhouJi/Assets.xcassets/AvatarMountain.imageset/AvatarMountain.png"
+    }
+  ]
+}

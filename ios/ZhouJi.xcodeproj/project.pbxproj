@@ -76,6 +76,7 @@
 		F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */; };
 		F46FC5A56CBF92CF7D38C5EA /* TodayJourney.png in Resources */ = {isa = PBXBuildFile; fileRef = E6C07800FED59A353B4EDCF1 /* TodayJourney.png */; };
 		F7B7BC9766057C3A27D80F1D /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = 55F858DE4A7393F4A6FDD03A /* OFL.txt */; };
+		F89479371ED70C8ECFEB12BA /* ZJPrintedControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D032AC673934E36E5478F72 /* ZJPrintedControls.swift */; };
 		F8C6377B6C6222B95E0393D5 /* ZJIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */; };
 		FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */; };
 /* End PBXBuildFile section */
@@ -100,6 +101,7 @@
 /* Begin PBXFileReference section */
 		014FD451941CFBFD37F28785 /* ZhouJi.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ZhouJi.entitlements; sourceTree = "<group>"; };
 		05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupSafetyStore.swift; sourceTree = "<group>"; };
+		0D032AC673934E36E5478F72 /* ZJPrintedControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJPrintedControls.swift; sourceTree = "<group>"; };
 		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
 		0FA8146CFAC8BBA402513027 /* ContentSyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSyncStore.swift; sourceTree = "<group>"; };
 		1646A004151B67E5335956D1 /* GoalWriting.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GoalWriting.png; sourceTree = "<group>"; };
@@ -253,6 +255,7 @@
 			isa = PBXGroup;
 			children = (
 				C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */,
+				0D032AC673934E36E5478F72 /* ZJPrintedControls.swift */,
 				F9FE7B80BB92D300651E1455 /* ZJTheme.swift */,
 			);
 			path = Design;
@@ -639,6 +642,7 @@
 				23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */,
 				52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */,
 				F8C6377B6C6222B95E0393D5 /* ZJIllustration.swift in Sources */,
+				F89479371ED70C8ECFEB12BA /* ZJPrintedControls.swift in Sources */,
 				D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */,
 				28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */,
 			);

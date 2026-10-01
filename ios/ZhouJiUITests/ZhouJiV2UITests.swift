@@ -3,6 +3,136 @@ import UIKit
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testTimerDesignKeepsGoalPauseAndFinishSemantics() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData"]
+        app.launch()
+        app.buttons["开始计时"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["timer.goal"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.staticTexts["timer.goal"].label.isEmpty)
+        XCTAssertTrue(app.buttons["暂停"].isHittable)
+        XCTAssertTrue(app.buttons["结束计时"].isHittable)
+        saveScreenshot("secondary-timer-running", app: app)
+        app.buttons["暂停"].tap()
+        XCTAssertTrue(app.staticTexts["已经暂停"].waitForExistence(timeout: 3))
+        saveScreenshot("secondary-timer-paused", app: app)
+        app.buttons["收起"].tap()
+        app.buttons["查看当前计时"].tap()
+        XCTAssertTrue(app.buttons["继续"].waitForExistence(timeout: 3))
+        app.buttons["继续"].tap()
+        XCTAssertTrue(app.staticTexts["正在投入"].waitForExistence(timeout: 3))
+        app.buttons["结束计时"].tap()
+        XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["开始计时"].firstMatch.exists)
+        XCTAssertFalse(app.buttons["查看当前计时"].exists)
+    }
+
+    @MainActor
+    func testSecondaryProfileDesignsKeepRealDataAndNavigation() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJIsolationSampleData", "-ZJInitialTab", "profile"]
+        app.launch()
+        openOverview(in: app)
+        XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
+        saveScreenshot("secondary-overview", app: app)
+        app.buttons["profile.closePanel"].tap()
+        openPreferences(in: app)
+        XCTAssertTrue(app.buttons["profile.edit"].label.contains("小粥"))
+        saveScreenshot("secondary-preferences", app: app)
+        app.buttons["关于粥记"].tap()
+        XCTAssertTrue(app.staticTexts["一粥又一周"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["about.version"].exists)
+        saveScreenshot("secondary-about", app: app)
+        app.buttons["完成"].tap()
+        app.buttons["profile.edit"].tap()
+        XCTAssertTrue(app.textFields["profile.nickname"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["profile.avatar.leaf"].isSelected)
+        saveScreenshot("secondary-profile-editor", app: app)
+        app.buttons["取消"].tap()
+        app.buttons["profile.closePanel"].tap()
+        XCTAssertTrue(app.buttons["profile.identity"].label.contains("小粥"))
+    }
+
+    @MainActor
+    func testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJIsolationSampleData", "-ZJInitialTab", "profile",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        openOverview(in: app)
+        for identifier in ["profile.completed", "profile.weekFocus", "profile.completionRate"] {
+            let value = app.staticTexts[identifier]
+            for _ in 0..<6 where !value.isHittable { app.swipeUp() }
+            XCTAssertTrue(value.isHittable)
+            XCTAssertLessThanOrEqual(value.frame.maxX, app.frame.maxX)
+        }
+        saveScreenshot("secondary-overview-large", app: app)
+        app.buttons["profile.closePanel"].tap()
+        openPreferences(in: app)
+        let about = app.buttons["关于粥记"]
+        for _ in 0..<6 where !about.isHittable { app.swipeUp() }
+        about.tap()
+        let version = app.staticTexts["about.version"]
+        for _ in 0..<6 where !version.isHittable { app.swipeUp() }
+        XCTAssertTrue(version.isHittable)
+        saveScreenshot("secondary-about-large", app: app)
+        app.buttons["完成"].tap()
+        let logout = app.buttons["account.logout"]
+        for _ in 0..<8 where !logout.isHittable { app.swipeUp() }
+        XCTAssertTrue(logout.isHittable)
+        XCTAssertTrue(app.buttons["account.delete"].exists)
+        saveScreenshot("secondary-preferences-large", app: app)
+        app.buttons["profile.closePanel"].tap()
+        app.buttons["profile.identity"].tap()
+        let nickname = app.textFields["profile.nickname"]
+        for _ in 0..<5 where !nickname.isHittable { app.swipeUp() }
+        nickname.tap()
+        nickname.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
+        let save = app.buttons["profile.save"]
+        XCTAssertFalse(save.isEnabled)
+        nickname.typeText("大字昵称")
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        XCTAssertTrue(save.isEnabled)
+        XCTAssertTrue(save.isHittable)
+        XCTAssertLessThanOrEqual(save.frame.maxY, app.keyboards.firstMatch.frame.minY)
+        saveScreenshot("secondary-profile-keyboard-large", app: app)
+        save.tap()
+        XCTAssertTrue(app.buttons["profile.identity"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["profile.identity"].label.contains("大字昵称"))
+    }
+
+    @MainActor
+    func testTimerLargeTextKeepsControlsAndElapsedTimeReachable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let start = app.buttons["开始计时"].firstMatch
+        for _ in 0..<5 where !start.isHittable { app.swipeUp() }
+        start.tap()
+        XCTAssertTrue(app.buttons["暂停"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["暂停"].isHittable)
+        XCTAssertTrue(app.buttons["结束计时"].isHittable)
+        let elapsed = app.descendants(matching: .any).matching(identifier: "timer.elapsed").firstMatch
+        for _ in 0..<5 where elapsed.frame.maxY > app.buttons["暂停"].frame.minY {
+            app.scrollViews.firstMatch.swipeUp()
+        }
+        XCTAssertTrue(elapsed.isHittable)
+        XCTAssertLessThanOrEqual(elapsed.frame.maxY, app.buttons["暂停"].frame.minY)
+        XCTAssertNotNil(elapsed.value as? String)
+        saveScreenshot("secondary-timer-large", app: app)
+        app.buttons["暂停"].tap()
+        XCTAssertTrue(app.buttons["继续"].waitForExistence(timeout: 3))
+        app.buttons["继续"].tap()
+        app.buttons["结束计时"].tap()
+        XCTAssertTrue(app.buttons["开始计时"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["查看当前计时"].exists)
+    }
+
+    @MainActor
     func testAccountLibrarySwitchRebuildsListsAndStatistics() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -179,7 +309,7 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["关于粥记"].tap()
         XCTAssertTrue(app.staticTexts["粥记"].waitForExistence(timeout: 3))
         app.buttons["完成"].tap()
-        XCTAssertTrue(app.navigationBars["偏好设置"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["profile.preferencesHeading"].waitForExistence(timeout: 3))
         app.buttons["profile.closePanel"].tap()
         XCTAssertTrue(app.buttons["profile.settings"].isHittable)
     }
@@ -206,7 +336,7 @@ final class ZhouJiUITests: XCTestCase {
         nickname.typeText("新的昵称")
         app.buttons["profile.avatar.moon"].tap()
         app.buttons["profile.save"].tap()
-        XCTAssertTrue(app.navigationBars["编辑个人资料"].waitForNonExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["profile.editorHeading"].waitForNonExistence(timeout: 3))
         XCTAssertTrue(identity.label.contains("新的昵称"))
         XCTAssertEqual(identity.value as? String, "头像：月夜")
         saveScreenshot("profile-user-updated", app: app)
@@ -223,7 +353,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(nickname.waitForExistence(timeout: 3))
         app.buttons["profile.avatar.sunrise"].tap()
         app.buttons["profile.save"].tap()
-        XCTAssertTrue(app.navigationBars["编辑个人资料"].waitForNonExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["profile.editorHeading"].waitForNonExistence(timeout: 3))
         XCTAssertEqual(identity.value as? String, "头像：榴榴")
         saveScreenshot("profile-default-avatar", app: app)
 
@@ -896,7 +1026,7 @@ final class ZhouJiUITests: XCTestCase {
         let settings = app.buttons["profile.settings"]
         XCTAssertTrue(settings.waitForExistence(timeout: 3))
         settings.tap()
-        XCTAssertTrue(app.navigationBars["偏好设置"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["profile.preferencesHeading"].waitForExistence(timeout: 3))
     }
 
     @MainActor

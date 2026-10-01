@@ -153,73 +153,47 @@ struct ProfileView: View {
         .allowsHitTesting(false)
     }
 
-    private var closePanelButton: some View {
-        Button { presentedPanel = nil } label: {
-            Text("关闭")
-                .frame(minWidth: 44, minHeight: 44)
-                .contentShape(Rectangle())
-        }
-            .foregroundStyle(ZJTheme.accent)
-            .accessibilityIdentifier("profile.closePanel")
-    }
-
     private var overview: some View {
         NavigationStack {
             TimelineView(.periodic(from: .now, by: sessions.contains { $0.state == .running } ? 1 : 60)) { context in
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 20) {
-                        Text("每一步，都算数。")
-                            .font(ZJTheme.handwriting(30, relativeTo: .title))
-                            .foregroundStyle(ZJTheme.ink)
+                    VStack(alignment: .leading, spacing: 22) {
+                        ZJPaperHeader(title: "我的概况", subtitle: "每一步，都算数。", illustration: "LiuliWriting", identifier: "profile.overviewHeading")
                         metrics(StatisticsService.snapshot(tasks: tasks, sessions: sessions, now: context.date))
+                        if !dynamicTypeSize.isAccessibilitySize {
+                            Image(decorative: "LiuliOverview")
+                                .resizable()
+                                .scaledToFit()
+                                .allowsHitTesting(false)
+                        }
                     }
-                    .padding(ZJTheme.pagePadding)
+                    .padding(.horizontal, ZJTheme.pagePadding)
+                    .padding(.top, 14)
+                    .padding(.bottom, 24)
                 }
             }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ZJBackButton { presentedPanel = nil }
+                    .accessibilityIdentifier("profile.closePanel")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, ZJTheme.pagePadding - 6)
+                    .padding(.top, 6)
+            }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
-            .navigationTitle("我的概况")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { closePanelButton } }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 
     private func metrics(_ statistics: StatisticsSnapshot) -> some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: 10))
-            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
-        return layout {
-            metricCards(statistics)
+        VStack(spacing: 0) {
+            ProfileMetricRow(title: "累计完成", value: "\(completedCount) 件", detail: "每一步都算数", systemImage: "checkmark.circle.fill", identifier: "profile.completed")
+            Divider().overlay(ZJTheme.divider)
+            ProfileMetricRow(title: "本周专注", value: ElapsedTimeText.string(for: statistics.secondsThisWeek), detail: "来自真实计时", systemImage: "clock.fill", identifier: "profile.weekFocus")
+            Divider().overlay(ZJTheme.divider)
+            ProfileMetricRow(title: "任务完成率", value: "\(completionRate)%", detail: "当前任务进度", systemImage: "leaf.fill", identifier: "profile.completionRate")
         }
-    }
-
-    @ViewBuilder
-    private func metricCards(_ statistics: StatisticsSnapshot) -> some View {
-        ProfileMetricCard(
-            title: "累计完成",
-            value: "\(completedCount) 件",
-            detail: "每一步都算数",
-            systemImage: "checkmark.circle.fill",
-            tint: ZJTheme.timerAccent,
-            identifier: "profile.completed"
-        )
-
-        ProfileMetricCard(
-            title: "本周专注",
-            value: ElapsedTimeText.string(for: statistics.secondsThisWeek),
-            detail: "来自真实计时",
-            systemImage: "clock.fill",
-            tint: ZJTheme.accent,
-            identifier: "profile.weekFocus"
-        )
-
-        ProfileMetricCard(
-            title: "任务完成率",
-            value: "\(completionRate)%",
-            detail: "当前任务进度",
-            systemImage: "chart.bar.fill",
-            tint: ZJTheme.success,
-            identifier: "profile.completionRate"
-        )
+        .padding(.horizontal, 14)
+        .zjPaperCard()
     }
 
 }
@@ -231,6 +205,7 @@ private enum ProfilePanel: String, Identifiable {
 
 private struct ProfilePreferencesView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(AccountStore.self) private var account
     @Environment(LocalLibraryStore.self) private var libraries
     @Query private var tasks: [TodoTask]
@@ -240,10 +215,13 @@ private struct ProfilePreferencesView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    settingsCard
+                VStack(alignment: .leading, spacing: 18) {
+                    ZJPaperHeader(title: "偏好设置", illustration: "LiuliPreferences", identifier: "profile.preferencesHeading")
                     identityCard
+                    settingsCard
+                    sectionTitle("账户")
                     AccountControls()
+                    sectionTitle("记录库")
                     LocalLibraryCard()
                     SyncSettingsCard()
                     AccountSessionActions()
@@ -253,14 +231,14 @@ private struct ProfilePreferencesView: View {
                 .padding(.bottom, 28)
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
-            .navigationTitle("偏好设置")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("关闭", action: dismiss.callAsFunction)
-                        .accessibilityIdentifier("profile.closePanel")
-                }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ZJBackButton(action: dismiss.callAsFunction)
+                    .accessibilityIdentifier("profile.closePanel")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, ZJTheme.pagePadding - 6)
+                    .padding(.top, 6)
             }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $isAboutPresented) { AboutZhouJiView() }
             .sheet(isPresented: $isProfileEditorPresented) {
                 if let profile = account.account { ProfileEditor(profile: profile) }
@@ -278,7 +256,7 @@ private struct ProfilePreferencesView: View {
                     ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli)
                     VStack(alignment: .leading, spacing: 7) {
                         Text(profile.displayName)
-                            .font(.title3.weight(.bold))
+                            .font(.title2.weight(.semibold))
                             .foregroundStyle(ZJTheme.ink)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
@@ -293,7 +271,7 @@ private struct ProfilePreferencesView: View {
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
                 .padding(16)
-                .zjCard()
+                .zjPaperCard()
             }
             .buttonStyle(.plain)
             .disabled(account.isBusy)
@@ -310,7 +288,7 @@ private struct ProfilePreferencesView: View {
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
-                    .font(.title3.weight(.bold))
+                    .font(.title2.weight(.semibold))
                     .foregroundStyle(ZJTheme.ink)
 
                 Text("数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。")
@@ -322,7 +300,7 @@ private struct ProfilePreferencesView: View {
             Spacer(minLength: 0)
         }
         .padding(16)
-        .zjCard()
+        .zjPaperCard()
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.guestNotice")
     }
@@ -353,129 +331,182 @@ private struct ProfilePreferencesView: View {
             .accessibilityLabel("关于粥记")
             .accessibilityValue("版本 \(Self.appVersion)")
         }
-        .zjCard()
+        .zjPaperCard()
     }
 
     private var settingDivider: some View {
         Divider()
             .overlay(ZJTheme.divider)
-            .padding(.leading, 62)
+            .padding(.horizontal, 14)
     }
 
-    private static var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+    private func sectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(ZJTheme.handwriting(25, relativeTo: .title2).weight(.bold))
+            .foregroundStyle(ZJTheme.ink)
+            .padding(.top, 6)
+            .accessibilityAddTraits(.isHeader)
     }
+
+    private static var appVersion: String { ZJAppVersion.display }
 }
 
-private struct ProfileMetricCard: View {
+private struct ProfileMetricRow: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     let value: String
     let detail: String
     let systemImage: String
-    let tint: Color
     let identifier: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 9) {
-            Image(systemName: systemImage)
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(tint)
-
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .lineLimit(1)
-
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 10))
+        layout {
+            HStack(spacing: 10) {
+                ZJIcon(systemName: systemImage, size: 48, tint: ZJTheme.success)
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title)
+                        .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(detail)
+                        .font(ZJTheme.handwriting(15, relativeTo: .caption))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
             Text(value)
-                .font(.title3.weight(.bold))
+                .font(.system(.title, design: .rounded, weight: .semibold))
                 .monospacedDigit()
-                .foregroundStyle(ZJTheme.ink)
-                .minimumScaleFactor(0.6)
-                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                .fixedSize(horizontal: false, vertical: true)
+                .layoutPriority(1)
                 .accessibilityIdentifier(identifier)
-
-            Text(detail)
-                .font(.caption2)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .lineLimit(1)
         }
-        .frame(maxWidth: .infinity, minHeight: 118, alignment: .topLeading)
-        .padding(14)
-        .zjCard()
+        .foregroundStyle(ZJTheme.ink)
+        .padding(.vertical, 26)
     }
 }
 
 struct ProfileSettingRow: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     let detail: String
     let systemImage: String
     let showsChevron: Bool
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             Image(systemName: systemImage)
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(ZJTheme.accent)
-                .frame(width: 34, height: 34)
-                .background(ZJTheme.accentSoft, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .font(.system(size: 28, weight: .semibold))
+                .foregroundStyle(ZJTheme.success)
+                .frame(width: 32, height: 36)
                 .accessibilityHidden(true)
-
-            Text(title)
-                .font(.body.weight(.semibold))
-                .foregroundStyle(ZJTheme.ink)
-
-            Spacer(minLength: 8)
-
-            Text(detail)
-                .font(.caption)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .lineLimit(1)
-
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6))
+                : AnyLayout(HStackLayout(spacing: 8))
+            layout {
+                Text(title)
+                    .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
+                    .foregroundStyle(ZJTheme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+                if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+                Text(detail)
+                    .font(ZJTheme.handwriting(14, relativeTo: .caption))
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if showsChevron {
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .font(.body.weight(.medium))
+                    .foregroundStyle(ZJTheme.ink)
                     .accessibilityHidden(true)
             }
         }
         .padding(.horizontal, 14)
-        .frame(minHeight: 62)
+        .padding(.vertical, 16)
+        .frame(minHeight: 64)
         .contentShape(Rectangle())
+    }
+}
+
+enum ZJAppVersion {
+    static var display: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
     }
 }
 
 private struct AboutZhouJiView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                ZJTheme.pageBackground.ignoresSafeArea()
-
-                VStack(spacing: 18) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 56, weight: .medium))
-                        .foregroundStyle(ZJTheme.accent)
-
-                    Text("粥记")
-                        .font(.largeTitle.weight(.bold))
-                        .foregroundStyle(ZJTheme.ink)
-
-                    Text("打开即做，记录真实投入。\n把重要的事，一件一件完成。")
-                        .font(.body)
+            ScrollView {
+                VStack(spacing: 20) {
+                    Text("关于粥记")
+                        .font(ZJTheme.handwriting(32, relativeTo: .title).weight(.bold))
+                        .accessibilityAddTraits(.isHeader)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(decorative: "LiuliAbout")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: 300)
+                            .allowsHitTesting(false)
+                    }
+                    VStack(spacing: 4) {
+                        Text("粥记")
+                            .font(ZJTheme.handwriting(62, relativeTo: .largeTitle).weight(.bold))
+                        Text("一粥又一周")
+                            .font(ZJTheme.handwriting(30, relativeTo: .title).weight(.bold))
+                            .overlay(alignment: .bottom) {
+                                Capsule().fill(Color(red: 0.86, green: 0.65, blue: 0.29))
+                                    .overlay { ZJInkGrain(count: 250).clipShape(Capsule()) }
+                                    .frame(height: 4)
+                                    .rotationEffect(.degrees(-3))
+                                    .offset(y: 7)
+                                    .accessibilityHidden(true)
+                            }
+                    }
+                    Text("版本 \(ZJAppVersion.display)")
+                        .font(ZJTheme.handwriting(17, relativeTo: .footnote))
                         .foregroundStyle(ZJTheme.secondaryInk)
-                        .multilineTextAlignment(.center)
+                        .accessibilityIdentifier("about.version")
+                    Text("打开即做，记录真实投入。\n把重要的事，一件一件完成。")
+                        .font(ZJTheme.handwriting(19, relativeTo: .body))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .lineSpacing(7)
                         .fixedSize(horizontal: false, vertical: true)
+                    VStack(spacing: 8) {
+                        HStack(spacing: 4) {
+                            ZJIcon(systemName: "leaf.fill", size: 36)
+                            ZJIcon(systemName: "star.fill", size: 26)
+                        }
+                        .accessibilityHidden(true)
+                        Text("A LITTLE EVERYDAY,\nA BETTER WEEK.")
+                            .font(ZJTheme.handwriting(13, relativeTo: .caption))
+                            .tracking(1)
+                    }
+                    .padding(.top, 8)
                 }
-                .padding(28)
+                .foregroundStyle(ZJTheme.ink)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, ZJTheme.pagePadding)
+                .padding(.top, 12)
+                .padding(.bottom, 28)
             }
-            .navigationTitle("关于粥记")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("完成") { dismiss() }
-                }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                ZJBackButton(label: "完成", action: dismiss.callAsFunction)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, ZJTheme.pagePadding - 6)
+                    .padding(.top, 6)
             }
+            .background(ZJTheme.pageBackground.ignoresSafeArea())
+            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationBackground(ZJTheme.background)
     }

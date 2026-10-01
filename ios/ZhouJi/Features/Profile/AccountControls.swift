@@ -52,16 +52,23 @@ struct AccountControls: View {
                     .font(.caption)
                     .foregroundStyle(ZJTheme.secondaryInk)
             } else {
-                Text(contentSync.isEnabled
-                     ? "任务与计时默认保存在本机。仅在你主动同步后才会上传已结束的计时。"
-                     : "任务与计时记录仍保存在本机，云同步尚未上线。")
-                    .font(.footnote)
-                    .foregroundStyle(ZJTheme.secondaryInk)
+                HStack(alignment: .center, spacing: 14) {
+                    Image(systemName: "doc.text.fill")
+                        .font(.system(size: 30))
+                        .foregroundStyle(ZJTheme.success)
+                        .accessibilityHidden(true)
+                    Text(contentSync.isEnabled
+                         ? "任务与计时默认保存在本机。仅在你主动同步后才会上传已结束的计时。"
+                         : "任务与计时记录仍保存在本机，云同步尚未上线。")
+                        .font(ZJTheme.handwriting(16, relativeTo: .footnote))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             AccountStatusRow()
         }
         .padding(16)
-        .zjCard()
+        .zjPaperCard()
         .task { await account.prepare() }
     }
 }
@@ -75,19 +82,18 @@ struct AccountSessionActions: View {
     var body: some View {
         Group {
             if account.account != nil {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Button("退出登录") { showsLogout = true }
-                            .disabled(account.isBusy)
-                            .accessibilityIdentifier("account.logout")
-                        Spacer()
-                        Button("注销账户", role: .destructive) { showsDeletion = true }
-                            .disabled(account.isBusy)
-                            .accessibilityIdentifier("account.delete")
-                    }
+                VStack(spacing: 6) {
+                    Button("退出登录") { showsLogout = true }
+                        .buttonStyle(ZJPaperButtonStyle(border: ZJTheme.secondaryInk))
+                        .disabled(account.isBusy)
+                        .accessibilityIdentifier("account.logout")
+                    Button("注销账户", role: .destructive) { showsDeletion = true }
+                        .font(ZJTheme.handwriting(17, relativeTo: .footnote))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .disabled(account.isBusy)
+                        .accessibilityIdentifier("account.delete")
                 }
-                .padding(16)
-                .zjCard()
                 .confirmationDialog("退出登录？", isPresented: $showsLogout, titleVisibility: .visible) {
                     Button("退出登录", role: .destructive) { Task { await account.logout(); await account.prepare() } }
                 } message: {

@@ -330,6 +330,7 @@ struct TodayView: View {
             }
             .padding(.horizontal, ZJTheme.pagePadding)
             .padding(.vertical, 10)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("查看当前计时")
