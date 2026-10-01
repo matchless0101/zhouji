@@ -97,8 +97,8 @@ struct AccountSessionActions: View {
                     Button("注销账户", role: .destructive) { Task { await account.deleteAccount() } }
                 } message: {
                     Text(account.account?.provider == "wechat"
-                         ? "将永久删除粥记服务端账户及保存的授权凭据，本机内容会先保存为可导出的备份，再返回游客记录。微信中的应用授权请在微信设置中管理。"
-                         : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机内容会先保存为可导出的备份，再返回游客记录。")
+                         ? "将永久删除粥记服务端账户及保存的授权凭据，本机内容会先保存为副本，再返回游客记录。微信中的应用授权请在微信设置中管理。"
+                         : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机内容会先保存为副本，再返回游客记录。")
                 }
             }
         }

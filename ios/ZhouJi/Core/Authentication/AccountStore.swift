@@ -241,7 +241,7 @@ final class AccountStore {
             try clearSession()
             if let prepared { libraries?.completeLogout(prepared: prepared) }
             message = libraries == nil ? "账户已注销，本机任务与计时记录已保留。"
-                : "账户已注销，已返回游客记录。可在数据备份中导出注销前内容。"
+                : "账户已注销，已返回游客记录。注销前内容副本保存在本机。"
         } catch AccountError.expired {
             try? clearSession()
             message = AccountError.expired.localizedDescription

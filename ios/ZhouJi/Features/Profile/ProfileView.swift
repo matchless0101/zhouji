@@ -245,7 +245,6 @@ private struct ProfilePreferencesView: View {
                     identityCard
                     AccountControls()
                     LocalLibraryCard()
-                    BackupSettingsCard()
                     SyncSettingsCard()
                     AccountSessionActions()
                 }

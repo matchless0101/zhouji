@@ -40,7 +40,7 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testBackupRestoreProtectsCurrentRunningTimer() throws {
+    func testSettingsHideBackupControlsAndKeepRunningTimerAvailable() throws {
         continueAfterFailure = false
         let app = makeApp()
         app.launchArguments += ["-ZJPreviewSampleData"]
@@ -50,13 +50,14 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["收起"].tap()
         app.buttons["tab.profile"].tap()
         openPreferences(in: app)
-        let restore = app.buttons["backup.import"]
-        for _ in 0..<5 where !restore.isHittable { app.swipeUp() }
-        XCTAssertTrue(restore.isHittable)
-        restore.tap()
-        let message = app.staticTexts["backup.message"]
-        XCTAssertTrue(message.waitForExistence(timeout: 3))
-        XCTAssertTrue(message.label.contains("请先结束当前计时"))
+        XCTAssertTrue(app.buttons["关于粥记"].isHittable)
+        saveScreenshot("profile-preferences-top", app: app)
+        for _ in 0..<5 { app.swipeUp() }
+        for identifier in ["backup.export", "backup.import", "backup.protection", "backup.deletedAccount"] {
+            XCTAssertFalse(app.buttons[identifier].exists)
+        }
+        XCTAssertFalse(app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "数据备份")).firstMatch.exists)
+        saveScreenshot("profile-preferences-without-backup", app: app)
         app.buttons["profile.closePanel"].tap()
         app.buttons["tab.today"].tap()
         XCTAssertTrue(app.buttons["查看当前计时"].waitForExistence(timeout: 3))
