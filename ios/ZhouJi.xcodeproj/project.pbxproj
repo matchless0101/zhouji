@@ -28,7 +28,6 @@
 		392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */; };
 		39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */; };
 		3AF2DF62E7A5B95E8CB10FC9 /* AccountAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = C607725C41AC3A40809F71B5 /* AccountAPI.swift */; };
-		41D14A4D877104C6569584D3 /* AppAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 330445BD9756850EFD1D5B36 /* AppAppearance.swift */; };
 		447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */; };
 		461E587FC99FA97A74AEBE8B /* WeChatLoginTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */; };
 		46BB3D5F0F1865ED5B109AD5 /* BackupRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */; };
@@ -112,7 +111,6 @@
 		2AE35BC4F8E743F7330D793A /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundaries.swift; sourceTree = "<group>"; };
 		329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundariesTests.swift; sourceTree = "<group>"; };
-		330445BD9756850EFD1D5B36 /* AppAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppAppearance.swift; sourceTree = "<group>"; };
 		369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStoreTests.swift; sourceTree = "<group>"; };
 		3DFAE2CD8AEFE11C5F6576FB /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		409B7EA59769107E561759AD /* ElapsedTimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeText.swift; sourceTree = "<group>"; };
@@ -254,7 +252,6 @@
 		4C1DCDD978533A27FD116B74 /* Design */ = {
 			isa = PBXGroup;
 			children = (
-				330445BD9756850EFD1D5B36 /* AppAppearance.swift */,
 				C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */,
 				F9FE7B80BB92D300651E1455 /* ZJTheme.swift */,
 			);
@@ -608,7 +605,6 @@
 				D27670415C7369910700AB77 /* AccountControls.swift in Sources */,
 				067375DB8F4E47FFA01BCC14 /* AccountKeychain.swift in Sources */,
 				1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */,
-				41D14A4D877104C6569584D3 /* AppAppearance.swift in Sources */,
 				2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */,
 				1AE28A3CAB798741FAFD066C /* BackupSettingsCard.swift in Sources */,
 				DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */,

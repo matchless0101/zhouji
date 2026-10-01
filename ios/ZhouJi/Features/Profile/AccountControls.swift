@@ -4,7 +4,6 @@ import SwiftUI
 /// Guest login entry near the top of Profile; session end actions live at the page bottom.
 struct AccountControls: View {
     @Environment(AccountStore.self) private var account
-    @Environment(\.colorScheme) private var colorScheme
     @Environment(ContentSyncStore.self) private var contentSync
 
     var body: some View {
@@ -25,7 +24,7 @@ struct AccountControls: View {
                                 if account.account == nil { await account.prepare() }
                             }
                         }
-                        .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                        .signInWithAppleButtonStyle(.black)
                         .frame(height: 50)
                         .disabled(account.isBusy || challenge.expiresAt <= context.date.timeIntervalSince1970)
                         .accessibilityIdentifier("account.appleLogin")

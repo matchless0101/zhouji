@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct ZJIllustration: View {
-    @Environment(\.colorScheme) private var colorScheme
     let name: String
     var height: CGFloat = 200
 
@@ -11,14 +10,12 @@ struct ZJIllustration: View {
             .scaledToFit()
             .frame(maxWidth: .infinity)
             .frame(height: height)
-            .opacity(colorScheme == .dark ? 0.88 : 1)
             .accessibilityHidden(true)
             .allowsHitTesting(false)
     }
 }
 
 struct ZJPaperBackground: View {
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ZJTheme.background.overlay {
@@ -29,7 +26,7 @@ struct ZJPaperBackground: View {
                     let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
                     let side = index.isMultiple(of: 5) ? 1.2 : 0.6
                     context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
-                                 with: .color(ZJTheme.ink.opacity(colorScheme == .dark ? 0.035 : 0.045)))
+                                 with: .color(ZJTheme.ink.opacity(0.045)))
                 }
             }
         }
@@ -58,7 +55,6 @@ struct ZJAddButtonStyle: ButtonStyle {
 
 /// Edge-to-edge scenes use a viewport instead of shrinking into a small vignette.
 struct ZJScene: View {
-    @Environment(\.colorScheme) private var colorScheme
     let name: String
     let height: CGFloat
 
@@ -69,7 +65,6 @@ struct ZJScene: View {
                 .scaledToFill()
                 .frame(width: proxy.size.width, height: proxy.size.height)
                 .clipped()
-                .opacity(colorScheme == .dark ? 0.88 : 1)
         }
         .frame(height: height)
         .accessibilityHidden(true)

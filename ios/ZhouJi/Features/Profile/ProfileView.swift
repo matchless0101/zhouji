@@ -233,11 +233,8 @@ private struct ProfilePreferencesView: View {
     @Environment(AccountStore.self) private var account
     @Environment(LocalLibraryStore.self) private var libraries
     @Query private var tasks: [TodoTask]
-    @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
     @State private var isAboutPresented = false
     @State private var isProfileEditorPresented = false
-
-    private var appearance: AppAppearance { AppAppearance(rawValue: appearanceRawValue) ?? .system }
 
     var body: some View {
         NavigationStack {
@@ -347,32 +344,6 @@ private struct ProfilePreferencesView: View {
 
     private var settingsCard: some View {
         VStack(spacing: 0) {
-            Menu {
-                ForEach(AppAppearance.allCases) { option in
-                    Button {
-                        appearanceRawValue = option.rawValue
-                    } label: {
-                        if appearance == option {
-                            Label(option.title, systemImage: "checkmark")
-                        } else {
-                            Text(option.title)
-                        }
-                    }
-                }
-            } label: {
-                ProfileSettingRow(
-                    title: "外观",
-                    detail: appearance.title,
-                    systemImage: "moon",
-                    showsChevron: true
-                )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("外观")
-            .accessibilityValue(appearance.title)
-
-            settingDivider
-
             ProfileSettingRow(
                 title: "数据与存储",
                 detail: "本机存储 · \(tasks.count) 项任务",

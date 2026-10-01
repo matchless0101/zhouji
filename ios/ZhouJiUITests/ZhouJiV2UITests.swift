@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
@@ -145,7 +146,7 @@ final class ZhouJiUITests: XCTestCase {
         openPreferences(in: app)
         for _ in 0..<6 where !app.staticTexts["数据与存储"].exists { app.swipeUp() }
         XCTAssertTrue(app.staticTexts["数据与存储"].exists)
-        XCTAssertTrue(app.buttons["外观"].exists)
+        XCTAssertFalse(app.buttons["外观"].exists)
         XCTAssertTrue(app.buttons["关于粥记"].exists)
         XCTAssertTrue(app.staticTexts["游客模式"].exists)
         XCTAssertTrue(app.staticTexts["登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。"].exists)
@@ -470,7 +471,7 @@ final class ZhouJiUITests: XCTestCase {
     func testHeaderNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel() throws {
         continueAfterFailure = false
         let app = makeApp()
-        app.launchArguments += ["-ZJInitialTab", "goals", "-ZJPreviewSampleData", "-appAppearance", "dark",
+        app.launchArguments += ["-ZJInitialTab", "goals", "-ZJPreviewSampleData", "-appAppearance", "light",
                                 "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
         let newGoal = app.buttons["新建目标"]
@@ -497,7 +498,7 @@ final class ZhouJiUITests: XCTestCase {
     func testFloatingAddTaskRemainsUsableWithRunningTimer() throws {
         continueAfterFailure = false
         let app = makeApp()
-        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "dark"]
+        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "light"]
         app.launch()
         app.buttons["开始计时"].firstMatch.tap()
         XCTAssertTrue(app.buttons["收起"].waitForExistence(timeout: 2))
@@ -518,58 +519,54 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testTodayAppearanceSwitching() throws {
+    func testAllPagesStayLightAndAppearanceControlIsRemoved() throws {
         continueAfterFailure = false
-        let app = makeApp()
-        app.launchArguments += ["-ZJPreviewSampleData"]
-        app.launch()
-        XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 3))
-
-        for (appearance, screenshot) in [("深色模式", "today-dark"),
-                                        ("浅色模式", "today-switched-light"),
-                                        ("深色模式", "today-switched-dark")] {
-            app.buttons["tab.profile"].tap()
+        for legacyAppearance in ["dark", "system"] {
+            let app = makeApp()
+            app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", legacyAppearance]
+            app.launch()
+            for tab in ["today", "goals", "calendar", "profile"] {
+                app.buttons["tab.\(tab)"].tap()
+                XCTAssertTrue(app.buttons["tab.\(tab)"].isSelected)
+                assertLightPaper(in: app)
+                saveScreenshot("fixed-light-\(legacyAppearance)-\(tab)", app: app)
+            }
             openPreferences(in: app)
-            let settings = app.buttons["外观"]
-            for _ in 0..<3 where !settings.isHittable { app.swipeUp() }
-            XCTAssertTrue(settings.isHittable)
-            settings.tap()
-            app.buttons[appearance].tap()
-            XCTAssertEqual(settings.value as? String, appearance)
+            XCTAssertTrue(app.buttons["关于粥记"].waitForExistence(timeout: 2))
+            XCTAssertFalse(app.buttons["外观"].exists)
+            assertLightPaper(in: app)
             app.buttons["profile.closePanel"].tap()
             app.buttons["tab.today"].tap()
-            XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 2))
-            XCTAssertTrue(app.buttons["开始计时"].firstMatch.isHittable)
-            saveScreenshot(screenshot, app: app)
-            app.buttons["tab.goals"].tap()
-            XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
-            saveScreenshot(screenshot.replacingOccurrences(of: "today", with: "goals"), app: app)
+            app.buttons["添加任务"].tap()
+            XCTAssertTrue(app.textFields["今天要做什么？"].waitForExistence(timeout: 2))
+            assertLightPaper(in: app)
+            app.terminate()
         }
     }
 
     @MainActor
-    func testReferenceAppearanceInDarkModeAndLargeText() throws {
+    func testReferenceAppearanceWithLargeText() throws {
         continueAfterFailure = false
         let app = makeApp()
-        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "dark",
+        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "light",
                                 "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
         app.launch()
         XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
-        saveScreenshot("today-dark-large-text", app: app)
+        saveScreenshot("today-light-large-text", app: app)
         app.buttons["tab.goals"].tap()
         XCTAssertTrue(app.buttons["目标筛选"].waitForExistence(timeout: 2))
-        saveScreenshot("goals-dark-large-text", app: app)
+        saveScreenshot("goals-light-large-text", app: app)
         app.buttons["tab.calendar"].tap()
         XCTAssertTrue(app.buttons["calendar.previousMonth"].waitForExistence(timeout: 2))
         app.buttons["calendar.previousMonth"].tap()
         XCTAssertTrue(app.staticTexts["calendar.empty"].waitForExistence(timeout: 2))
-        saveScreenshot("calendar-dark-large-text", app: app)
+        saveScreenshot("calendar-light-large-text", app: app)
         app.buttons["tab.profile"].tap()
         XCTAssertTrue(app.buttons["profile.overview"].isHittable)
         XCTAssertTrue(app.buttons["profile.settings"].isHittable)
         openOverview(in: app)
         XCTAssertTrue(app.staticTexts["profile.weekFocus"].exists)
-        saveScreenshot("profile-overview-dark-large-text", app: app)
+        saveScreenshot("profile-overview-light-large-text", app: app)
         app.buttons["profile.closePanel"].tap()
     }
 
@@ -639,6 +636,44 @@ final class ZhouJiUITests: XCTestCase {
         field.typeText(name)
         app.buttons["添加"].tap()
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    private func assertLightPaper(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
+            XCTFail("Screenshot unavailable", file: file, line: line)
+            return
+        }
+        let width = image.width
+        let height = image.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        pixels.withUnsafeMutableBytes { buffer in
+            let context = CGContext(data: buffer.baseAddress, width: width, height: height,
+                                    bitsPerComponent: 8, bytesPerRow: width * 4,
+                                    space: CGColorSpaceCreateDeviceRGB(),
+                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
+            context.translateBy(x: 0, y: CGFloat(height))
+            context.scaleBy(x: 1, y: -1)
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        // Sample the outer paper margin; use the median to ignore individual paper specks.
+        let sampleX = Int(Double(width) * 0.015)
+        let sampleY = Int(Double(height) * 0.12)
+        var channels = [[Int](), [Int](), [Int]()]
+        for y in (sampleY - 3)...(sampleY + 3) {
+            for x in (sampleX - 3)...(sampleX + 3) {
+                let offset = (y * width + x) * 4
+                for channel in 0..<3 { channels[channel].append(Int(pixels[offset + channel])) }
+            }
+        }
+        let red = channels[0].sorted()[24]
+        let green = channels[1].sorted()[24]
+        let blue = channels[2].sorted()[24]
+        XCTAssertGreaterThan(red, 200, "Expected light paper, got RGB \(red), \(green), \(blue)", file: file, line: line)
+        XCTAssertGreaterThan(green, 200, file: file, line: line)
+        XCTAssertGreaterThan(blue, 180, file: file, line: line)
+        XCTAssertGreaterThan(red, green, file: file, line: line)
+        XCTAssertGreaterThan(green, blue, file: file, line: line)
     }
 
     @MainActor

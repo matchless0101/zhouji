@@ -10,7 +10,6 @@ struct ZhouJiApp: App {
     @State private var accountStore = AccountStore()
     @State private var contentSync = ContentSyncStore()
     @Environment(\.scenePhase) private var scenePhase
-    @AppStorage("appAppearance") private var appearanceRawValue = AppAppearance.system.rawValue
 
     init() {
         do {
@@ -114,9 +113,7 @@ struct ZhouJiApp: App {
                 .onOpenURL { accountStore.handleWeChat(url: $0) }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { accountStore.handleWeChat(activity: $0) }
                 .tint(ZJTheme.accent)
-                .preferredColorScheme(
-                    (AppAppearance(rawValue: appearanceRawValue) ?? .system).colorScheme
-                )
+                .preferredColorScheme(.light)
         }
     }
     #if DEBUG

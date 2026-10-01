@@ -39,6 +39,8 @@
 	<array>
 		<string>LXGWWenKai-Regular.ttf</string>
 	</array>
+	<key>UIUserInterfaceStyle</key>
+	<string>Light</string>
 	<key>ZhouJiWeChatAppID</key>
 	<string>$(ZHOUJI_WECHAT_APP_ID)</string>
 </dict>

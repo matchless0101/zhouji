@@ -1,70 +1,33 @@
 import SwiftUI
-import UIKit
 
 enum ZJTheme {
     static func handwriting(_ size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
         .custom("LXGWWenKai-Regular", size: size, relativeTo: style)
     }
 
-    static let background = Color.dynamic(
-        light: UIColor(red: 0.972, green: 0.941, blue: 0.877, alpha: 1),
-        dark: UIColor(red: 0.105, green: 0.12, blue: 0.094, alpha: 1)
-    )
+    static let background = Color(red: 0.972, green: 0.941, blue: 0.877, opacity: 1)
 
-    static let surface = Color.dynamic(
-        light: UIColor(red: 0.994, green: 0.967, blue: 0.91, alpha: 1),
-        dark: UIColor(red: 0.155, green: 0.174, blue: 0.141, alpha: 1)
-    )
+    static let surface = Color(red: 0.994, green: 0.967, blue: 0.91, opacity: 1)
 
-    static let mutedSurface = Color.dynamic(
-        light: UIColor(red: 0.917, green: 0.873, blue: 0.788, alpha: 1),
-        dark: UIColor(red: 0.208, green: 0.226, blue: 0.185, alpha: 1)
-    )
+    static let mutedSurface = Color(red: 0.917, green: 0.873, blue: 0.788, opacity: 1)
 
-    static let ink = Color.dynamic(
-        light: UIColor(red: 0.2, green: 0.224, blue: 0.176, alpha: 1),
-        dark: UIColor(red: 0.95, green: 0.924, blue: 0.841, alpha: 1)
-    )
+    static let ink = Color(red: 0.2, green: 0.224, blue: 0.176, opacity: 1)
 
-    static let secondaryInk = Color.dynamic(
-        light: UIColor(red: 0.42, green: 0.425, blue: 0.35, alpha: 1),
-        dark: UIColor(red: 0.726, green: 0.738, blue: 0.647, alpha: 1)
-    )
+    static let secondaryInk = Color(red: 0.42, green: 0.425, blue: 0.35, opacity: 1)
 
-    static let divider = Color.dynamic(
-        light: UIColor(red: 0.855, green: 0.806, blue: 0.712, alpha: 1),
-        dark: UIColor(red: 0.287, green: 0.307, blue: 0.25, alpha: 1)
-    )
+    static let divider = Color(red: 0.855, green: 0.806, blue: 0.712, opacity: 1)
 
-    static let accent = Color.dynamic(
-        light: UIColor(red: 0.753, green: 0.361, blue: 0.239, alpha: 1),
-        dark: UIColor(red: 0.922, green: 0.549, blue: 0.388, alpha: 1)
-    )
+    static let accent = Color(red: 0.753, green: 0.361, blue: 0.239, opacity: 1)
 
-    static let accentSoft = Color.dynamic(
-        light: UIColor(red: 0.951, green: 0.849, blue: 0.738, alpha: 1),
-        dark: UIColor(red: 0.31, green: 0.202, blue: 0.146, alpha: 1)
-    )
+    static let accentSoft = Color(red: 0.951, green: 0.849, blue: 0.738, opacity: 1)
 
-    static let onAccent = Color.dynamic(
-        light: UIColor(red: 0.997, green: 0.974, blue: 0.922, alpha: 1),
-        dark: UIColor(red: 0.997, green: 0.974, blue: 0.922, alpha: 1)
-    )
+    static let onAccent = Color(red: 0.997, green: 0.974, blue: 0.922, opacity: 1)
 
-    static let success = Color.dynamic(
-        light: UIColor(red: 0.386, green: 0.463, blue: 0.322, alpha: 1),
-        dark: UIColor(red: 0.671, green: 0.753, blue: 0.537, alpha: 1)
-    )
+    static let success = Color(red: 0.386, green: 0.463, blue: 0.322, opacity: 1)
 
-    static let timerAccent = Color.dynamic(
-        light: UIColor(red: 0.753, green: 0.361, blue: 0.239, alpha: 1),
-        dark: UIColor(red: 0.922, green: 0.549, blue: 0.388, alpha: 1)
-    )
+    static let timerAccent = Color(red: 0.753, green: 0.361, blue: 0.239, opacity: 1)
 
-    static let timerSoft = Color.dynamic(
-        light: UIColor(red: 0.951, green: 0.849, blue: 0.738, alpha: 1),
-        dark: UIColor(red: 0.31, green: 0.202, blue: 0.146, alpha: 1)
-    )
+    static let timerSoft = Color(red: 0.951, green: 0.849, blue: 0.738, opacity: 1)
 
     static let pagePadding: CGFloat = 18
     static let pageTopSpacing: CGFloat = 42
@@ -308,12 +271,4 @@ extension ButtonStyle where Self == ZJSecondaryButtonStyle {
 
 extension ButtonStyle where Self == ZJTimerButtonStyle {
     static var zjTimer: ZJTimerButtonStyle { .init() }
-}
-
-private extension Color {
-    static func dynamic(light: UIColor, dark: UIColor) -> Color {
-        Color(uiColor: UIColor { traits in
-            traits.userInterfaceStyle == .dark ? dark : light
-        })
-    }
 }
