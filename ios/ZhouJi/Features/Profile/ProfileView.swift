@@ -59,7 +59,7 @@ struct ProfileView: View {
     private var header: some View {
         VStack(spacing: 12) {
             if let profile = account.account {
-                let avatar = ProfileAvatar(rawValue: profile.avatar ?? "") ?? .sunrise
+                let avatar = ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli
                 Button { presentedPanel = .editProfile } label: {
                     VStack(spacing: 12) {
                         ProfileAvatarView(avatar: avatar, size: dynamicTypeSize.isAccessibilitySize ? 88 : 112)
@@ -85,9 +85,7 @@ struct ProfileView: View {
                 .accessibilityValue("头像：\(avatar.title)")
                 .accessibilityIdentifier("profile.identity")
             } else {
-                ZJIcon(systemName: "person", size: 72)
-                    .frame(width: 112, height: 112)
-                    .background(ZJTheme.mutedSurface, in: Circle())
+                ProfileAvatarView(avatar: .liuli, size: dynamicTypeSize.isAccessibilitySize ? 88 : 112)
                 Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
                     .font(.title.weight(.semibold))
                     .foregroundStyle(ZJTheme.ink)
@@ -278,7 +276,7 @@ private struct ProfilePreferencesView: View {
                 isProfileEditorPresented = true
             } label: {
                 HStack(spacing: 16) {
-                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .sunrise)
+                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli)
                     VStack(alignment: .leading, spacing: 7) {
                         Text(profile.displayName)
                             .font(.title3.weight(.bold))
@@ -309,22 +307,7 @@ private struct ProfilePreferencesView: View {
 
     private var guestIdentityCard: some View {
         HStack(spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [ZJTheme.accentSoft, ZJTheme.mutedSurface],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-
-                Image(systemName: "person.fill")
-                    .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(ZJTheme.accent)
-            }
-            .frame(width: 72, height: 72)
-            .accessibilityHidden(true)
+            ProfileAvatarView(avatar: .liuli)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")

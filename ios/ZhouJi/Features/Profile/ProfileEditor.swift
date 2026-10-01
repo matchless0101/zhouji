@@ -2,12 +2,14 @@ import SwiftUI
 
 // Only stable preset identifiers are sent to the server; no remote image URLs.
 enum ProfileAvatar: String, CaseIterable, Identifiable {
-    case sunrise, leaf, moon, ocean, flower, mountain
+    // Keep the existing default identifier so saved profiles and the API stay compatible.
+    case liuli = "sunrise"
+    case leaf, moon, ocean, flower, mountain
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .sunrise: "晨光"
+        case .liuli: "榴榴"
         case .leaf: "新芽"
         case .moon: "月夜"
         case .ocean: "海浪"
@@ -18,7 +20,7 @@ enum ProfileAvatar: String, CaseIterable, Identifiable {
 
     var symbol: String {
         switch self {
-        case .sunrise: "sun.max.fill"
+        case .liuli: "sun.max.fill"
         case .leaf: "leaf.fill"
         case .moon: "moon.stars.fill"
         case .ocean: "water.waves"
@@ -29,7 +31,7 @@ enum ProfileAvatar: String, CaseIterable, Identifiable {
 
     var tint: Color {
         switch self {
-        case .sunrise: .orange
+        case .liuli: .orange
         case .leaf: .green
         case .moon: .indigo
         case .ocean: .blue
@@ -44,17 +46,26 @@ struct ProfileAvatarView: View {
     var size: CGFloat = 72
 
     var body: some View {
-        Image(systemName: avatar.symbol)
-            .font(.system(size: size * 0.40, weight: .medium))
-            .foregroundStyle(avatar.tint)
-            .frame(width: size, height: size)
-            .background {
-                Circle().fill(LinearGradient(
-                    colors: [avatar.tint.opacity(0.10), avatar.tint.opacity(0.24)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .overlay { Circle().stroke(avatar.tint.opacity(0.13), lineWidth: 1) }
+        Group {
+            if avatar == .liuli {
+                Image("LiuliHeart")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: size, height: size)
+            } else {
+                Image(systemName: avatar.symbol)
+                    .font(.system(size: size * 0.40, weight: .medium))
+                    .foregroundStyle(avatar.tint)
+                    .frame(width: size, height: size)
+                    .background {
+                        Circle().fill(LinearGradient(
+                            colors: [avatar.tint.opacity(0.10), avatar.tint.opacity(0.24)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .overlay { Circle().stroke(avatar.tint.opacity(0.13), lineWidth: 1) }
+                    }
             }
-            .accessibilityHidden(true)
+        }
+        .accessibilityHidden(true)
     }
 }
 
@@ -69,7 +80,7 @@ struct ProfileEditor: View {
     init(profile: AppAccount) {
         accountID = profile.id
         _nickname = State(initialValue: profile.displayName)
-        _avatar = State(initialValue: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .sunrise)
+        _avatar = State(initialValue: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli)
     }
 
     private var normalizedName: String {

@@ -218,6 +218,14 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["取消"].tap()
         XCTAssertEqual(identity.value as? String, "头像：月夜")
 
+        identity.tap()
+        XCTAssertTrue(nickname.waitForExistence(timeout: 3))
+        app.buttons["profile.avatar.sunrise"].tap()
+        app.buttons["profile.save"].tap()
+        XCTAssertTrue(app.navigationBars["编辑个人资料"].waitForNonExistence(timeout: 3))
+        XCTAssertEqual(identity.value as? String, "头像：榴榴")
+        saveScreenshot("profile-default-avatar", app: app)
+
         openPreferences(in: app)
         let logout = app.buttons["account.logout"]
         for _ in 0..<8 where !logout.isHittable { app.swipeUp() }
