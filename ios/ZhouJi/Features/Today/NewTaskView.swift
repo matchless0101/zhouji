@@ -1,10 +1,10 @@
 import SwiftData
 import SwiftUI
-import UIKit
 
 struct NewTaskView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Query(
         filter: #Predicate<Goal> { $0.deletedAt == nil },
@@ -25,20 +25,29 @@ struct NewTaskView: View {
         ZStack {
             ZJTheme.pageBackground.ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    pageHeader
-                    taskForm
+            GeometryReader { proxy in
+                let isCompact = proxy.size.height < 520
+                ScrollView {
+                    VStack(alignment: .leading, spacing: isCompact ? 12 : 20) {
+                        pageHeader(isCompact: isCompact, width: proxy.size.width - ZJTheme.pagePadding * 2)
+                        taskForm(isCompact: isCompact)
+                        formHint
+                    }
+                    .padding(.horizontal, ZJTheme.pagePadding)
+                    .padding(.top, isCompact ? 4 : 10)
+                    .padding(.bottom, 16)
                 }
-                .padding(.horizontal, ZJTheme.pagePadding)
-                .padding(.top, 12)
-                .padding(.bottom, 28)
+                .scrollDismissesKeyboard(.interactively)
             }
-            .scrollDismissesKeyboard(.interactively)
         }
+        .tint(ZJTheme.accent)
         .toolbar(.hidden, for: .navigationBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             submitBar
+        }
+        .defaultFocus($isTitleFocused, true)
+        .task {
+            isTitleFocused = true
         }
         .alert(
             "任务没有添加",
@@ -53,69 +62,53 @@ struct NewTaskView: View {
         }
     }
 
-    private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 18) {
+    private func pageHeader(isCompact: Bool, width: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: isCompact ? 6 : 12) {
             Button(action: dismiss.callAsFunction) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .font(.system(size: 22, weight: .medium))
+                    .foregroundStyle(ZJTheme.ink)
                     .frame(width: 44, height: 44)
-                    .background(ZJTheme.surface, in: Circle())
-                    .overlay {
-                        Circle().stroke(ZJTheme.divider.opacity(0.7), lineWidth: 0.5)
-                    }
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             .accessibilityLabel("返回今天")
 
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .bottom, spacing: 14) {
-                    headerCopy
-                    Spacer(minLength: 8)
-                    writingIllustration
-                }
+            HStack(alignment: .top, spacing: 8) {
+                VStack(alignment: .leading, spacing: isCompact ? 8 : 12) {
+                    Text("新建任务")
+                        .font(ZJTheme.handwriting(isCompact ? 34 : 38, relativeTo: .largeTitle).weight(.bold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .accessibilityAddTraits(.isHeader)
 
-                headerCopy
+                    Text("把想做的事，\n变成可以完成的行动。")
+                        .font(ZJTheme.handwriting(isCompact ? 15 : 17, relativeTo: .subheadline))
+                        .lineSpacing(3)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                if dynamicTypeSize <= .large {
+                    Image(decorative: "LiuliWriting")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: min(isCompact ? 132 : 180, width * 0.43))
+                        .padding(.top, isCompact ? 6 : 12)
+                        .allowsHitTesting(false)
+                }
             }
         }
     }
 
-    private var headerCopy: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("新建任务")
-                .font(.largeTitle.weight(.bold))
-                .foregroundStyle(ZJTheme.ink)
-
-            Text("把想做的事，变成可以完成的行动。")
-                .font(.subheadline)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    @ViewBuilder
-    private var writingIllustration: some View {
-        if let illustration = UIImage(named: "GoalWriting") {
-            Image(uiImage: illustration)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 112, height: 92)
-                .scaleEffect(1.12)
-                .blendMode(.multiply)
-                .compositingGroup()
-                .clipShape(.rect(cornerRadius: 18))
-                .accessibilityHidden(true)
-        }
-    }
-
-    private var taskForm: some View {
+    private func taskForm(isCompact: Bool) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             formLabel("任务名称")
 
-            HStack(spacing: 10) {
+            HStack(spacing: 0) {
                 TextField("今天要做什么？", text: $draftTitle)
                     .textFieldStyle(.plain)
-                    .font(.body.weight(.medium))
+                    .font(.body)
                     .foregroundStyle(ZJTheme.ink)
                     .focused($isTitleFocused)
                     .submitLabel(.done)
@@ -124,46 +117,54 @@ struct NewTaskView: View {
                 if !draftTitle.isEmpty {
                     Button {
                         draftTitle = ""
+                        isTitleFocused = true
                     } label: {
                         Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 18))
                             .foregroundStyle(ZJTheme.secondaryInk.opacity(0.45))
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("清空任务名称")
                 }
             }
-            .padding(.horizontal, 14)
+            .padding(.leading, 14)
+            .padding(.trailing, draftTitle.isEmpty ? 14 : 4)
             .frame(minHeight: 52)
-            .background(ZJTheme.mutedSurface.opacity(0.76), in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
+            .background {
+                inputSurface
+            }
 
-            formDivider
+            Divider()
+                .overlay(ZJTheme.divider.opacity(0.8))
+                .padding(.vertical, isCompact ? 8 : 20)
 
             formLabel("关联目标")
             goalPicker
-
-            formDivider
-
-            Label("任务保持简单：只记录名称和归属目标。", systemImage: "sparkles")
-                .font(.footnote)
-                .foregroundStyle(ZJTheme.secondaryInk)
-                .padding(.vertical, 4)
-                .accessibilityElement(children: .combine)
         }
-        .padding(16)
-        .zjCard()
+        .padding(isCompact ? 12 : 16)
+        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
+                .stroke(ZJTheme.divider.opacity(0.75), lineWidth: 0.8)
+        }
+    }
+
+    private var inputSurface: some View {
+        RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
+            .fill(ZJTheme.background.opacity(0.45))
+            .overlay {
+                RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
+                    .stroke(ZJTheme.divider.opacity(0.85), lineWidth: 0.8)
+            }
     }
 
     private func formLabel(_ title: String) -> some View {
         Text(title)
-            .font(.headline)
+            .font(ZJTheme.handwriting(18, relativeTo: .headline).weight(.bold))
             .foregroundStyle(ZJTheme.ink)
-            .padding(.bottom, 10)
-    }
-
-    private var formDivider: some View {
-        Divider()
-            .overlay(ZJTheme.divider)
-            .padding(.vertical, 16)
+            .padding(.bottom, 8)
     }
 
     private var goalPicker: some View {
@@ -191,33 +192,32 @@ struct NewTaskView: View {
             }
         } label: {
             HStack(spacing: 12) {
-                if let selectedGoal {
-                    ZJGoalIcon(iconName: selectedGoal.displayIconName, size: 48)
-                } else {
-                    ZJGoalIcon(iconName: "target", size: 48)
-                }
+                ZJGoalIcon(iconName: selectedGoal?.displayIconName ?? "target", size: 36)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(selectedGoal?.name ?? "不关联目标")
-                        .font(.body.weight(.semibold))
+                        .font(ZJTheme.handwriting(17, relativeTo: .body).weight(.bold))
                         .foregroundStyle(ZJTheme.ink)
                         .lineLimit(1)
 
                     Text(selectedGoal == nil ? "稍后也可以再决定" : "任务会计入这个目标的进度")
-                        .font(.caption)
+                        .font(ZJTheme.handwriting(13, relativeTo: .caption))
                         .foregroundStyle(ZJTheme.secondaryInk)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Spacer(minLength: 8)
 
                 Image(systemName: "chevron.right")
-                    .font(.caption.weight(.bold))
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .accessibilityHidden(true)
             }
             .padding(12)
-            .background(ZJTheme.mutedSurface.opacity(0.66), in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
+            .frame(minHeight: 64)
+            .background {
+                inputSurface
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -227,27 +227,60 @@ struct NewTaskView: View {
         .accessibilityHint("选择这个任务所属的目标")
     }
 
+    private var formHint: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "sparkle")
+                .font(.system(size: 16))
+                .accessibilityHidden(true)
+
+            Text("任务保持简单：只记录名称和归属目标。")
+                .font(ZJTheme.handwriting(14, relativeTo: .footnote))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(ZJTheme.secondaryInk)
+        .accessibilityElement(children: .combine)
+    }
+
     private var submitBar: some View {
         Button(action: createTask) {
             Text("添加任务")
-                .font(.headline)
+                .font(ZJTheme.handwriting(23, relativeTo: .headline))
                 .foregroundStyle(ZJTheme.onAccent)
                 .frame(maxWidth: .infinity, minHeight: 54)
-                .background(
-                    normalizedTitle.isEmpty ? ZJTheme.secondaryInk.opacity(0.35) : ZJTheme.accent,
-                    in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                )
-                .shadow(color: normalizedTitle.isEmpty ? .clear : ZJTheme.accent.opacity(0.22), radius: 16, x: 0, y: 7)
+                .padding(.vertical, 2)
+                .background {
+                    RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
+                        .fill(normalizedTitle.isEmpty ? ZJTheme.secondaryInk.opacity(0.35) : ZJTheme.accent)
+                        .overlay {
+                            if !normalizedTitle.isEmpty {
+                                Canvas { context, size in
+                                    for index in 0..<650 {
+                                        let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
+                                        let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
+                                        let side: CGFloat = index.isMultiple(of: 5) ? 1.1 : 0.5
+                                        context.fill(
+                                            Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
+                                            with: .color(ZJTheme.onAccent.opacity(0.24))
+                                        )
+                                    }
+                                }
+                                .clipShape(.rect(cornerRadius: ZJTheme.cornerRadius))
+                                .allowsHitTesting(false)
+                            }
+                        }
+                }
         }
         .buttonStyle(.plain)
         .disabled(normalizedTitle.isEmpty)
         .accessibilityLabel("添加")
         .padding(.horizontal, ZJTheme.pagePadding)
-        .padding(.vertical, 10)
-        .background(ZJTheme.background.opacity(0.96))
+        .padding(.top, 8)
+        .padding(.bottom, 10)
+        .background(ZJTheme.background)
     }
 
     private func createTask() {
+        guard !normalizedTitle.isEmpty else { return }
         do {
             _ = try TaskService.create(title: draftTitle, goal: selectedGoal, in: modelContext)
             dismiss()

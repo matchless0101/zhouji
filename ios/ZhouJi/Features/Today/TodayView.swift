@@ -21,7 +21,11 @@ struct TodayView: View {
     @State private var presentedError: String?
     @State private var referenceDate = Date.now
     @State private var bottomControlsHeight: CGFloat = 80
-    @State private var navigationPath: [TodayDestination] = []
+    @Binding private var navigationPath: [TodayDestination]
+
+    init(navigationPath: Binding<[TodayDestination]>) {
+        _navigationPath = navigationPath
+    }
 
     private var incompleteTasks: [TodoTask] {
         visibleTasks.filter { !$0.isCompleted }
@@ -239,9 +243,7 @@ struct TodayView: View {
             }
 
             if !incompleteTasks.isEmpty {
-                NavigationLink {
-                    NewTaskView()
-                } label: {
+                NavigationLink(value: TodayDestination.newTask) {
                     Image(systemName: "plus")
                 }
                 .buttonStyle(ZJAddButtonStyle())
@@ -409,7 +411,7 @@ struct TodayView: View {
     }
 }
 
-private enum TodayDestination: Hashable {
+enum TodayDestination: Hashable {
     case newTask
 }
 
@@ -484,7 +486,7 @@ private struct TodayHeader: View {
 }
 
 #Preview {
-    TodayView()
+    TodayView(navigationPath: .constant([]))
         .environment(TimerController())
         .modelContainer(for: [Goal.self, TodoTask.self, TimingSession.self], inMemory: true)
 }

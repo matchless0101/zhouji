@@ -6,6 +6,11 @@ struct RootTabView: View {
     @Environment(TimerController.self) private var timer
     @Environment(LocalLibraryStore.self) private var libraries
     @Binding private var selection: AppTab
+    @State private var todayPath: [TodayDestination] = []
+
+    private var isEditingTask: Bool {
+        selection == .today && !todayPath.isEmpty
+    }
 
     static var initialTab: AppTab { debugInitialTab ?? .today }
 
@@ -16,7 +21,7 @@ struct RootTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selection) {
-                TodayView()
+                TodayView(navigationPath: $todayPath)
                     .toolbar(.hidden, for: .tabBar)
                     .tag(AppTab.today)
                     .tabItem {
@@ -44,14 +49,16 @@ struct RootTabView: View {
                         Label("我的", systemImage: "person")
                     }
             }
-            if libraries.current.scope != LibraryScope.guest && libraries.authenticatedScope == nil {
-                Text("账户本机记录 · 请重新登录原账户")
-                    .font(.caption).foregroundStyle(ZJTheme.secondaryInk)
-            } else if libraries.current.scope == LibraryScope.guest && libraries.authenticatedScope != nil {
-                Text("正在查看游客记录 · 未合并到账户")
-                    .font(.caption).foregroundStyle(ZJTheme.secondaryInk)
+            if !isEditingTask {
+                if libraries.current.scope != LibraryScope.guest && libraries.authenticatedScope == nil {
+                    Text("账户本机记录 · 请重新登录原账户")
+                        .font(.caption).foregroundStyle(ZJTheme.secondaryInk)
+                } else if libraries.current.scope == LibraryScope.guest && libraries.authenticatedScope != nil {
+                    Text("正在查看游客记录 · 未合并到账户")
+                        .font(.caption).foregroundStyle(ZJTheme.secondaryInk)
+                }
+                navigationBar
             }
-            navigationBar
         }
         .background(ZJTheme.pageBackground.ignoresSafeArea())
         .ignoresSafeArea(.container, edges: .bottom)

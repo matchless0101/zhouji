@@ -33,6 +33,8 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
         app.buttons["profile.closePanel"].tap()
         app.buttons["tab.today"].tap()
+        // This completed task sits below the quiet Today illustration.
+        for _ in 0..<4 where !app.staticTexts["账户独有任务"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.staticTexts["账户独有任务"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["整理开题资料"].exists)
     }
@@ -296,6 +298,73 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["tab.today"].tap()
         XCTAssertTrue(app.staticTexts["散步二十分钟"].waitForExistence(timeout: 2))
         XCTAssertFalse(app.staticTexts["保持运动"].exists)
+    }
+
+    @MainActor
+    func testNewTaskOpensKeyboardAndKeepsSubmitReachable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launch()
+        app.buttons["today.firstTask"].tap()
+
+        let field = app.textFields["今天要做什么？"]
+        let keyboard = app.keyboards.firstMatch
+        let submit = app.buttons["添加"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 3), "Opening a task should focus its name automatically")
+        XCTAssertTrue(field.isHittable)
+        XCTAssertTrue(submit.isHittable)
+        XCTAssertFalse(submit.isEnabled)
+        XCTAssertLessThanOrEqual(submit.frame.maxY, keyboard.frame.minY)
+
+        field.typeText("   ")
+        XCTAssertFalse(submit.isEnabled)
+        app.buttons["清空任务名称"].tap()
+        XCTAssertTrue(keyboard.exists)
+        field.typeText("读十页书")
+        XCTAssertTrue(submit.isEnabled)
+        XCTAssertTrue(submit.isHittable)
+        XCTAssertLessThanOrEqual(submit.frame.maxY, keyboard.frame.minY)
+        saveScreenshot("new-task-reference-keyboard", app: app)
+        submit.tap()
+        XCTAssertTrue(app.staticTexts["读十页书"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["tab.today"].isHittable)
+    }
+
+    @MainActor
+    func testNewTaskLargeTextKeepsCreationReachable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
+        app.launch()
+        app.buttons["today.firstTask"].tap()
+        let field = app.textFields["今天要做什么？"]
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 3))
+        XCTAssertTrue(field.isHittable)
+        field.typeText("大字也能记一件事")
+        let submit = app.buttons["添加"]
+        XCTAssertTrue(submit.isEnabled)
+        XCTAssertTrue(submit.isHittable)
+        XCTAssertLessThanOrEqual(submit.frame.maxY, keyboard.frame.minY)
+        saveScreenshot("new-task-large-text-keyboard", app: app)
+        submit.tap()
+        XCTAssertTrue(app.staticTexts["大字也能记一件事"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["tab.today"].isHittable)
+    }
+
+    @MainActor
+    func testTaskEditorHidesNavigationUntilReturning() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launch()
+        app.buttons["today.firstTask"].tap()
+        XCTAssertTrue(app.textFields["今天要做什么？"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["tab.today"].exists)
+        app.buttons["返回今天"].tap()
+        XCTAssertTrue(app.buttons["tab.today"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["today.firstTask"].isHittable)
     }
 
     @MainActor
