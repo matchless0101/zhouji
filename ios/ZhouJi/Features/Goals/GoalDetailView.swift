@@ -36,9 +36,7 @@ struct GoalDetailView: View {
         ZStack {
             ZJTheme.pageBackground.ignoresSafeArea()
 
-            GeometryReader { proxy in
-                taskList(isCompact: proxy.size.height < 420 || isTaskFieldFocused)
-            }
+            taskList
         }
         .tint(ZJTheme.accent)
         .navigationTitle(goal.name)
@@ -123,11 +121,11 @@ struct GoalDetailView: View {
         .background(ZJTheme.pageBackground)
     }
 
-    private func taskList(isCompact: Bool) -> some View {
+    private var taskList: some View {
         let tasks = visibleTasks
 
         return List {
-            GoalPageHeader(title: goal.name, illustration: "LiuliReading", isCompact: isCompact, illustrationWidth: 150)
+            GoalPageHeader(title: goal.name, illustration: "LiuliReading", isCompact: false, illustrationWidth: 150)
                 .listRowInsets(EdgeInsets(top: 4, leading: ZJTheme.pagePadding, bottom: 10, trailing: ZJTheme.pagePadding))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)

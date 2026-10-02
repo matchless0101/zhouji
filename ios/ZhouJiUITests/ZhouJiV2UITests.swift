@@ -433,6 +433,37 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testGoalTaskHeaderKeepsSizeWhileEnteringTask() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch()
+        createGoal(named: "Lalala1", in: app)
+        app.staticTexts["Lalala1"].tap()
+
+        let heading = app.staticTexts["goal.tasks.heading"]
+        XCTAssertTrue(heading.waitForExistence(timeout: 3))
+        let initialHeading = heading.frame
+        saveScreenshot("goal-task-size-before-input", app: app)
+        let field = app.textFields["添加一个小任务"]
+        field.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
+        field.typeText("Read one page")
+        saveScreenshot("goal-task-size-during-input", app: app)
+        XCTAssertEqual(heading.frame.height, initialHeading.height, accuracy: 1, "输入任务时目标标题不应缩小")
+        XCTAssertEqual(heading.frame.width, initialHeading.width, accuracy: 1, "输入任务时目标标题尺寸应保持一致")
+
+        let add = app.buttons["添加"]
+        XCTAssertTrue(add.isHittable)
+        XCTAssertLessThanOrEqual(add.frame.maxY, app.keyboards.firstMatch.frame.minY)
+        add.tap()
+        XCTAssertTrue(app.staticTexts["Read one page"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["0/1"].exists)
+        XCTAssertEqual(heading.frame.height, initialHeading.height, accuracy: 1)
+        saveScreenshot("goal-task-size-after-input", app: app)
+    }
+
+    @MainActor
     func testGoalTaskPageAddsUnderCurrentGoalAndOpensPrintedSettings() throws {
         continueAfterFailure = false
         let app = makeApp()

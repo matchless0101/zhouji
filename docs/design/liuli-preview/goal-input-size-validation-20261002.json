@@ -1,0 +1,96 @@
+{
+  "date": "2026-10-02",
+  "baseCommit": "ffa4ca1",
+  "scope": "目标页添加任务时标题字号与插画尺寸保持稳定",
+  "screenshots": [
+    {
+      "phase": "red",
+      "file": "docs/design/liuli-preview/goal-task-size-during-input-before-fix-pro-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "ec8ae5a4492c85c1f75874f9c6da9d57742c013dec455378eab1ba212fc8f529"
+    },
+    {
+      "phase": "red",
+      "file": "docs/design/liuli-preview/goal-task-size-before-input-before-fix-pro-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "412511890778e299a22c750d33e02720cb2b45e49c9e7bd1b23c35b6b181f399"
+    },
+    {
+      "phase": "green",
+      "file": "docs/design/liuli-preview/goal-task-size-after-input-after-fix-pro-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "e25fb5f1afc12dffd99ad0a4cca7db5591b0a5d97d35656e85d42344c6bc113b"
+    },
+    {
+      "phase": "green",
+      "file": "docs/design/liuli-preview/goal-task-size-during-input-after-fix-pro-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "b9e9d9720a5a556816bd6bf958d7e266f71084729cb668b98fc422667d7f72de"
+    },
+    {
+      "phase": "green",
+      "file": "docs/design/liuli-preview/goal-task-size-before-input-after-fix-pro-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "b5897690edb5b2de1e3700188757df7ada9337407b64cfb87bc9c3f360398d26"
+    },
+    {
+      "phase": "green",
+      "device": "se",
+      "file": "docs/design/liuli-preview/goal-tasks-large-text-keyboard-after-fix-se-20261002.png",
+      "test": "ZhouJiUITests/testGoalPagesKeepAdditionAndSaveReachableWithLargeText()",
+      "sha256": "be03ecdb5e1d3a69074080d0ba04551c508d9658a66e8bef1f642e52a5b3e0ca"
+    },
+    {
+      "phase": "green",
+      "device": "se",
+      "file": "docs/design/liuli-preview/goal-task-size-after-input-after-fix-se-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "b6b3a51ab0dd87b49d1a0c485e7e069a993f10e914bf51ddef876bb3fc45b83f"
+    },
+    {
+      "phase": "green",
+      "device": "se",
+      "file": "docs/design/liuli-preview/goal-task-size-during-input-after-fix-se-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "114afeed1001e0f9cf00c3118a7b53845d5c2a34009cc463482f9c2d8e4355d8"
+    },
+    {
+      "phase": "green",
+      "device": "se",
+      "file": "docs/design/liuli-preview/goal-task-size-before-input-after-fix-se-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskHeaderKeepsSizeWhileEnteringTask()",
+      "sha256": "925af086a5f8a27a47e3badad0cf4f324f9c131e0840fecf6ad198c0d1c3da6f"
+    },
+    {
+      "phase": "green",
+      "device": "se",
+      "file": "docs/design/liuli-preview/goal-long-name-keyboard-after-fix-se-20261002.png",
+      "test": "ZhouJiUITests/testLongGoalNameKeepsInlineTaskAdditionReachable()",
+      "sha256": "463d60071aae062a50f4619adf741a15649c09201f5f0fd15ca1ebcb734256c1"
+    }
+  ],
+  "validation": [
+    {
+      "phase": "red",
+      "test": "testGoalTaskHeaderKeepsSizeWhileEnteringTask",
+      "expectedFailure": "标题区域高度从114降至98",
+      "bundle": "/private/tmp/zhouji-goal-input-size-red.xcresult"
+    },
+    {
+      "phase": "green",
+      "unitTests": 82,
+      "uiTests": 34,
+      "failures": 0,
+      "bundle": "/private/tmp/zhouji-goal-input-size-full.xcresult"
+    },
+    {
+      "phase": "green",
+      "device": "iPhone SE",
+      "focusedUiTests": 4,
+      "failures": 0,
+      "bundle": "/private/tmp/zhouji-goal-input-size-se.xcresult"
+    }
+  ],
+  "readOnlyReview": "no findings",
+  "realDeviceVerified": false
+}
