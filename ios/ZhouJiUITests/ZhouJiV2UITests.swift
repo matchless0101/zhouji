@@ -1116,6 +1116,38 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testGoalBackgroundStaysInPlaceWhileCreatingGoal() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch()
+        XCTAssertTrue(app.buttons["新建目标"].waitForExistence(timeout: 3))
+        let originalArtworkY = try XCTUnwrap(goalArtworkTopAtMargin(in: app, above: app.buttons["tab.goals"].frame.minY))
+        saveScreenshot("goals-background-before-creation", app: app)
+        app.buttons["新建目标"].tap()
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 3))
+        let field = app.textFields["目标名称"]
+        XCTAssertTrue(field.isHittable)
+        field.typeText("多读书")
+        let create = app.buttons["创建"]
+        XCTAssertTrue(create.isHittable)
+        XCTAssertLessThanOrEqual(create.frame.maxY, keyboard.frame.minY)
+        saveScreenshot("goals-background-during-creation", app: app)
+        let visibleArtworkY = goalArtworkTopAtMargin(in: app, above: keyboard.frame.minY)
+        XCTAssertGreaterThanOrEqual(visibleArtworkY ?? app.frame.height, originalArtworkY - 2,
+                                    "输入目标时，背景插画不能从原来的底部位置被推到键盘上方")
+        app.buttons["取消"].tap()
+        XCTAssertTrue(keyboard.waitForNonExistence(timeout: 3))
+        let restoredArtworkY = try XCTUnwrap(goalArtworkTopAtMargin(in: app, above: app.buttons["tab.goals"].frame.minY))
+        XCTAssertEqual(restoredArtworkY, originalArtworkY, accuracy: 2)
+        app.buttons["新建目标"].tap()
+        field.typeText("每天阅读")
+        create.tap()
+        XCTAssertTrue(app.staticTexts["每天阅读"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
     func testHeaderNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -1309,6 +1341,32 @@ final class ZhouJiUITests: XCTestCase {
             XCTAssertGreaterThan(sample.inkFraction, 0.02,
                                  "首页插画应到达\(sample.isRight ? "右" : "左")侧屏幕边缘，不能被列表左右留白裁切（第 \(sample.inset) 列）", file: file, line: line)
         }
+    }
+
+    @MainActor
+    private func goalArtworkTopAtMargin(in app: XCUIApplication, above bottom: CGFloat) -> CGFloat? {
+        guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else { return nil }
+        let width = image.width
+        let height = image.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        pixels.withUnsafeMutableBytes { buffer in
+            let context = CGContext(data: buffer.baseAddress, width: width, height: height,
+                                    bitsPerComponent: 8, bytesPerRow: width * 4,
+                                    space: CGColorSpaceCreateDeviceRGB(),
+                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        let scale = CGFloat(width) / app.frame.width
+        // The 14pt margin is outside cards, inputs and navigation icons.
+        // Inspect actual printed pixels rather than an invisible layout frame.
+        let x = Int(14 * scale)
+        for y in stride(from: Int(100 * scale), to: min(height, Int(bottom * scale)), by: 2) {
+            let offset = (y * width + x) * 4
+            if pixels[offset] < 190 && pixels[offset + 1] < 190 && pixels[offset + 2] < 180 {
+                return CGFloat(y) / scale
+            }
+        }
+        return nil
     }
 
     @MainActor

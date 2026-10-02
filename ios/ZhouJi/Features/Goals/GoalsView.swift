@@ -15,6 +15,8 @@ struct GoalsView: View {
     private var visibleGoals: [Goal]
 
     @State private var isAddingGoal = false
+    @State private var backgroundHeight: CGFloat = 0
+    @State private var isKeyboardVisible = false
     @State private var draftName = ""
     @State private var pendingDeletion: Goal?
     @State private var presentedError: String?
@@ -49,8 +51,6 @@ struct GoalsView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ZStack {
-                ZJTheme.pageBackground.ignoresSafeArea()
-
                 List {
                     if filteredGoals.isEmpty {
                         ZJEmptyState(
@@ -93,9 +93,6 @@ struct GoalsView: View {
                 .contentMargins(.top, 0, for: .scrollContent)
                 .contentMargins(.bottom, 16, for: .scrollContent)
                 .scrollContentBackground(.hidden)
-                .background(alignment: .bottom) {
-                    ZJScene(name: "LiuliGoals", height: 255)
-                }
                 .clipped()
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -108,6 +105,24 @@ struct GoalsView: View {
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if isAddingGoal { addGoalControls }
+            }
+            .background(alignment: .top) {
+                ZStack(alignment: .bottom) {
+                    ZJTheme.pageBackground.ignoresSafeArea()
+                    ZJScene(name: "LiuliGoals", height: 255)
+                }
+                .frame(height: backgroundHeight, alignment: .bottom)
+            }
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
+                // Preserve the resting canvas while the input bar and keyboard reduce the viewport.
+                guard !isAddingGoal, !isKeyboardVisible else { return }
+                backgroundHeight = height
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                isKeyboardVisible = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
+                isKeyboardVisible = false
             }
             .navigationDestination(for: GoalDestination.self) { destination in
                 switch destination {
