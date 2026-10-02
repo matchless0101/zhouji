@@ -766,6 +766,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(greeting.waitForExistence(timeout: 3))
         let originalFrame = greeting.frame
         saveScreenshot("today-scale-empty", app: app)
+        assertTodayArtworkReachesScreenEdges(in: app)
 
         app.buttons["today.firstTask"].tap()
         let field = app.textFields["今天要做什么？"]
@@ -774,6 +775,7 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["添加"].tap()
         XCTAssertTrue(app.staticTexts["Read one page"].waitForExistence(timeout: 3))
         saveScreenshot("today-scale-incomplete", app: app)
+        assertTodayArtworkReachesScreenEdges(in: app)
         XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1, "添加任务后首页插画中的文字不应随场景缩小")
         XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1, "首页场景应保持相同的横向比例")
         XCTAssertTrue(app.buttons["tab.today"].isHittable)
@@ -784,6 +786,7 @@ final class ZhouJiUITests: XCTestCase {
         complete.tap()
         XCTAssertTrue(app.buttons["today.firstTask"].waitForExistence(timeout: 3))
         saveScreenshot("today-scale-completed", app: app)
+        assertTodayArtworkReachesScreenEdges(in: app)
         XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
         XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
 
@@ -796,6 +799,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
         XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
         XCTAssertTrue(app.buttons["完成任务"].firstMatch.exists)
+        assertTodayArtworkReachesScreenEdges(in: app)
     }
 
     @MainActor
@@ -1213,6 +1217,48 @@ final class ZhouJiUITests: XCTestCase {
         field.typeText(name)
         app.buttons["添加"].tap()
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    private func assertTodayArtworkReachesScreenEdges(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
+            XCTFail("Screenshot unavailable", file: file, line: line)
+            return
+        }
+        let width = image.width
+        let height = image.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        pixels.withUnsafeMutableBytes { buffer in
+            let context = CGContext(data: buffer.baseAddress, width: width, height: height,
+                                    bitsPerComponent: 8, bytesPerRow: width * 4,
+                                    space: CGColorSpaceCreateDeviceRGB(),
+                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        // The reference's terracotta tabletop reaches both sides of the screen.
+        // Inspect visible pixels, so a full-size image clipped by its list row cannot pass.
+        // Allow the artwork's own thin unprinted rim, then check every sampled column.
+        let scale = CGFloat(width) / app.frame.width
+        for isRight in [false, true] {
+            for inset in stride(from: Int(2 * scale), to: Int(5 * scale), by: 2) {
+                var inkPixels = 0
+                var samples = 0
+                for y in stride(from: Int(CGFloat(height) * 0.15), to: Int(CGFloat(height) * 0.7), by: 3) {
+                    let x = isRight ? width - inset - 1 : inset
+                    let offset = (y * width + x) * 4
+                    let red = Int(pixels[offset])
+                    let green = Int(pixels[offset + 1])
+                    let blue = Int(pixels[offset + 2])
+                    if red > 150 && red - green > 18 && green - blue > 12 && blue < 185 {
+                        inkPixels += 1
+                    }
+                    samples += 1
+                }
+                XCTAssertGreaterThan(samples, 0, file: file, line: line)
+                XCTAssertGreaterThan(Double(inkPixels) / Double(max(1, samples)), 0.02,
+                                     "首页插画应到达\(isRight ? "右" : "左")侧屏幕边缘，不能被列表左右留白裁切（第 \(inset) 列）", file: file, line: line)
+            }
+        }
     }
 
     @MainActor

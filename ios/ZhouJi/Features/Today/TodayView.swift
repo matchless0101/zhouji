@@ -77,29 +77,25 @@ struct TodayView: View {
                 } else {
                     List {
                         TodayHeader(date: referenceDate)
-                            .padding(.horizontal, -ZJTheme.pagePadding)
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
 
                         Section {
-                            ZJSectionHeader(title: "未完成", count: incompleteTasks.count)
-                                .listRowInsets(EdgeInsets(top: 18, leading: 18, bottom: 8, trailing: 18))
-                                .listRowBackground(ZJTheme.surface)
-                                .listRowSeparator(.hidden)
+                            taskSectionHeader(title: "未完成", count: incompleteTasks.count)
 
                             ForEach(incompleteTasks) { task in
-                                row(for: task)
+                                row(for: task, isLast: task.id == incompleteTasks.last?.id)
                             }
                         }
 
                         completedTasksSection
                     }
-                    .listStyle(.insetGrouped)
+                    .listStyle(.plain)
                     .listSectionSpacing(16)
                     .contentMargins(.top, 0, for: .scrollContent)
                     .contentMargins(.bottom, bottomControlsHeight + 12, for: .scrollContent)
-                    .contentMargins(.horizontal, ZJTheme.pagePadding, for: .scrollContent)
+                    .contentMargins(.horizontal, 0, for: .scrollContent)
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                 }
@@ -193,30 +189,49 @@ struct TodayView: View {
     private var completedTasksSection: some View {
         if !completedTodayTasks.isEmpty {
             Section {
-                ZJSectionHeader(title: "已完成", count: completedTodayTasks.count)
-                    .listRowInsets(EdgeInsets(top: 12, leading: 18, bottom: 6, trailing: 18))
-                    .listRowBackground(ZJTheme.surface)
-                    .listRowSeparator(.hidden)
+                taskSectionHeader(title: "已完成", count: completedTodayTasks.count)
 
                 ForEach(completedTodayTasks) { task in
-                    row(for: task)
+                    row(for: task, isLast: task.id == completedTodayTasks.last?.id)
                 }
             }
         }
     }
 
-    private func row(for task: TodoTask) -> some View {
+    private func taskSectionHeader(title: String, count: Int) -> some View {
+        ZJSectionHeader(title: title, count: count)
+            .listRowInsets(EdgeInsets(top: 18, leading: ZJTheme.pagePadding + 18,
+                                     bottom: 8, trailing: ZJTheme.pagePadding + 18))
+            .listRowBackground(taskCardBackground(isFirst: true))
+            .listRowSeparator(.hidden)
+    }
+
+    private func taskCardBackground(isFirst: Bool = false, isLast: Bool = false) -> some View {
+        UnevenRoundedRectangle(
+            topLeadingRadius: isFirst ? ZJTheme.cornerRadius : 0,
+            bottomLeadingRadius: isLast ? ZJTheme.cornerRadius : 0,
+            bottomTrailingRadius: isLast ? ZJTheme.cornerRadius : 0,
+            topTrailingRadius: isFirst ? ZJTheme.cornerRadius : 0
+        )
+        .fill(ZJTheme.surface)
+        .padding(.horizontal, ZJTheme.pagePadding)
+        .allowsHitTesting(false)
+    }
+
+    private func row(for task: TodoTask, isLast: Bool) -> some View {
         TaskRow(
             task: task,
             isActivelyTimed: timer.activeTaskID == task.id,
             onToggleCompletion: { toggleCompletion(of: task) },
             onStartTimer: { startTimer(for: task) }
         )
-        .listRowInsets(EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+        .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding + 12,
+                                 bottom: 0, trailing: ZJTheme.pagePadding + 12))
         .listRowSeparatorTint(ZJTheme.divider)
+        .listRowSeparator(isLast ? .hidden : .visible, edges: .bottom)
         .alignmentGuide(.listRowSeparatorLeading) { _ in 8 }
         .alignmentGuide(.listRowSeparatorTrailing) { dimensions in dimensions.width - 8 }
-        .listRowBackground(ZJTheme.surface)
+        .listRowBackground(taskCardBackground(isLast: isLast))
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 delete(task)

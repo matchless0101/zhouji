@@ -1,0 +1,232 @@
+{
+  "date": "2026-10-02",
+  "baseCommit": "60025632576e9b55ec90706f7b6bdf700855e835",
+  "platform": "iOS 26.5 Simulator",
+  "status": "passed",
+  "realDeviceVerified": false,
+  "cause": "The inset-grouped list clipped the width-driven homepage image at 18-point horizontal margins. Negative padding did not remove parent clipping.",
+  "fix": "Plain list with zero horizontal margins for artwork; task backgrounds and content retain independent 18-point insets and rounded corners.",
+  "regression": "Screenshot warm-ink coverage at each sampled column 2–5 points from both screen edges, across empty/add/complete/restore. The artwork itself has a thin unprinted rim inside the image.",
+  "reproduction": {
+    "bundle": "/private/tmp/zhouji-home-edges-red.xcresult",
+    "log": "/private/tmp/zhouji-home-edges-red.log",
+    "expectedResult": "failed after adding task; edge coverage 0.0",
+    "emptyState": "passed"
+  },
+  "testRuns": [
+    {
+      "name": "focused-pro",
+      "status": "passed",
+      "uiTests": 4,
+      "tests": [
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testFloatingAddTaskRemainsUsableWithRunningTimer",
+        "testReferenceAppearanceAndNavigation",
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ],
+      "log": "/private/tmp/zhouji-home-edges-focused.log",
+      "bundle": "/private/tmp/zhouji-home-edges-focused.xcresult"
+    },
+    {
+      "name": "focused-se",
+      "status": "passed",
+      "uiTests": 5,
+      "tests": [
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testReferenceAppearanceAndNavigation",
+        "testReferenceAppearanceWithLargeText",
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ],
+      "log": "/private/tmp/zhouji-home-edges-se.log",
+      "bundle": "/private/tmp/zhouji-home-edges-se.xcresult"
+    },
+    {
+      "name": "full-pro",
+      "status": "passed",
+      "uiTests": 37,
+      "tests": [
+        "testAccountLibrarySwitchRebuildsListsAndStatistics",
+        "testAllPagesStayLightAndAppearanceControlIsRemoved",
+        "testApprovedGoalTaskAndSettingsScreens",
+        "testCalendarChangesDateMonthAndReturnsToToday",
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testCompletedTimedGoalAppearsInCalendar",
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testContentSyncCardAppearsOnlyWhenFlagEnabled",
+        "testCreatingTaskFromTodayCanAssignGoal",
+        "testDefaultGoalsShowRecommendedArtworkAndAllowManualChoice",
+        "testDeletingGoalKeepsTaskAndRemovesItsAssignment",
+        "testFloatingAddTaskRemainsUsableWithRunningTimer",
+        "testGoalPagesKeepAdditionAndSaveReachableWithLargeText",
+        "testGoalSettingsCanChangeAndPersistIcon",
+        "testGoalTaskHeaderKeepsSizeWhileEnteringTask",
+        "testGoalTaskInputKeepsBottomNavigationVisibleAndUsable",
+        "testGoalTaskLifecycleUpdatesProgressAndSupportsUndo",
+        "testGoalTaskPageAddsUnderCurrentGoalAndOpensPrintedSettings",
+        "testHeaderNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel",
+        "testLongGoalNameKeepsInlineTaskAdditionReachable",
+        "testNewTaskLargeTextKeepsCreationReachable",
+        "testNewTaskOpensKeyboardAndKeepsSubmitReachable",
+        "testProfileBackNavigationStaysClearDuringLargeTextInput",
+        "testProfileIdentityEditsNameAndAvatarAndClearsAfterLogout",
+        "testProfileIdentityRemainsEditableWithLargeText",
+        "testProfileTabShowsTruthfulLocalOverview",
+        "testProfileUsesCalendarTabAndNestedAbout",
+        "testReferenceAppearanceAndNavigation",
+        "testReferenceAppearanceWithLargeText",
+        "testSecondaryProfileDesignsKeepRealDataAndNavigation",
+        "testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable",
+        "testSettingsHideBackupControlsAndKeepRunningTimerAvailable",
+        "testTaskEditorHidesNavigationUntilReturning",
+        "testTimerDesignKeepsGoalPauseAndFinishSemantics",
+        "testTimerLargeTextKeepsControlsAndElapsedTimeReachable",
+        "testTodayHeaderKeepsScaleWhenTasksChange",
+        "testWeChatLoginWithoutInstalledWeChatKeepsGuestState"
+      ],
+      "log": "/private/tmp/zhouji-home-edges-full.log",
+      "bundle": "/private/tmp/zhouji-home-edges-full.xcresult",
+      "unitTests": 82,
+      "unitSuites": 15
+    },
+    {
+      "name": "final-edge-se",
+      "status": "passed",
+      "uiTests": 1,
+      "tests": [
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ],
+      "log": "/private/tmp/zhouji-home-edges-se-final.log",
+      "bundle": "/private/tmp/zhouji-home-edges-se-final.xcresult"
+    },
+    {
+      "name": "final-edge-pro",
+      "status": "passed",
+      "uiTests": 1,
+      "tests": [
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ],
+      "log": "/private/tmp/zhouji-home-edges-pro-final.log",
+      "bundle": "/private/tmp/zhouji-home-edges-pro-final.xcresult"
+    }
+  ],
+  "verificationSequenceNote": "The full suite passed with pooled edge samples. Sampling was then hardened to per-column checks; the final test passed on both Pro and SE. App source did not change between these runs.",
+  "build": {
+    "status": "passed",
+    "log": "/private/tmp/zhouji-home-edges-build.log"
+  },
+  "review": {
+    "mode": "read-only",
+    "critical": 0,
+    "important": 0,
+    "minorResolved": "Replaced pooled edge samples with per-column checks."
+  },
+  "beforeScreenshot": {
+    "file": "today-artwork-incomplete-pro-20261002.png",
+    "sha256": "f7983a2bb7d04c9c8dc3f1ed3b63bba5a61bb1905b8346c8b32d0d30d7d2a827",
+    "edgeColumnCoverage": "0.0 at every sampled column on both sides"
+  },
+  "screenshots": [
+    {
+      "file": "today-edge-incomplete-pro-20261002.png",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "L",
+      "sizePixels": [
+        1206,
+        2622
+      ],
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-incomplete_0_FDBE7F52-B06A-47FA-B429-B923A7E66AFE.png",
+      "sha256": "1b222f24ef266a0522bcbfe702875a0875644a4157dc37e09bdf8632cbfdedad",
+      "edgeColumnCoverage": {
+        "left": [
+          {
+            "insetPixels": 6,
+            "warmInkCoverage": 0.24948
+          },
+          {
+            "insetPixels": 8,
+            "warmInkCoverage": 0.253638
+          },
+          {
+            "insetPixels": 10,
+            "warmInkCoverage": 0.266112
+          },
+          {
+            "insetPixels": 12,
+            "warmInkCoverage": 0.27027
+          },
+          {
+            "insetPixels": 14,
+            "warmInkCoverage": 0.276507
+          }
+        ],
+        "right": [
+          {
+            "insetPixels": 6,
+            "warmInkCoverage": 0.168399
+          },
+          {
+            "insetPixels": 8,
+            "warmInkCoverage": 0.174636
+          },
+          {
+            "insetPixels": 10,
+            "warmInkCoverage": 0.172557
+          },
+          {
+            "insetPixels": 12,
+            "warmInkCoverage": 0.168399
+          },
+          {
+            "insetPixels": 14,
+            "warmInkCoverage": 0.172557
+          }
+        ]
+      }
+    },
+    {
+      "file": "today-edge-incomplete-se-20261002.png",
+      "device": "iPhone SE (3rd generation)",
+      "contentSizeCategory": "L",
+      "sizePixels": [
+        750,
+        1334
+      ],
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-incomplete_0_2A492FC6-7BC2-452D-953B-DFF4183AF28C.png",
+      "sha256": "56bdd395dd50672edb845b65f8d09ae1c738c6f82d45b647a1dd88e02c008928",
+      "edgeColumnCoverage": {
+        "left": [
+          {
+            "insetPixels": 4,
+            "warmInkCoverage": 0.297959
+          },
+          {
+            "insetPixels": 6,
+            "warmInkCoverage": 0.318367
+          },
+          {
+            "insetPixels": 8,
+            "warmInkCoverage": 0.338776
+          }
+        ],
+        "right": [
+          {
+            "insetPixels": 4,
+            "warmInkCoverage": 0.212245
+          },
+          {
+            "insetPixels": 6,
+            "warmInkCoverage": 0.212245
+          },
+          {
+            "insetPixels": 8,
+            "warmInkCoverage": 0.204082
+          }
+        ]
+      }
+    }
+  ],
+  "evidenceNote": "PNG files are retained in this directory. xcresult bundles and logs under /private/tmp are temporary local evidence."
+}
