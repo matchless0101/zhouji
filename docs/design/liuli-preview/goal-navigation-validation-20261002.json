@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-02",
+  "change": "目标任务页输入期间保留四页导航，切换结束焦点并保留草稿",
+  "baseCommit": "c5f3d844dfc6d07c8c32a5dc47184c9b39021d60",
+  "screenshots": [
+    {
+      "device": "iPhone 17 Pro",
+      "category": "large",
+      "file": "goal-navigation-input-pro-large-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskInputKeepsBottomNavigationVisibleAndUsable()",
+      "sha256": "d0efc0ca040fe2c9b627800a55f61c9d820174afabe6a886eece3e845897073b"
+    },
+    {
+      "device": "iPhone 17 Pro",
+      "category": "standard",
+      "file": "goal-navigation-input-pro-standard-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskInputKeepsBottomNavigationVisibleAndUsable()",
+      "sha256": "ed8c060bfcac9a83fa8fd5d4997bbc4ec89bb33b4f6b86b45c3309d62df47fa3"
+    },
+    {
+      "device": "iPhone SE (3rd generation)",
+      "category": "large",
+      "file": "goal-navigation-input-se-large-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskInputKeepsBottomNavigationVisibleAndUsable()",
+      "sha256": "bd86d52e09d1d2b6273cd41ba7e2836d0b9c1c7f02631478b20e32626755fb08"
+    },
+    {
+      "device": "iPhone SE (3rd generation)",
+      "category": "standard",
+      "file": "goal-navigation-input-se-standard-20261002.png",
+      "test": "ZhouJiUITests/testGoalTaskInputKeepsBottomNavigationVisibleAndUsable()",
+      "sha256": "27992190356f76884b2d7f8c0254295d6a8f0286e6d0f3e18c2fa16d11048233"
+    }
+  ],
+  "verification": {
+    "reproduction": {
+      "result": "expectedFailure",
+      "test": "testGoalTaskInputKeepsBottomNavigationVisibleAndUsable",
+      "assertion": "输入目标任务时应保留底部导航",
+      "resultBundle": "/private/tmp/zhouji-goal-navigation-red.xcresult"
+    },
+    "focusedAfterFix": {
+      "result": "passed",
+      "testMethods": 1,
+      "contentSizeCategories": [
+        "UICTContentSizeCategoryL",
+        "UICTContentSizeCategoryAccessibilityM"
+      ],
+      "resultBundle": "/private/tmp/zhouji-goal-navigation-green.xcresult"
+    },
+    "fullRegression": {
+      "device": "iPhone 17 Pro",
+      "result": "passed",
+      "unitTests": 82,
+      "unitSuites": 15,
+      "uiTests": 35,
+      "failures": 0,
+      "resultBundle": "/private/tmp/zhouji-goal-navigation-full.xcresult"
+    },
+    "smallScreen": {
+      "device": "iPhone SE (3rd generation)",
+      "result": "passed",
+      "uiTests": 5,
+      "failures": 0,
+      "tests": [
+        "testGoalPagesKeepAdditionAndSaveReachableWithLargeText",
+        "testGoalTaskHeaderKeepsSizeWhileEnteringTask",
+        "testGoalTaskInputKeepsBottomNavigationVisibleAndUsable",
+        "testGoalTaskPageAddsUnderCurrentGoalAndOpensPrintedSettings",
+        "testLongGoalNameKeepsInlineTaskAdditionReachable"
+      ],
+      "resultBundle": "/private/tmp/zhouji-goal-navigation-se.xcresult"
+    },
+    "genericSimulatorBuild": {
+      "result": "passed",
+      "log": "/private/tmp/zhouji-goal-navigation-build.log"
+    },
+    "readOnlyReview": {
+      "result": "noFindings",
+      "agent": "review_goal_navigation"
+    },
+    "realDeviceVerified": false
+  }
+}

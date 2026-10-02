@@ -4,7 +4,6 @@ import UIKit
 
 struct GoalsView: View {
     @Binding var navigationPath: [GoalDestination]
-    @Binding var isEditingTask: Bool
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -113,7 +112,7 @@ struct GoalsView: View {
             .navigationDestination(for: GoalDestination.self) { destination in
                 switch destination {
                 case .tasks(let goal):
-                    GoalDetailView(goal: goal, isEditingTask: $isEditingTask)
+                    GoalDetailView(goal: goal)
                 case .settings(let goal):
                     GoalSettingsView(goal: goal)
                 }

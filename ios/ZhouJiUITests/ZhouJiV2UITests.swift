@@ -433,6 +433,48 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testGoalTaskInputKeepsBottomNavigationVisibleAndUsable() throws {
+        continueAfterFailure = false
+        for category in ["UICTContentSizeCategoryL", "UICTContentSizeCategoryAccessibilityM"] {
+            let app = makeApp()
+            app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", category]
+            app.launch()
+            createGoal(named: "阅读计划", in: app)
+            app.staticTexts["阅读计划"].tap()
+            let field = app.textFields["添加一个小任务"]
+            XCTAssertTrue(field.waitForExistence(timeout: 3))
+            field.tap()
+            field.typeText("Read one page")
+            let keyboard = app.keyboards.firstMatch
+            XCTAssertTrue(keyboard.waitForExistence(timeout: 3))
+            saveScreenshot("goal-task-navigation-input-\(category)", app: app)
+            let tabs = ["today", "goals", "calendar", "profile"].map { app.buttons["tab.\($0)"] }
+            for tab in tabs {
+                XCTAssertTrue(tab.waitForExistence(timeout: 3), "输入目标任务时应保留底部导航")
+                XCTAssertTrue(tab.isHittable)
+                XCTAssertLessThanOrEqual(tab.frame.maxY, keyboard.frame.minY)
+            }
+            let add = app.buttons["添加"]
+            XCTAssertTrue(add.isHittable)
+            XCTAssertLessThanOrEqual(add.frame.maxY, tabs[0].frame.minY)
+
+            tabs[0].tap()
+            XCTAssertTrue(tabs[0].isSelected)
+            XCTAssertTrue(keyboard.waitForNonExistence(timeout: 3))
+            tabs[1].tap()
+            XCTAssertTrue(app.staticTexts["goal.tasks.heading"].waitForExistence(timeout: 3))
+            XCTAssertEqual(field.value as? String, "Read one page")
+            XCTAssertTrue(app.staticTexts["0/0"].exists)
+            field.tap()
+            add.tap()
+            XCTAssertTrue(app.staticTexts["Read one page"].waitForExistence(timeout: 3))
+            XCTAssertTrue(app.staticTexts["0/1"].exists)
+            XCTAssertTrue(tabs[1].isSelected)
+            app.terminate()
+        }
+    }
+
+    @MainActor
     func testGoalTaskHeaderKeepsSizeWhileEnteringTask() throws {
         continueAfterFailure = false
         let app = makeApp()

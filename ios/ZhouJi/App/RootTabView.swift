@@ -8,11 +8,10 @@ struct RootTabView: View {
     @Binding private var selection: AppTab
     @State private var todayPath: [TodayDestination] = []
     @State private var goalsPath: [GoalDestination] = []
-    @State private var isEditingGoalTask = false
 
     private var isEditingTask: Bool {
         (selection == .today && !todayPath.isEmpty)
-            || (selection == .goals && (goalsPath.last?.isSettings == true || isEditingGoalTask))
+            || (selection == .goals && goalsPath.last?.isSettings == true)
     }
 
     static var initialTab: AppTab { debugInitialTab ?? .today }
@@ -31,7 +30,7 @@ struct RootTabView: View {
                         Label("今天", systemImage: "house")
                     }
 
-                GoalsView(navigationPath: $goalsPath, isEditingTask: $isEditingGoalTask)
+                GoalsView(navigationPath: $goalsPath)
                     .toolbar(.hidden, for: .tabBar)
                     .tag(AppTab.goals)
                     .tabItem {

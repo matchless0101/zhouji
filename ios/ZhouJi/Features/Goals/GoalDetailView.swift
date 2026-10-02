@@ -7,7 +7,6 @@ struct GoalDetailView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(TimerController.self) private var timer
     let goal: Goal
-    @Binding var isEditingTask: Bool
 
     @State private var draftTitle = ""
     @State private var isTimerPresented = false
@@ -47,10 +46,8 @@ struct GoalDetailView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             addTaskBar
         }
-        .onChange(of: isTaskFieldFocused) { isEditingTask = isTaskFieldFocused }
         .onDisappear {
             isTaskFieldFocused = false
-            isEditingTask = false
         }
         .sheet(isPresented: $isTimerPresented) {
             TimerSheet()
