@@ -805,6 +805,28 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testLastTodayTaskCanScrollAboveFloatingAddButton() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch()
+        let add = app.buttons["添加任务"]
+        let lastTimer = app.buttons.matching(identifier: "开始计时").element(boundBy: 2)
+        XCTAssertTrue(add.waitForExistence(timeout: 3))
+        let list = app.collectionViews.firstMatch
+        XCTAssertGreaterThanOrEqual(list.frame.maxY, add.frame.maxY)
+        for _ in 0..<4 {
+            if lastTimer.isHittable && !lastTimer.frame.intersects(add.frame) { break }
+            list.swipeUp()
+        }
+        XCTAssertTrue(lastTimer.isHittable, "最后一项任务可以滚动到完整可操作的位置")
+        XCTAssertFalse(lastTimer.frame.intersects(add.frame))
+        saveScreenshot("today-floating-add-multiple-tasks", app: app)
+        lastTimer.tap()
+        XCTAssertTrue(app.buttons["暂停"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
     func testSingleTodayTaskStartsTimerWithoutAddButtonOverlap() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -822,6 +844,9 @@ final class ZhouJiUITests: XCTestCase {
         saveScreenshot("today-single-task-ready", app: app)
         XCTAssertTrue(start.isHittable, "刚添加任务后应可直接开始计时，无需先滚动找入口")
         XCTAssertFalse(start.frame.intersects(add.frame), "新增按钮不能遮住任务计时入口")
+        let list = app.collectionViews.firstMatch
+        XCTAssertTrue(list.exists)
+        XCTAssertGreaterThanOrEqual(list.frame.maxY, add.frame.maxY, "列表应延伸到悬浮加号下方，不为加号保留固定横条")
         XCTAssertLessThanOrEqual(start.frame.maxY, app.buttons["tab.today"].frame.minY)
         start.tap()
         XCTAssertTrue(app.buttons["暂停"].waitForExistence(timeout: 3))

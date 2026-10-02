@@ -79,7 +79,16 @@ struct TodayView: View {
                                 }
                             }
 
+                            if incompleteTasks.count == 1 {
+                                floatingButtonClearance
+                                    .id("today.singleTaskClearance")
+                            }
+
                             completedTasksSection
+
+                            if incompleteTasks.count > 1 {
+                                floatingButtonClearance
+                            }
                         }
                         .listStyle(.plain)
                         .listSectionSpacing(16)
@@ -96,6 +105,17 @@ struct TodayView: View {
                         }
                     }
                     .clipped()
+                    .overlay(alignment: .bottomTrailing) {
+                        if !incompleteTasks.isEmpty {
+                            NavigationLink(value: TodayDestination.newTask) {
+                                Image(systemName: "plus")
+                            }
+                            .buttonStyle(ZJAddButtonStyle())
+                            .accessibilityLabel("添加任务")
+                            .padding(.trailing, ZJTheme.pagePadding)
+                            .padding(.bottom, 16)
+                        }
+                    }
                     bottomControls
                 }
                 .background(ZJTheme.pageBackground.ignoresSafeArea())
@@ -180,7 +200,7 @@ struct TodayView: View {
         guard let taskID = singleTaskScrollID else { return }
         DispatchQueue.main.async {
             guard singleTaskScrollID == taskID else { return }
-            scroll.scrollTo(taskID, anchor: .bottom)
+            scroll.scrollTo("today.singleTaskClearance", anchor: .bottom)
         }
     }
 
@@ -251,9 +271,20 @@ struct TodayView: View {
         }
     }
 
+    // Scrollable clearance lets the final task move above the floating button.
+    // It is part of the list, so content can still scroll behind the button.
+    private var floatingButtonClearance: some View {
+        Color.clear
+            .frame(height: 80)
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .accessibilityHidden(true)
+    }
+
     @ViewBuilder
     private var bottomControls: some View {
-        if undoCandidate != nil || timer.activeSession != nil || !incompleteTasks.isEmpty {
+        if undoCandidate != nil || timer.activeSession != nil {
             VStack(spacing: 10) {
                 if let undoCandidate {
                     TaskUndoToast(
@@ -265,16 +296,6 @@ struct TodayView: View {
 
                 if timer.activeSession != nil {
                     activeTimerBar
-                }
-
-                if !incompleteTasks.isEmpty {
-                    NavigationLink(value: TodayDestination.newTask) {
-                        Image(systemName: "plus")
-                    }
-                    .buttonStyle(ZJAddButtonStyle())
-                    .accessibilityLabel("添加任务")
-                    .frame(maxWidth: .infinity, alignment: .trailing)
-                    .padding(.horizontal, ZJTheme.pagePadding)
                 }
             }
             .padding(.top, 8)
