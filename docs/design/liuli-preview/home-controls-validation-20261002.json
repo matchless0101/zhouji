@@ -1,0 +1,134 @@
+{
+  "date": "2026-10-02",
+  "scope": "首页任务计时入口与新增按钮遮挡修复",
+  "baseCommit": "a118549f1039318bd28283a481440705cd6a5ced",
+  "regressionBeforeFix": {
+    "result": "Expected failure",
+    "test": "testSingleTodayTaskStartsTimerWithoutAddButtonOverlap",
+    "assertion": "新增按钮不能遮住任务计时入口",
+    "log": "/private/tmp/zhouji-home-controls-red.log",
+    "resultBundle": "/private/tmp/zhouji-home-controls-red.xcresult"
+  },
+  "fullRegression": {
+    "result": "Passed",
+    "unitTests": 82,
+    "uiTests": 38,
+    "totalPassed": 120,
+    "failed": 0,
+    "skipped": 0,
+    "devices": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "50140FCF-39F5-4D41-AD98-A3DBB3E4C430",
+          "deviceName": "iPhone 17 Pro",
+          "modelName": "iPhone 17 Pro",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 128,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "log": "/private/tmp/zhouji-home-controls-full-verified.log",
+    "resultBundle": "/private/tmp/zhouji-home-controls-full-verified.xcresult"
+  },
+  "smallScreenRegression": {
+    "result": "Passed",
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "devices": [
+      {
+        "device": {
+          "architecture": "arm64",
+          "deviceId": "42A430C0-7625-4D2D-82FB-7D0BB9C13A56",
+          "deviceName": "ZhouJi UI Review SE",
+          "modelName": "iPhone SE (3rd generation)",
+          "osBuildNumber": "23F77",
+          "osVersion": "26.5",
+          "platform": "iOS Simulator"
+        },
+        "expectedFailures": 0,
+        "failedTests": 0,
+        "passedTests": 6,
+        "skippedTests": 0,
+        "testPlanConfiguration": {
+          "configurationId": "1",
+          "configurationName": "Test Scheme Action"
+        }
+      }
+    ],
+    "log": "/private/tmp/zhouji-home-controls-se-final-verified.log",
+    "resultBundle": "/private/tmp/zhouji-home-controls-se-final-verified.xcresult"
+  },
+  "genericSimulatorBuild": {
+    "result": "Passed",
+    "log": "/private/tmp/zhouji-home-controls-build.log"
+  },
+  "edgeCheck": {
+    "outermostPixelIncluded": true,
+    "eachColumnRequired": true,
+    "minimumInkFractionExclusive": 0.02,
+    "maximumSettleWaitSeconds": 3,
+    "allColumnsMustPassInSameScreenshot": true,
+    "reasonForWait": "恢复和滚动后的原生滚动条短暂覆盖内侧采样列；保持原有阈值与列范围。"
+  },
+  "readonlyReview": {
+    "result": "No blocking issues found",
+    "scope": "首页布局、单任务/全部完成状态、实测截图、图片边缘检查及修复报告"
+  },
+  "sources": {
+    "ios/ZhouJi/Features/Today/TodayView.swift": "054efca1070111836ba4957c3d244626f6389c2621ad2d73562b4a4ac078876e",
+    "ios/ZhouJiUITests/ZhouJiV2UITests.swift": "cfb739c2aaf08632d795ac5c3d2d445d4d33b360bbb30947e64d433c5268fca7"
+  },
+  "screenshots": [
+    {
+      "file": "docs/design/liuli-preview/today-controls-ready-pro-20261002.png",
+      "device": "iPhone 17 Pro",
+      "test": "ZhouJiUITests/testSingleTodayTaskStartsTimerWithoutAddButtonOverlap()",
+      "originalAttachment": "E685A5E1-1744-4760-88DC-2173190EA136.png",
+      "sha256": "0f9278374cfda92d9a8ae08e87ba2d178e42280c26d0bb405e2445e3dcbbadeb"
+    },
+    {
+      "file": "docs/design/liuli-preview/today-controls-running-pro-20261002.png",
+      "device": "iPhone 17 Pro",
+      "test": "ZhouJiUITests/testSingleTodayTaskStartsTimerWithoutAddButtonOverlap()",
+      "originalAttachment": "0FC923F9-EF74-4C59-AA85-9ECAF815CE9D.png",
+      "sha256": "e8f4304653eb2214998aae78973dae11b3f3e85398a85c737eb306968762c9fb"
+    },
+    {
+      "file": "docs/design/liuli-preview/today-controls-ready-se-20261002.png",
+      "device": "iPhone SE (3rd generation)",
+      "test": "ZhouJiUITests/testSingleTodayTaskStartsTimerWithoutAddButtonOverlap()",
+      "originalAttachment": "F32DF15D-095F-494D-BAC3-A0ABA2DC2088.png",
+      "sha256": "d79cdda7fd08955f1bfdf2983dada912a1efe4bd8a0214b23e3012148e8ca68d"
+    },
+    {
+      "file": "docs/design/liuli-preview/today-controls-running-se-20261002.png",
+      "device": "iPhone SE (3rd generation)",
+      "test": "ZhouJiUITests/testSingleTodayTaskStartsTimerWithoutAddButtonOverlap()",
+      "originalAttachment": "49C69649-4E5F-45FE-8D38-56327368E6E8.png",
+      "sha256": "9f9f3353178a18f79483a89c44bc626f1c45e9c103ffe672f551361655455410"
+    },
+    {
+      "file": "docs/design/liuli-preview/today-controls-completed-se-20261002.png",
+      "device": "iPhone SE (3rd generation)",
+      "test": "ZhouJiUITests/testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring()",
+      "originalAttachment": "2668BF9D-C109-4610-9E0E-0BB087CA0565.png",
+      "sha256": "81a09d53cd557068104c339c3b21d5ca0d6ce452b51f3ed0ce3e24eb76c2d4a9"
+    }
+  ],
+  "limits": [
+    "未执行真机和 iOS 17 运行时验收。",
+    "小屏通过纵向滚动保留任务操作与原插画大小，问候在屏幕中的纵向位置随滚动改变。",
+    "一个未完成任务时返回页面会定位到它，包括已有完成记录的情况；多任务不自动定位。"
+  ]
+}

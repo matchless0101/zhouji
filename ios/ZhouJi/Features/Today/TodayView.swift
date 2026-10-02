@@ -20,7 +20,6 @@ struct TodayView: View {
     @State private var undoDismissTask: Task<Void, Never>?
     @State private var presentedError: String?
     @State private var referenceDate = Date.now
-    @State private var bottomControlsHeight: CGFloat = 80
     @Binding private var navigationPath: [TodayDestination]
 
     init(navigationPath: Binding<[TodayDestination]>) {
@@ -43,134 +42,145 @@ struct TodayView: View {
             }
     }
 
+    private var singleTaskScrollID: UUID? {
+        guard navigationPath.isEmpty, !isTimerPresented,
+              incompleteTasks.count == 1 else { return nil }
+        return incompleteTasks.first?.id
+    }
+
     var body: some View {
         NavigationStack(path: $navigationPath) {
-            ZStack {
-                ZJTheme.pageBackground.ignoresSafeArea()
-
-                if incompleteTasks.isEmpty {
+            ScrollViewReader { scroll in
+                VStack(spacing: 0) {
                     GeometryReader { proxy in
-                        if completedTodayTasks.isEmpty {
-                            ScrollView {
-                                quietTodayContent(size: proxy.size)
-                                    .padding(.bottom, bottomControlsHeight + 12)
-                            }
-                        } else {
-                            List {
+                        List {
+                            if incompleteTasks.isEmpty {
                                 quietTodayContent(size: proxy.size)
                                     .frame(width: proxy.size.width)
                                     .frame(minHeight: proxy.size.height, alignment: .top)
                                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                     .listRowSeparator(.hidden)
                                     .listRowBackground(Color.clear)
-                                completedTasksSection
+                                    .id("today.header")
+                            } else {
+                                TodayHeader(date: referenceDate)
+                                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                    .listRowSeparator(.hidden)
+                                    .listRowBackground(Color.clear)
+                                    .id("today.header")
+
+                                Section {
+                                    taskSectionHeader(title: "未完成", count: incompleteTasks.count)
+
+                                    ForEach(incompleteTasks) { task in
+                                        row(for: task, isLast: task.id == incompleteTasks.last?.id)
+                                            .id(task.id)
+                                    }
+                                }
                             }
-                            .listStyle(.plain)
-                            .listSectionSpacing(16)
-                            .contentMargins(.top, 0, for: .scrollContent)
-                            .contentMargins(.bottom, bottomControlsHeight + 12, for: .scrollContent)
-                            .contentMargins(.horizontal, 0, for: .scrollContent)
-                            .scrollContentBackground(.hidden)
-                            .background(Color.clear)
+
+                            completedTasksSection
+                        }
+                        .listStyle(.plain)
+                        .listSectionSpacing(16)
+                        .contentMargins(.top, 0, for: .scrollContent)
+                        .contentMargins(.bottom, 12, for: .scrollContent)
+                        .contentMargins(.horizontal, 0, for: .scrollContent)
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
+                        .onGeometryChange(for: CGSize.self) { proxy in
+                            proxy.size
+                        } action: { _ in
+                            // Returning from task entry restores the tab bar and changes the viewport.
+                            scrollToSingleTask(using: scroll)
                         }
                     }
-                } else {
-                    List {
-                        TodayHeader(date: referenceDate)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-
-                        Section {
-                            taskSectionHeader(title: "未完成", count: incompleteTasks.count)
-
-                            ForEach(incompleteTasks) { task in
-                                row(for: task, isLast: task.id == incompleteTasks.last?.id)
+                    .clipped()
+                    bottomControls
+                }
+                .background(ZJTheme.pageBackground.ignoresSafeArea())
+                .navigationDestination(for: TodayDestination.self) { destination in
+                    switch destination {
+                    case .newTask: NewTaskView()
+                    }
+                }
+                .toolbar(.hidden, for: .navigationBar)
+                .sheet(isPresented: $isTimerPresented) {
+                    TimerSheet()
+                }
+                .confirmationDialog(
+                    "切换计时任务？",
+                    isPresented: Binding(
+                        get: { pendingTimerTask != nil },
+                        set: { if !$0 { pendingTimerTask = nil } }
+                    ),
+                    titleVisibility: .visible
+                ) {
+                    if let pendingTimerTask, let currentTitle = timer.activeSession?.taskTitleSnapshot {
+                        Button("结束“\(currentTitle)”并开始新计时") {
+                            if timer.switchTo(pendingTimerTask) {
+                                isTimerPresented = true
+                            } else {
+                                presentTimerErrorIfNeeded()
                             }
+                            self.pendingTimerTask = nil
                         }
-
-                        completedTasksSection
                     }
-                    .listStyle(.plain)
-                    .listSectionSpacing(16)
-                    .contentMargins(.top, 0, for: .scrollContent)
-                    .contentMargins(.bottom, bottomControlsHeight + 12, for: .scrollContent)
-                    .contentMargins(.horizontal, 0, for: .scrollContent)
-                    .scrollContentBackground(.hidden)
-                    .background(Color.clear)
-                }
-            }
-            .navigationDestination(for: TodayDestination.self) { destination in
-                switch destination {
-                case .newTask: NewTaskView()
-                }
-            }
-            .toolbar(.hidden, for: .navigationBar)
-            .overlay(alignment: .bottom) {
-                bottomControls
-                    .onGeometryChange(for: CGFloat.self) { proxy in
-                        proxy.size.height
-                    } action: { height in
-                        bottomControlsHeight = height
+                    Button("取消", role: .cancel) {
+                        pendingTimerTask = nil
                     }
-            }
-            .sheet(isPresented: $isTimerPresented) {
-                TimerSheet()
-            }
-            .confirmationDialog(
-                "切换计时任务？",
-                isPresented: Binding(
-                    get: { pendingTimerTask != nil },
-                    set: { if !$0 { pendingTimerTask = nil } }
-                ),
-                titleVisibility: .visible
-            ) {
-                if let pendingTimerTask, let currentTitle = timer.activeSession?.taskTitleSnapshot {
-                    Button("结束“\(currentTitle)”并开始新计时") {
-                        if timer.switchTo(pendingTimerTask) {
-                            isTimerPresented = true
-                        } else {
-                            presentTimerErrorIfNeeded()
-                        }
-                        self.pendingTimerTask = nil
+                } message: {
+                    if let pendingTimerTask {
+                        Text("确认后将保存当前计时，并开始“\(pendingTimerTask.title)”。")
                     }
                 }
-                Button("取消", role: .cancel) {
-                    pendingTimerTask = nil
+                .alert(
+                    "操作未完成",
+                    isPresented: Binding(
+                        get: { presentedError != nil },
+                        set: { if !$0 { presentedError = nil } }
+                    )
+                ) {
+                    Button("好", role: .cancel) {
+                        presentedError = nil
+                    }
+                } message: {
+                    Text(presentedError ?? "请稍后重试。")
                 }
-            } message: {
-                if let pendingTimerTask {
-                    Text("确认后将保存当前计时，并开始“\(pendingTimerTask.title)”。")
-                }
-            }
-            .alert(
-                "操作未完成",
-                isPresented: Binding(
-                    get: { presentedError != nil },
-                    set: { if !$0 { presentedError = nil } }
-                )
-            ) {
-                Button("好", role: .cancel) {
-                    presentedError = nil
-                }
-            } message: {
-                Text(presentedError ?? "请稍后重试。")
-            }
-            .task {
-                presentTimerErrorIfNeeded()
-            }
-            .onChange(of: scenePhase) { _, newPhase in
-                if newPhase == .active {
-                    referenceDate = .now
+                .task {
                     presentTimerErrorIfNeeded()
                 }
+                .onChange(of: scenePhase) { _, newPhase in
+                    if newPhase == .active {
+                        referenceDate = .now
+                        presentTimerErrorIfNeeded()
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
+                    referenceDate = .now
+                }
+                .onDisappear {
+                    undoDismissTask?.cancel()
+                }
+                .onChange(of: singleTaskScrollID, initial: true) { _, _ in
+                    scrollToSingleTask(using: scroll)
+                }
+                .onChange(of: incompleteTasks.isEmpty) { _, isEmpty in
+                    guard isEmpty else { return }
+                    DispatchQueue.main.async {
+                        guard incompleteTasks.isEmpty else { return }
+                        scroll.scrollTo("today.header", anchor: .top)
+                    }
+                }
             }
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.significantTimeChangeNotification)) { _ in
-                referenceDate = .now
-            }
-            .onDisappear {
-                undoDismissTask?.cancel()
-            }
+        }
+    }
+
+    private func scrollToSingleTask(using scroll: ScrollViewProxy) {
+        guard let taskID = singleTaskScrollID else { return }
+        DispatchQueue.main.async {
+            guard singleTaskScrollID == taskID else { return }
+            scroll.scrollTo(taskID, anchor: .bottom)
         }
     }
 
@@ -243,31 +253,33 @@ struct TodayView: View {
 
     @ViewBuilder
     private var bottomControls: some View {
-        VStack(spacing: 10) {
-            if let undoCandidate {
-                TaskUndoToast(
-                    taskTitle: undoCandidate.title,
-                    onUndo: { undoDelete(undoCandidate) }
-                )
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-
-            if timer.activeSession != nil {
-                activeTimerBar
-            }
-
-            if !incompleteTasks.isEmpty {
-                NavigationLink(value: TodayDestination.newTask) {
-                    Image(systemName: "plus")
+        if undoCandidate != nil || timer.activeSession != nil || !incompleteTasks.isEmpty {
+            VStack(spacing: 10) {
+                if let undoCandidate {
+                    TaskUndoToast(
+                        taskTitle: undoCandidate.title,
+                        onUndo: { undoDelete(undoCandidate) }
+                    )
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .buttonStyle(ZJAddButtonStyle())
-                .accessibilityLabel("添加任务")
-                .frame(maxWidth: .infinity, alignment: .trailing)
-                .padding(.horizontal, ZJTheme.pagePadding)
+
+                if timer.activeSession != nil {
+                    activeTimerBar
+                }
+
+                if !incompleteTasks.isEmpty {
+                    NavigationLink(value: TodayDestination.newTask) {
+                        Image(systemName: "plus")
+                    }
+                    .buttonStyle(ZJAddButtonStyle())
+                    .accessibilityLabel("添加任务")
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .padding(.horizontal, ZJTheme.pagePadding)
+                }
             }
+            .padding(.top, 8)
+            .padding(.bottom, 16)
         }
-        .padding(.top, 8)
-        .padding(.bottom, 16)
     }
 
     private func firstTaskButton(isCompact: Bool) -> some View {

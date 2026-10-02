@@ -798,8 +798,50 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(greeting.isHittable)
         XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
         XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
-        XCTAssertTrue(app.buttons["完成任务"].firstMatch.exists)
         assertTodayArtworkReachesScreenEdges(in: app)
+        let restoredCompletion = app.buttons["完成任务"].firstMatch
+        for _ in 0..<3 where !restoredCompletion.isHittable { app.swipeUp() }
+        XCTAssertTrue(restoredCompletion.isHittable)
+    }
+
+    @MainActor
+    func testSingleTodayTaskStartsTimerWithoutAddButtonOverlap() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch()
+        app.buttons["today.firstTask"].tap()
+        let field = app.textFields["今天要做什么？"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        field.typeText("读一页书")
+        app.buttons["添加"].tap()
+
+        let start = app.buttons["开始计时"].firstMatch
+        let add = app.buttons["添加任务"]
+        XCTAssertTrue(start.waitForExistence(timeout: 3))
+        saveScreenshot("today-single-task-ready", app: app)
+        XCTAssertTrue(start.isHittable, "刚添加任务后应可直接开始计时，无需先滚动找入口")
+        XCTAssertFalse(start.frame.intersects(add.frame), "新增按钮不能遮住任务计时入口")
+        XCTAssertLessThanOrEqual(start.frame.maxY, app.buttons["tab.today"].frame.minY)
+        start.tap()
+        XCTAssertTrue(app.buttons["暂停"].waitForExistence(timeout: 3))
+        app.buttons["收起"].tap()
+
+        let current = app.buttons["查看当前计时"]
+        XCTAssertTrue(current.waitForExistence(timeout: 3))
+        XCTAssertTrue(current.isHittable)
+        XCTAssertTrue(add.isHittable)
+        XCTAssertFalse(current.frame.intersects(add.frame))
+        let taskTimer = app.buttons["查看计时"].firstMatch
+        XCTAssertTrue(taskTimer.isHittable, "收起计时页后任务操作仍应可见")
+        XCTAssertFalse(taskTimer.frame.intersects(current.frame))
+        XCTAssertFalse(taskTimer.frame.intersects(add.frame))
+        saveScreenshot("today-single-task-running", app: app)
+        current.tap()
+        app.buttons["结束计时"].tap()
+        XCTAssertTrue(start.waitForExistence(timeout: 3))
+        XCTAssertTrue(start.isHittable)
+        XCTAssertFalse(start.frame.intersects(add.frame))
     }
 
     @MainActor
@@ -1081,7 +1123,10 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "light"]
         app.launch()
-        app.buttons["开始计时"].firstMatch.tap()
+        let start = app.buttons["开始计时"].firstMatch
+        for _ in 0..<3 where !start.isHittable { app.swipeUp() }
+        XCTAssertTrue(start.isHittable)
+        start.tap()
         XCTAssertTrue(app.buttons["收起"].waitForExistence(timeout: 2))
         app.buttons["收起"].tap()
 
@@ -1221,9 +1266,30 @@ final class ZhouJiUITests: XCTestCase {
 
     @MainActor
     private func assertTodayArtworkReachesScreenEdges(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        var latestSamples: [(isRight: Bool, inset: Int, inkFraction: Double)] = []
+        // A native scroll indicator briefly covers the inner sampled columns after scrolling.
+        // Wait for the actual pixels to satisfy the same per-column requirement; clipping still times out.
+        let reachesEdges = NSPredicate { _, _ in
+            guard let samples = self.todayArtworkEdgeSamples(in: app), !samples.isEmpty else { return false }
+            latestSamples = samples
+            return samples.allSatisfy { $0.inkFraction > 0.02 }
+        }
+        let result = XCTWaiter.wait(
+            for: [XCTNSPredicateExpectation(predicate: reachesEdges, object: nil)],
+            timeout: 3
+        )
+        XCTAssertEqual(result, .completed, "首页插画应在滚动稳定后到达两侧边缘", file: file, line: line)
+        XCTAssertFalse(latestSamples.isEmpty, "Screenshot unavailable", file: file, line: line)
+        for sample in latestSamples {
+            XCTAssertGreaterThan(sample.inkFraction, 0.02,
+                                 "首页插画应到达\(sample.isRight ? "右" : "左")侧屏幕边缘，不能被列表左右留白裁切（第 \(sample.inset) 列）", file: file, line: line)
+        }
+    }
+
+    @MainActor
+    private func todayArtworkEdgeSamples(in app: XCUIApplication) -> [(isRight: Bool, inset: Int, inkFraction: Double)]? {
         guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
-            XCTFail("Screenshot unavailable", file: file, line: line)
-            return
+            return nil
         }
         let width = image.width
         let height = image.height
@@ -1239,6 +1305,7 @@ final class ZhouJiUITests: XCTestCase {
         // Inspect visible pixels, so a full-size image clipped by its list row cannot pass.
         // Include the outermost pixel: the asset's transparent rim must not leave a gap.
         let scale = CGFloat(width) / app.frame.width
+        var samplesByColumn: [(isRight: Bool, inset: Int, inkFraction: Double)] = []
         for isRight in [false, true] {
             for inset in stride(from: 0, to: Int(5 * scale), by: 2) {
                 var inkPixels = 0
@@ -1254,11 +1321,10 @@ final class ZhouJiUITests: XCTestCase {
                     }
                     samples += 1
                 }
-                XCTAssertGreaterThan(samples, 0, file: file, line: line)
-                XCTAssertGreaterThan(Double(inkPixels) / Double(max(1, samples)), 0.02,
-                                     "首页插画应到达\(isRight ? "右" : "左")侧屏幕边缘，不能被列表左右留白裁切（第 \(inset) 列）", file: file, line: line)
+                samplesByColumn.append((isRight, inset, Double(inkPixels) / Double(max(1, samples))))
             }
         }
+        return samplesByColumn
     }
 
     @MainActor
