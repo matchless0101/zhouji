@@ -1,0 +1,265 @@
+{
+  "date": "2026-10-02",
+  "baseCommit": "6abb90ad6eb9589ce8b58895a480f0c48b479621",
+  "platform": "iOS 26.5 Simulator",
+  "status": "passed",
+  "realDeviceVerified": false,
+  "cause": "The source artwork has a thin transparent rim. The previous test only inspected columns 2–5 points inside the screen and did not cover this gap.",
+  "fix": "Draw the image at 1.02 scale and clip to its original layout frame. The copy overlay remains outside the scale transform, preserving text and button layout.",
+  "originalAsset": {
+    "file": "ios/ZhouJi/Assets.xcassets/LiuliToday.imageset/LiuliToday.png",
+    "sizePixels": [
+      1145,
+      1374
+    ],
+    "alphaBoundingBox": [
+      0,
+      37,
+      1145,
+      1360
+    ],
+    "sha256": "288bc0c674b303ba4c01323eeebe27c8e5c9c29d32a07fb7c39c1192dc08a414",
+    "unchangedFromBase": true
+  },
+  "regression": "Inspect every sampled column from the outermost pixel through 5 points on both edges across empty/add/complete/restore. Compare greeting size and horizontal position across state changes.",
+  "reproduction": {
+    "bundle": "/private/tmp/zhouji-home-bleed-red.xcresult",
+    "log": "/private/tmp/zhouji-home-bleed-red.log",
+    "result": "expected failure on previous app code in the empty state, left outermost column warm ink coverage 0.0"
+  },
+  "testRuns": [
+    {
+      "name": "pro",
+      "device": "iPhone 17 Pro",
+      "status": "passed",
+      "uiTests": 1,
+      "tests": [
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ],
+      "log": "/private/tmp/zhouji-home-bleed-pro.log",
+      "bundle": "/private/tmp/zhouji-home-bleed-pro.xcresult"
+    },
+    {
+      "name": "se",
+      "device": "iPhone SE (3rd generation)",
+      "status": "passed",
+      "uiTests": 3,
+      "tests": [
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ],
+      "log": "/private/tmp/zhouji-home-bleed-se.log",
+      "bundle": "/private/tmp/zhouji-home-bleed-se.xcresult"
+    },
+    {
+      "name": "full",
+      "device": "iPhone 17 Pro",
+      "status": "passed",
+      "uiTests": 37,
+      "tests": [
+        "testAccountLibrarySwitchRebuildsListsAndStatistics",
+        "testAllPagesStayLightAndAppearanceControlIsRemoved",
+        "testApprovedGoalTaskAndSettingsScreens",
+        "testCalendarChangesDateMonthAndReturnsToToday",
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testCompletedTimedGoalAppearsInCalendar",
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testContentSyncCardAppearsOnlyWhenFlagEnabled",
+        "testCreatingTaskFromTodayCanAssignGoal",
+        "testDefaultGoalsShowRecommendedArtworkAndAllowManualChoice",
+        "testDeletingGoalKeepsTaskAndRemovesItsAssignment",
+        "testFloatingAddTaskRemainsUsableWithRunningTimer",
+        "testGoalPagesKeepAdditionAndSaveReachableWithLargeText",
+        "testGoalSettingsCanChangeAndPersistIcon",
+        "testGoalTaskHeaderKeepsSizeWhileEnteringTask",
+        "testGoalTaskInputKeepsBottomNavigationVisibleAndUsable",
+        "testGoalTaskLifecycleUpdatesProgressAndSupportsUndo",
+        "testGoalTaskPageAddsUnderCurrentGoalAndOpensPrintedSettings",
+        "testHeaderNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel",
+        "testLongGoalNameKeepsInlineTaskAdditionReachable",
+        "testNewTaskLargeTextKeepsCreationReachable",
+        "testNewTaskOpensKeyboardAndKeepsSubmitReachable",
+        "testProfileBackNavigationStaysClearDuringLargeTextInput",
+        "testProfileIdentityEditsNameAndAvatarAndClearsAfterLogout",
+        "testProfileIdentityRemainsEditableWithLargeText",
+        "testProfileTabShowsTruthfulLocalOverview",
+        "testProfileUsesCalendarTabAndNestedAbout",
+        "testReferenceAppearanceAndNavigation",
+        "testReferenceAppearanceWithLargeText",
+        "testSecondaryProfileDesignsKeepRealDataAndNavigation",
+        "testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable",
+        "testSettingsHideBackupControlsAndKeepRunningTimerAvailable",
+        "testTaskEditorHidesNavigationUntilReturning",
+        "testTimerDesignKeepsGoalPauseAndFinishSemantics",
+        "testTimerLargeTextKeepsControlsAndElapsedTimeReachable",
+        "testTodayHeaderKeepsScaleWhenTasksChange",
+        "testWeChatLoginWithoutInstalledWeChatKeepsGuestState"
+      ],
+      "log": "/private/tmp/zhouji-home-bleed-full.log",
+      "bundle": "/private/tmp/zhouji-home-bleed-full.xcresult",
+      "unitTests": 82,
+      "unitSuites": 15
+    }
+  ],
+  "build": {
+    "status": "passed",
+    "destination": "generic/platform=iOS Simulator",
+    "log": "/private/tmp/zhouji-home-bleed-build.log"
+  },
+  "review": {
+    "mode": "read-only",
+    "critical": 0,
+    "important": 0
+  },
+  "beforeScreenshot": {
+    "file": "today-edge-incomplete-pro-20261002.png",
+    "sha256": "1b222f24ef266a0522bcbfe702875a0875644a4157dc37e09bdf8632cbfdedad",
+    "outermostColumnWarmInkCoverage": {
+      "left": 0.0,
+      "right": 0.0
+    }
+  },
+  "screenshots": [
+    {
+      "device": "iPhone 17 Pro",
+      "file": "today-bleed-incomplete-pro-20261002.png",
+      "source": "/private/tmp/zhouji-home-bleed-pro-attachments/B489E1AB-1D7C-41A5-A352-8C397ED88934.png",
+      "test": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "dimensions": [
+        1206,
+        2622
+      ],
+      "sha256": "b0a2de8de7649768c74524edddd5b659927a93614e3fe74cfd0900d99edf11eb",
+      "edge_columns": [
+        {
+          "inset_px": 0,
+          "left": 0.2765,
+          "right": 0.1684
+        },
+        {
+          "inset_px": 2,
+          "left": 0.2827,
+          "right": 0.1705
+        },
+        {
+          "inset_px": 4,
+          "left": 0.2807,
+          "right": 0.1726
+        },
+        {
+          "inset_px": 6,
+          "left": 0.2911,
+          "right": 0.1663
+        },
+        {
+          "inset_px": 8,
+          "left": 0.2848,
+          "right": 0.1538
+        },
+        {
+          "inset_px": 10,
+          "left": 0.2911,
+          "right": 0.1601
+        },
+        {
+          "inset_px": 12,
+          "left": 0.289,
+          "right": 0.1622
+        },
+        {
+          "inset_px": 14,
+          "left": 0.2911,
+          "right": 0.1746
+        }
+      ],
+      "contentSizeCategory": "L",
+      "sourceBundle": "/private/tmp/zhouji-home-bleed-pro.xcresult"
+    },
+    {
+      "device": "iPhone SE (3rd generation)",
+      "file": "today-bleed-incomplete-se-20261002.png",
+      "source": "/private/tmp/zhouji-home-bleed-se-attachments/41589B83-5F95-4F0E-B806-D28D2165C36A.png",
+      "test": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "dimensions": [
+        750,
+        1334
+      ],
+      "sha256": "43d3e1b6e15c43559a8bf75a34fcb97df920cdd9269b19834a17a4e87e3f4e67",
+      "edge_columns": [
+        {
+          "inset_px": 0,
+          "left": 0.3347,
+          "right": 0.2082
+        },
+        {
+          "inset_px": 2,
+          "left": 0.351,
+          "right": 0.2204
+        },
+        {
+          "inset_px": 4,
+          "left": 0.3551,
+          "right": 0.2
+        },
+        {
+          "inset_px": 6,
+          "left": 0.3551,
+          "right": 0.1959
+        },
+        {
+          "inset_px": 8,
+          "left": 0.3469,
+          "right": 0.2163
+        }
+      ],
+      "contentSizeCategory": "L",
+      "sourceBundle": "/private/tmp/zhouji-home-bleed-se.xcresult"
+    }
+  ],
+  "stateScreenshotAnalysis": [
+    {
+      "device": "pro",
+      "state": "today-scale-completed",
+      "outermostLeft": 0.274428,
+      "outermostRight": 0.174636,
+      "sourceAttachment": "/private/tmp/zhouji-home-bleed-pro-attachments/BA3C39CF-91AA-4357-8B25-97A94258C4D7.png"
+    },
+    {
+      "device": "pro",
+      "state": "today-scale-incomplete",
+      "outermostLeft": 0.276507,
+      "outermostRight": 0.168399,
+      "sourceAttachment": "/private/tmp/zhouji-home-bleed-pro-attachments/B489E1AB-1D7C-41A5-A352-8C397ED88934.png"
+    },
+    {
+      "device": "pro",
+      "state": "today-scale-empty",
+      "outermostLeft": 0.274428,
+      "outermostRight": 0.174636,
+      "sourceAttachment": "/private/tmp/zhouji-home-bleed-pro-attachments/BC353665-6254-4A5C-99FC-D44176D0C18B.png"
+    },
+    {
+      "device": "se",
+      "state": "today-scale-completed",
+      "outermostLeft": 0.334694,
+      "outermostRight": 0.208163,
+      "sourceAttachment": "/private/tmp/zhouji-home-bleed-se-attachments/490C1E48-C806-4A3B-B121-0CC44F6B2E7A.png"
+    },
+    {
+      "device": "se",
+      "state": "today-scale-incomplete",
+      "outermostLeft": 0.334694,
+      "outermostRight": 0.208163,
+      "sourceAttachment": "/private/tmp/zhouji-home-bleed-se-attachments/41589B83-5F95-4F0E-B806-D28D2165C36A.png"
+    },
+    {
+      "device": "se",
+      "state": "today-scale-empty",
+      "outermostLeft": 0.334694,
+      "outermostRight": 0.208163,
+      "sourceAttachment": "/private/tmp/zhouji-home-bleed-se-attachments/ADD7232E-3A3A-4F30-83B6-90A23DAC10B0.png"
+    }
+  ],
+  "evidenceNote": "The two current PNG files are retained in this directory. Test bundles and logs under /private/tmp are temporary local evidence. Restored state is checked by the UI test and has no separately retained screenshot."
+}

@@ -1237,10 +1237,10 @@ final class ZhouJiUITests: XCTestCase {
         }
         // The reference's terracotta tabletop reaches both sides of the screen.
         // Inspect visible pixels, so a full-size image clipped by its list row cannot pass.
-        // Allow the artwork's own thin unprinted rim, then check every sampled column.
+        // Include the outermost pixel: the asset's transparent rim must not leave a gap.
         let scale = CGFloat(width) / app.frame.width
         for isRight in [false, true] {
-            for inset in stride(from: Int(2 * scale), to: Int(5 * scale), by: 2) {
+            for inset in stride(from: 0, to: Int(5 * scale), by: 2) {
                 var inkPixels = 0
                 var samples = 0
                 for y in stride(from: Int(CGFloat(height) * 0.15), to: Int(CGFloat(height) * 0.7), by: 3) {

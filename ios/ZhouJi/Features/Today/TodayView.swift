@@ -456,6 +456,9 @@ private struct TodayHeader: View {
                 Image("LiuliToday")
                     .resizable()
                     .scaledToFit()
+                    // Bleed the asset's transparent rim beyond the viewport without changing layout.
+                    .scaleEffect(1.02)
+                    .clipped()
                     .accessibilityHidden(true)
                     .allowsHitTesting(false)
                     .overlay(alignment: .topLeading) {
