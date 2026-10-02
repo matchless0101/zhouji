@@ -105,6 +105,34 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testProfileBackNavigationStaysClearDuringLargeTextInput() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJIsolationSampleData", "-ZJInitialTab", "profile",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        let identity = app.buttons["profile.identity"]
+        XCTAssertTrue(identity.waitForExistence(timeout: 3))
+        let originalIdentity = identity.label
+        identity.tap()
+        let nickname = app.textFields["profile.nickname"]
+        for _ in 0..<5 where !nickname.isHittable { app.swipeUp() }
+        XCTAssertTrue(nickname.isHittable)
+        nickname.tap()
+        nickname.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
+        nickname.typeText("大字昵称")
+        XCTAssertTrue(app.keyboards.firstMatch.exists)
+        let cancel = app.buttons["取消"]
+        XCTAssertTrue(cancel.isHittable)
+        saveScreenshot("secondary-profile-navigation-large-keyboard", app: app)
+        assertPaperBehindBackNavigation(in: app, button: cancel)
+        XCTAssertTrue(app.buttons["profile.save"].isHittable)
+        cancel.tap()
+        XCTAssertTrue(identity.waitForExistence(timeout: 3))
+        XCTAssertEqual(identity.label, originalIdentity)
+    }
+
+    @MainActor
     func testTimerLargeTextKeepsControlsAndElapsedTimeReachable() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -204,7 +232,7 @@ final class ZhouJiUITests: XCTestCase {
         let firstTask = app.buttons["today.firstTask"]
         XCTAssertTrue(firstTask.isHittable)
         XCTAssertEqual(firstTask.frame.midX, app.frame.midX, accuracy: 2)
-        XCTAssertGreaterThan(firstTask.frame.height, 120)
+        XCTAssertGreaterThan(firstTask.frame.height, 100)
         XCTAssertLessThanOrEqual(firstTask.frame.maxY, app.buttons["tab.today"].frame.minY)
         let message = app.staticTexts["today.message"]
         XCTAssertTrue(message.isHittable)
@@ -240,7 +268,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(add.isHittable)
         saveScreenshot("today-all-completed", app: app)
         XCTAssertEqual(add.frame.midX, app.frame.midX, accuracy: 2)
-        XCTAssertGreaterThan(add.frame.height, 120)
+        XCTAssertGreaterThan(add.frame.height, 100)
         XCTAssertLessThanOrEqual(add.frame.maxY, app.buttons["tab.today"].frame.minY)
         XCTAssertTrue(app.staticTexts["today.message"].label.contains("今天的事都完成了"))
         XCTAssertFalse(app.buttons["恢复任务"].isHittable)
@@ -729,6 +757,48 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testTodayHeaderKeepsScaleWhenTasksChange() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch()
+        let greeting = app.staticTexts["today.greeting"]
+        XCTAssertTrue(greeting.waitForExistence(timeout: 3))
+        let originalFrame = greeting.frame
+        saveScreenshot("today-scale-empty", app: app)
+
+        app.buttons["today.firstTask"].tap()
+        let field = app.textFields["今天要做什么？"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        field.typeText("Read one page")
+        app.buttons["添加"].tap()
+        XCTAssertTrue(app.staticTexts["Read one page"].waitForExistence(timeout: 3))
+        saveScreenshot("today-scale-incomplete", app: app)
+        XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1, "添加任务后首页插画中的文字不应随场景缩小")
+        XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1, "首页场景应保持相同的横向比例")
+        XCTAssertTrue(app.buttons["tab.today"].isHittable)
+
+        let complete = app.buttons["完成任务"].firstMatch
+        for _ in 0..<3 where !complete.isHittable { app.swipeUp() }
+        XCTAssertTrue(complete.isHittable)
+        complete.tap()
+        XCTAssertTrue(app.buttons["today.firstTask"].waitForExistence(timeout: 3))
+        saveScreenshot("today-scale-completed", app: app)
+        XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
+        XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
+
+        let restore = app.buttons["恢复任务"].firstMatch
+        for _ in 0..<4 where !restore.isHittable { app.swipeUp() }
+        XCTAssertTrue(restore.isHittable)
+        restore.tap()
+        for _ in 0..<4 where !greeting.isHittable { app.swipeDown() }
+        XCTAssertTrue(greeting.isHittable)
+        XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
+        XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
+        XCTAssertTrue(app.buttons["完成任务"].firstMatch.exists)
+    }
+
+    @MainActor
     func testNewTaskOpensKeyboardAndKeepsSubmitReachable() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -960,7 +1030,12 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["结束计时"].tap()
         XCTAssertTrue(app.staticTexts["整理开题资料"].waitForExistence(timeout: 2))
         app.buttons["完成任务"].firstMatch.tap()
-        XCTAssertEqual(app.buttons.matching(identifier: "完成任务").count, 2)
+        for title in ["投递实习简历", "练习 SwiftUI"] {
+            let remaining = app.cells.containing(.staticText, identifier: title).element
+            for _ in 0..<4 where !remaining.isHittable { app.swipeUp() }
+            XCTAssertTrue(remaining.isHittable)
+            XCTAssertTrue(remaining.buttons["完成任务"].exists)
+        }
         let row = app.cells.containing(.staticText, identifier: "投递实习简历").element
         row.swipeLeft()
         app.buttons["删除"].tap()
@@ -1138,6 +1213,41 @@ final class ZhouJiUITests: XCTestCase {
         field.typeText(name)
         app.buttons["添加"].tap()
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 2))
+    }
+
+    @MainActor
+    private func assertPaperBehindBackNavigation(in app: XCUIApplication, button: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
+            XCTFail("Screenshot unavailable", file: file, line: line)
+            return
+        }
+        let width = image.width
+        let height = image.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        pixels.withUnsafeMutableBytes { buffer in
+            let context = CGContext(data: buffer.baseAddress, width: width, height: height,
+                                    bitsPerComponent: 8, bytesPerRow: width * 4,
+                                    space: CGColorSpaceCreateDeviceRGB(),
+                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
+            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
+        }
+        let scale = CGFloat(width) / app.frame.width
+        let minX = Int((button.frame.maxX + 8) * scale)
+        let maxX = Int((app.frame.maxX - 16) * scale)
+        let minY = Int((button.frame.minY + 8) * scale)
+        let maxY = Int((button.frame.maxY - 8) * scale)
+        var darkPixels = 0
+        var samples = 0
+        for y in stride(from: max(0, minY), to: min(height, maxY), by: 3) {
+            for x in stride(from: max(0, minX), to: min(width, maxX), by: 3) {
+                let offset = (y * width + x) * 4
+                if Int(pixels[offset]) + Int(pixels[offset + 1]) + Int(pixels[offset + 2]) < 450 { darkPixels += 1 }
+                samples += 1
+            }
+        }
+        XCTAssertGreaterThan(samples, 0, file: file, line: line)
+        XCTAssertLessThan(Double(darkPixels) / Double(max(1, samples)), 0.01,
+                          "滚动内容不应穿过固定返回栏的纸色背景", file: file, line: line)
     }
 
     @MainActor

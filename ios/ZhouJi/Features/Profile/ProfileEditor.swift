@@ -169,6 +169,7 @@ struct ProfileEditor: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, ZJTheme.pagePadding - 6)
                     .padding(.top, 6)
+                    .background(ZJTheme.pageBackground)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 Button(action: saveProfile) {

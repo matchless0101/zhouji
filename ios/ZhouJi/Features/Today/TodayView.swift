@@ -76,7 +76,7 @@ struct TodayView: View {
                     }
                 } else {
                     List {
-                        TodayHeader(date: referenceDate, isEmpty: false)
+                        TodayHeader(date: referenceDate)
                             .padding(.horizontal, -ZJTheme.pagePadding)
                             .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                             .listRowSeparator(.hidden)
@@ -179,14 +179,13 @@ struct TodayView: View {
     }
 
     private func quietTodayContent(size: CGSize) -> some View {
-        VStack(spacing: 20) {
+        let isCompact = size.height < size.width * 1.2 + 192
+        return VStack(spacing: isCompact ? 0 : 20) {
             TodayHeader(
                 date: referenceDate,
-                isEmpty: true,
-                isDayComplete: !completedTodayTasks.isEmpty,
-                heroHeight: min(size.width * 1.2, max(270, size.height - 212))
+                isDayComplete: !completedTodayTasks.isEmpty
             )
-            firstTaskButton
+            firstTaskButton(isCompact: isCompact)
         }
     }
 
@@ -256,15 +255,16 @@ struct TodayView: View {
         .padding(.bottom, 16)
     }
 
-    private var firstTaskButton: some View {
-        Button {
+    private func firstTaskButton(isCompact: Bool) -> some View {
+        let diameter: CGFloat = isCompact ? 84 : 124
+        return Button {
             navigationPath.append(.newTask)
         } label: {
-            VStack(spacing: 14) {
+            VStack(spacing: isCompact ? 4 : 14) {
                 Image(systemName: "plus")
-                    .font(.system(size: 46, weight: .regular, design: .rounded))
+                    .font(.system(size: diameter * 46 / 124, weight: .regular, design: .rounded))
                     .foregroundStyle(ZJTheme.onAccent)
-                    .frame(width: 124, height: 124)
+                    .frame(width: diameter, height: diameter)
                     .background {
                         Circle().fill(ZJTheme.accent)
                             .overlay {
@@ -419,9 +419,7 @@ enum TodayDestination: Hashable {
 private struct TodayHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let date: Date
-    let isEmpty: Bool
     var isDayComplete = false
-    var heroHeight: CGFloat = 480
 
     private var greeting: String {
         switch Calendar.current.component(.hour, from: date) {
@@ -440,28 +438,20 @@ private struct TodayHeader: View {
                     .padding(.top, 22)
                     .padding(.bottom, 16)
             } else {
-                GeometryReader { proxy in
-                    let artworkWidth = min(proxy.size.width, proxy.size.height / 1.2)
-                    let artworkHeight = artworkWidth * 1.2
-
-                    // Keep the editable copy inside the illustration's empty upper-left area.
-                    ZStack(alignment: .topLeading) {
-                        Image("LiuliToday")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: artworkWidth, height: artworkHeight)
-                            .accessibilityHidden(true)
-                            .allowsHitTesting(false)
-
-                        copy(scale: min(1, artworkWidth / 402))
-                            .frame(width: artworkWidth * 0.48, alignment: .leading)
-                            .padding(.leading, artworkWidth * 0.085)
-                            .padding(.top, artworkHeight * 0.105)
+                Image("LiuliToday")
+                    .resizable()
+                    .scaledToFit()
+                    .accessibilityHidden(true)
+                    .allowsHitTesting(false)
+                    .overlay(alignment: .topLeading) {
+                        // Measure the width-driven artwork without constraining its height.
+                        GeometryReader { proxy in
+                            copy(scale: min(1, proxy.size.width / 402))
+                                .frame(width: proxy.size.width * 0.48, alignment: .leading)
+                                .padding(.leading, proxy.size.width * 0.085)
+                                .padding(.top, proxy.size.height * 0.105)
+                        }
                     }
-                    .frame(width: artworkWidth, height: artworkHeight)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                }
-                .frame(height: isEmpty ? heroHeight : 325)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

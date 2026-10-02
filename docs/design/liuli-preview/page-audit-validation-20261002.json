@@ -1,0 +1,203 @@
+{
+  "date": "2026-10-02",
+  "baseCommit": "f998074588f09c45edc2d2d7aced2c459ed4fb0f",
+  "platform": "iOS 26.5 Simulator",
+  "realDeviceVerified": false,
+  "changes": [
+    "Homepage artwork uses natural aspect ratio at full page width across task states.",
+    "Compact homepage CTA uses an 84-point circle with tighter spacing; normal CTA remains 124 points.",
+    "Opaque paper backgrounds keep scrolling text out of four fixed Profile back areas."
+  ],
+  "verificationRuns": [
+    {
+      "name": "full-pro",
+      "bundle": "/private/tmp/zhouji-page-audit-final.xcresult",
+      "log": "/private/tmp/zhouji-page-audit-final.log",
+      "unitTests": 82,
+      "unitSuites": 15,
+      "uiTests": 37,
+      "status": "passed",
+      "passedUITests": [
+        "testAccountLibrarySwitchRebuildsListsAndStatistics",
+        "testAllPagesStayLightAndAppearanceControlIsRemoved",
+        "testApprovedGoalTaskAndSettingsScreens",
+        "testCalendarChangesDateMonthAndReturnsToToday",
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testCompletedTimedGoalAppearsInCalendar",
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testContentSyncCardAppearsOnlyWhenFlagEnabled",
+        "testCreatingTaskFromTodayCanAssignGoal",
+        "testDefaultGoalsShowRecommendedArtworkAndAllowManualChoice",
+        "testDeletingGoalKeepsTaskAndRemovesItsAssignment",
+        "testFloatingAddTaskRemainsUsableWithRunningTimer",
+        "testGoalPagesKeepAdditionAndSaveReachableWithLargeText",
+        "testGoalSettingsCanChangeAndPersistIcon",
+        "testGoalTaskHeaderKeepsSizeWhileEnteringTask",
+        "testGoalTaskInputKeepsBottomNavigationVisibleAndUsable",
+        "testGoalTaskLifecycleUpdatesProgressAndSupportsUndo",
+        "testGoalTaskPageAddsUnderCurrentGoalAndOpensPrintedSettings",
+        "testHeaderNewGoalStaysFixedWhileScrollingAndReturnsAfterCancel",
+        "testLongGoalNameKeepsInlineTaskAdditionReachable",
+        "testNewTaskLargeTextKeepsCreationReachable",
+        "testNewTaskOpensKeyboardAndKeepsSubmitReachable",
+        "testProfileBackNavigationStaysClearDuringLargeTextInput",
+        "testProfileIdentityEditsNameAndAvatarAndClearsAfterLogout",
+        "testProfileIdentityRemainsEditableWithLargeText",
+        "testProfileTabShowsTruthfulLocalOverview",
+        "testProfileUsesCalendarTabAndNestedAbout",
+        "testReferenceAppearanceAndNavigation",
+        "testReferenceAppearanceWithLargeText",
+        "testSecondaryProfileDesignsKeepRealDataAndNavigation",
+        "testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable",
+        "testSettingsHideBackupControlsAndKeepRunningTimerAvailable",
+        "testTaskEditorHidesNavigationUntilReturning",
+        "testTimerDesignKeepsGoalPauseAndFinishSemantics",
+        "testTimerLargeTextKeepsControlsAndElapsedTimeReachable",
+        "testTodayHeaderKeepsScaleWhenTasksChange",
+        "testWeChatLoginWithoutInstalledWeChatKeepsGuestState"
+      ]
+    },
+    {
+      "name": "final-pro-home",
+      "bundle": "/private/tmp/zhouji-page-audit-pro-verified.xcresult",
+      "log": "/private/tmp/zhouji-page-audit-pro-verified.log",
+      "uiTests": 2,
+      "status": "passed",
+      "passedUITests": [
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ]
+    },
+    {
+      "name": "final-se-home",
+      "bundle": "/private/tmp/zhouji-page-audit-se-verified.xcresult",
+      "log": "/private/tmp/zhouji-page-audit-se-verified.log",
+      "uiTests": 5,
+      "status": "passed",
+      "passedUITests": [
+        "testColdLaunchUsesV3NavigationAndStartsOnToday",
+        "testCompletingAllTasksShowsQuietTodayAndSupportsAddingAndRestoring",
+        "testProfileBackNavigationStaysClearDuringLargeTextInput",
+        "testReferenceAppearanceAndNavigation",
+        "testTodayHeaderKeepsScaleWhenTasksChange"
+      ]
+    },
+    {
+      "name": "final-se-input",
+      "bundle": "/private/tmp/zhouji-page-audit-se-input-verified.xcresult",
+      "log": "/private/tmp/zhouji-page-audit-se-input-verified.log",
+      "uiTests": 3,
+      "status": "passed",
+      "passedUITests": [
+        "testNewTaskLargeTextKeepsCreationReachable",
+        "testNewTaskOpensKeyboardAndKeepsSubmitReachable",
+        "testSecondaryProfileLargeTextKeepsNavigationAndKeyboardSaveReachable"
+      ]
+    }
+  ],
+  "verificationSequenceNote": "The full Pro suite ran with a 92-point compact CTA. The final compact CTA was adjusted to 84 points; the ordinary Pro CTA remains 124 points. Final source then passed two Pro homepage tests, eight SE tests and a generic simulator build.",
+  "build": {
+    "destination": "generic/platform=iOS Simulator",
+    "log": "/private/tmp/zhouji-page-audit-build-verified.log",
+    "status": "passed"
+  },
+  "reproductions": [
+    {
+      "name": "homepage-scale",
+      "bundle": "/private/tmp/zhouji-page-audit-red.xcresult",
+      "expectedStatus": "failed",
+      "observation": "Greeting height shrank from 35 to 23.667 points after adding a task."
+    },
+    {
+      "name": "profile-back-overlap",
+      "bundle": "/private/tmp/zhouji-profile-navigation-red-pro-fresh.xcresult",
+      "expectedStatus": "failed",
+      "observation": "Scrolling title occupied the fixed back strip with 15.3 percent dark samples."
+    }
+  ],
+  "review": {
+    "mode": "read-only",
+    "blockingFindings": 0,
+    "docCorrections": "PRD height-shrinking rules updated to match width-driven artwork."
+  },
+  "checkedPages": [
+    "Today",
+    "Goals",
+    "Goal tasks",
+    "Goal settings",
+    "New task",
+    "Calendar",
+    "Profile",
+    "Timer",
+    "Profile overview",
+    "Preferences",
+    "About",
+    "Profile editor"
+  ],
+  "screenshots": [
+    {
+      "file": "today-artwork-incomplete-before-20261002.png",
+      "state": "before",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "L",
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-incomplete_0_E8DE11A8-570C-4F49-93C4-5AA293A6235A.png",
+      "sha256": "98eeec937a38811b30e06ae5bba340fcf75114ce0653b527004ee2cfed034837"
+    },
+    {
+      "file": "today-artwork-empty-pro-20261002.png",
+      "state": "after",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "L",
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-empty_0_4D4A56AC-7FD7-41CF-8D85-AFCA1670B3DC.png",
+      "sha256": "e0264ecd2ccaea09151b0c148397acdad6772ea9131ff9f687ad6181c8277948"
+    },
+    {
+      "file": "today-artwork-incomplete-pro-20261002.png",
+      "state": "after",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "L",
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-incomplete_0_CD6F5117-C009-4770-A862-3B07B4B9FF4F.png",
+      "sha256": "f7983a2bb7d04c9c8dc3f1ed3b63bba5a61bb1905b8346c8b32d0d30d7d2a827"
+    },
+    {
+      "file": "today-artwork-completed-pro-20261002.png",
+      "state": "after",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "L",
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-completed_0_5CFBCB6C-372B-4B5B-9E79-30983A8DB589.png",
+      "sha256": "1048c1971d26d026f6140fec08e2d79208d8f9ff456158ab39f6c704f37be710"
+    },
+    {
+      "file": "today-artwork-empty-se-20261002.png",
+      "state": "after",
+      "device": "iPhone SE (3rd generation)",
+      "contentSizeCategory": "L",
+      "sourceTest": "ZhouJiUITests/testTodayHeaderKeepsScaleWhenTasksChange()",
+      "sourceAttachmentName": "today-scale-empty_0_B02FFDD6-2F7B-45B7-B589-4BD6F204EADD.png",
+      "sha256": "d6037281c1a1e4491e486839e95d1b8dc12ee5ad5db3cf609d5ea7fb1c48b1f3"
+    },
+    {
+      "file": "profile-back-large-before-20261002.png",
+      "state": "before",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "AccessibilityXXXL",
+      "sourceTest": "ZhouJiUITests/testProfileBackNavigationStaysClearDuringLargeTextInput()",
+      "sourceAttachmentName": "secondary-profile-navigation-large-keyboard_0_93E6918D-A9E6-4B3F-9640-C1A86AF25236.png",
+      "sha256": "d2f7a42e44862bfd374b679966c04dac4e9f36c5ff3ffa27db99efd36b3d9bc3"
+    },
+    {
+      "file": "profile-back-large-after-20261002.png",
+      "state": "after",
+      "device": "iPhone 17 Pro",
+      "contentSizeCategory": "AccessibilityXXXL",
+      "sourceTest": "ZhouJiUITests/testProfileBackNavigationStaysClearDuringLargeTextInput()",
+      "sourceAttachmentName": "secondary-profile-navigation-large-keyboard_0_174B9528-5A0C-4CC0-AF2F-EC1BFD16D25E.png",
+      "sha256": "000f7e1ed2c2ab0a6386a3d8d3c06eaffd6b340f2dae064a5b0d34f75f68bf0c"
+    }
+  ],
+  "evidenceNote": "xcresult bundles and logs under /private/tmp are local temporary evidence. The seven listed PNG files are retained beside this manifest."
+}

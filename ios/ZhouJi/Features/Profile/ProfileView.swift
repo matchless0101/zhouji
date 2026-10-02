@@ -178,6 +178,7 @@ struct ProfileView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, ZJTheme.pagePadding - 6)
                     .padding(.top, 6)
+                    .background(ZJTheme.pageBackground)
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
@@ -237,6 +238,7 @@ private struct ProfilePreferencesView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, ZJTheme.pagePadding - 6)
                     .padding(.top, 6)
+                    .background(ZJTheme.pageBackground)
             }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $isAboutPresented) { AboutZhouJiView() }
@@ -504,6 +506,7 @@ private struct AboutZhouJiView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, ZJTheme.pagePadding - 6)
                     .padding(.top, 6)
+                    .background(ZJTheme.pageBackground)
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
