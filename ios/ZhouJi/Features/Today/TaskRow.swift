@@ -1,27 +1,30 @@
 import SwiftUI
 
 struct TaskRow: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .body) private var completionSize = 28.0
+    @State private var isCompleting = false
 
     let task: TodoTask
     let isActivelyTimed: Bool
     var showsGoal = true
     var presentation: Presentation = .standard
+    var animatesCompletion = false
     let onToggleCompletion: () -> Void
     let onStartTimer: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            Button(action: onToggleCompletion) {
+            Button(action: toggleCompletion) {
                 ZStack {
                     Circle()
                         .stroke(
-                            task.isCompleted ? ZJTheme.success : ZJTheme.secondaryInk,
+                            task.isCompleted || isCompleting ? ZJTheme.success : ZJTheme.secondaryInk,
                             lineWidth: 1.5
                         )
                         .frame(width: completionSize, height: completionSize)
 
-                    if task.isCompleted {
+                    if task.isCompleted || isCompleting {
                         Circle()
                             .fill(ZJTheme.success)
                             .frame(width: completionSize, height: completionSize)
@@ -30,10 +33,12 @@ struct TaskRow: View {
                             .foregroundStyle(ZJTheme.surface)
                     }
                 }
+                .scaleEffect(isCompleting ? 0.88 : 1)
                 .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .disabled(isCompleting)
             .accessibilityLabel(task.isCompleted ? "恢复任务" : "完成任务")
             .accessibilityHint(task.title)
 
@@ -99,12 +104,29 @@ struct TaskRow: View {
                     }
                 }
                 .buttonStyle(.plain)
+                .disabled(isCompleting)
                 .accessibilityLabel(isActivelyTimed ? "查看计时" : "开始计时")
                 .accessibilityHint(task.title)
             }
         }
         .padding(.vertical, presentation == .goal ? 0 : (task.isCompleted ? 0 : 10))
         .contentShape(Rectangle())
+    }
+
+    private func toggleCompletion() {
+        guard animatesCompletion, !reduceMotion, !task.isCompleted else {
+            onToggleCompletion()
+            return
+        }
+        // Keep the checked circle visible briefly before its row changes sections.
+        withAnimation(.easeOut(duration: 0.12), completionCriteria: .logicallyComplete) {
+            isCompleting = true
+        } completion: {
+            withAnimation(.easeOut(duration: 0.28)) {
+                isCompleting = false
+                onToggleCompletion()
+            }
+        }
     }
 
     enum Presentation {

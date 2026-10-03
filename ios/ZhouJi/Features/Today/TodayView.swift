@@ -56,21 +56,17 @@ struct TodayView: View {
                         List {
                             let incompleteTasks = self.incompleteTasks
                             let completedTodayTasks = self.completedTodayTasks
-                            if incompleteTasks.isEmpty {
-                                quietTodayContent(size: proxy.size, hasCompletedTasks: !completedTodayTasks.isEmpty)
-                                    .frame(width: proxy.size.width)
-                                    .frame(minHeight: proxy.size.height, alignment: .top)
-                                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                                    .listRowSeparator(.hidden)
-                                    .listRowBackground(Color.clear)
-                                    .id("today.header")
-                            } else {
-                                TodayHeader(date: referenceDate)
-                                    .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                                    .listRowSeparator(.hidden)
-                                    .listRowBackground(Color.clear)
-                                    .id("today.header")
+                            todayHeaderContent(size: proxy.size, isQuiet: incompleteTasks.isEmpty,
+                                               hasCompletedTasks: !completedTodayTasks.isEmpty)
+                                .frame(width: proxy.size.width)
+                                .frame(minHeight: incompleteTasks.isEmpty ? proxy.size.height : nil, alignment: .top)
+                                .animation(nil, value: incompleteTasks.isEmpty)
+                                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                                .id("today.header")
 
+                            if !incompleteTasks.isEmpty {
                                 Section {
                                     taskSectionHeader(title: "未完成", count: incompleteTasks.count)
 
@@ -206,14 +202,17 @@ struct TodayView: View {
         }
     }
 
-    private func quietTodayContent(size: CGSize, hasCompletedTasks: Bool) -> some View {
+    private func todayHeaderContent(size: CGSize, isQuiet: Bool, hasCompletedTasks: Bool) -> some View {
         let isCompact = size.height < size.width * 1.2 + 192
         return VStack(spacing: isCompact ? 0 : 20) {
             TodayHeader(
                 date: referenceDate,
-                isDayComplete: hasCompletedTasks
+                isDayComplete: isQuiet && hasCompletedTasks
             )
-            firstTaskButton(isCompact: isCompact)
+            if isQuiet {
+                firstTaskButton(isCompact: isCompact)
+                    .transition(.opacity)
+            }
         }
     }
 
@@ -254,6 +253,7 @@ struct TodayView: View {
         TaskRow(
             task: task,
             isActivelyTimed: timer.activeTaskID == task.id,
+            animatesCompletion: true,
             onToggleCompletion: { toggleCompletion(of: task) },
             onStartTimer: { startTimer(for: task) }
         )
@@ -454,6 +454,7 @@ enum TodayDestination: Hashable {
 
 private struct TodayHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let date: Date
     var isDayComplete = false
 
@@ -506,6 +507,8 @@ private struct TodayHeader: View {
                 .font(ZJTheme.handwriting(14 * scale, relativeTo: .subheadline))
                 .foregroundStyle(ZJTheme.secondaryInk)
             Text(isDayComplete ? "今天的事都完成了，\n给自己一点休息的时间。" : "新的一天，\n从一件小事开始。")
+                .contentTransition(.opacity)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: isDayComplete)
                 .font(ZJTheme.handwriting(17 * scale, relativeTo: .body))
                 .lineSpacing(3)
                 .foregroundStyle(ZJTheme.secondaryInk)
