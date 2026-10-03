@@ -1303,6 +1303,9 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["calendar.today"].tap()
         XCTAssertTrue(app.buttons["calendar.day.\(currentDay)"].isSelected)
         XCTAssertEqual(app.staticTexts["calendar.completed"].label, "2 件完成")
+        saveScreenshot("calendar-reference-initial", app: app)
+        app.swipeUp()
+        saveScreenshot("calendar-reference-picnic", app: app)
     }
 
     @MainActor

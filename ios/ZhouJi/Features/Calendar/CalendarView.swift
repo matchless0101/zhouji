@@ -19,8 +19,17 @@ struct CalendarView: View {
                         monthHeader
                         monthGrid(activity: activity, now: context.date)
                         daySummary(facts)
-                        ZJScene(name: "LiuliCalendar", height: 275)
+                        GeometryReader { proxy in
+                            Image(decorative: "LiuliCalendarReference")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: proxy.size.width, height: proxy.size.width / 1.2)
+                                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .bottom)
+                                .clipped()
+                        }
+                            .aspectRatio(1.5, contentMode: .fit)
                             .padding(.horizontal, -ZJTheme.pagePadding)
+                            .allowsHitTesting(false)
                             .overlay(alignment: .topTrailing) {
                                 Text("好的时光，\n都在路上。")
                                     .font(ZJTheme.handwriting(20, relativeTo: .body))
@@ -33,7 +42,6 @@ struct CalendarView: View {
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
                     .padding(.top, 20)
-                    .padding(.bottom, 24)
                 }
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
