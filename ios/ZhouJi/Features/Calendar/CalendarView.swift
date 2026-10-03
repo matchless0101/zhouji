@@ -8,6 +8,7 @@ struct CalendarView: View {
     @State private var month = Date.now
     @State private var selectedDate = Date.now
     @State private var isDayPresented = false
+    @State private var viewportHeight: CGFloat = 0
 
     var body: some View {
         NavigationStack {
@@ -18,30 +19,35 @@ struct CalendarView: View {
                     VStack(spacing: 14) {
                         monthHeader
                         monthGrid(activity: activity, now: context.date)
+                            .background(ZJTheme.pageBackground)
                         daySummary(facts)
-                        GeometryReader { proxy in
-                            Image(decorative: "LiuliCalendarReference")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: proxy.size.width, height: proxy.size.width / 1.2)
-                                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .bottom)
-                                .clipped()
-                        }
-                            .aspectRatio(1.5, contentMode: .fit)
+                        Color.clear
+                            .aspectRatio(1.2, contentMode: .fit)
                             .padding(.horizontal, -ZJTheme.pagePadding)
-                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
                             .overlay(alignment: .topTrailing) {
-                                Text("好的时光，\n都在路上。")
+                                if viewportHeight >= 700 && !dynamicTypeSize.isAccessibilitySize {
+                                    Text("好的时光，\n都在路上。")
                                     .font(ZJTheme.handwriting(20, relativeTo: .body))
                                     .lineSpacing(5)
                                     .foregroundStyle(ZJTheme.ink)
                                     .rotationEffect(.degrees(-9))
                                     .padding(.trailing, 28)
                                     .padding(.top, 4)
+                                }
                             }
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
                     .padding(.top, 20)
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+                .background(alignment: .bottom) {
+                    Image(decorative: "LiuliCalendarReference")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: .infinity)
+                        .accessibilityHidden(true)
+                        .allowsHitTesting(false)
                 }
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
