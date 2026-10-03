@@ -1116,6 +1116,36 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testGoalReferenceCardsKeepProgressAccessible() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
+        app.launch()
+        let artworkBottom = app.buttons["tab.goals"].frame.minY
+        XCTAssertNotNil(goalArtworkTopAtMargin(in: app, above: artworkBottom, margin: 0), "插画必须到达左侧屏幕边缘")
+        XCTAssertNotNil(goalArtworkTopAtMargin(in: app, above: artworkBottom, margin: app.frame.width - 0.5), "插画必须到达右侧屏幕边缘")
+        let names = ["健康一点", "多读书", "坚持运动", "做更好的自己"]
+        for name in names { createGoal(named: name, in: app) }
+        for (name, icon) in [("健康一点", "leaf"), ("做更好的自己", "heart")] {
+            app.staticTexts[name].tap()
+            app.buttons["目标设置"].tap()
+            let choice = app.buttons["goal.icon.\(icon)"]
+            for _ in 0..<3 where !choice.isHittable { app.swipeUp() }
+            choice.tap()
+            app.buttons["保存设置"].tap()
+            app.buttons["返回目标列表"].tap()
+        }
+        XCTAssertFalse(app.staticTexts["0/0"].exists, "列表卡片不显示参考图中没有的进度数字")
+        let row = app.buttons.containing(.staticText, identifier: "多读书").firstMatch
+        XCTAssertTrue(row.exists)
+        XCTAssertTrue((row.value as? String ?? "").contains("完成 0 个，共 0 个任务"), "精简视觉后仍保留进度的无障碍说明")
+        saveScreenshot("goals-reference-four-cards", app: app)
+        app.buttons["目标筛选"].tap()
+        app.buttons["进行中"].tap()
+        XCTAssertTrue(app.staticTexts["多读书"].exists)
+    }
+
+    @MainActor
     func testGoalBackgroundStaysInPlaceWhileCreatingGoal() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -1344,7 +1374,7 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    private func goalArtworkTopAtMargin(in app: XCUIApplication, above bottom: CGFloat) -> CGFloat? {
+    private func goalArtworkTopAtMargin(in app: XCUIApplication, above bottom: CGFloat, margin: CGFloat = 14) -> CGFloat? {
         guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else { return nil }
         let width = image.width
         let height = image.height
@@ -1359,7 +1389,7 @@ final class ZhouJiUITests: XCTestCase {
         let scale = CGFloat(width) / app.frame.width
         // The 14pt margin is outside cards, inputs and navigation icons.
         // Inspect actual printed pixels rather than an invisible layout frame.
-        let x = Int(14 * scale)
+        let x = min(width - 1, max(0, Int(margin * scale)))
         for y in stride(from: Int(100 * scale), to: min(height, Int(bottom * scale)), by: 2) {
             let offset = (y * width + x) * 4
             if pixels[offset] < 190 && pixels[offset + 1] < 190 && pixels[offset + 2] < 180 {

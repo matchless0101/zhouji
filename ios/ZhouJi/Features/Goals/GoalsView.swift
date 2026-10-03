@@ -60,7 +60,7 @@ struct GoalsView: View {
                         )
                         .padding(18)
                         .zjCard()
-                        .listRowInsets(EdgeInsets(top: 8, leading: ZJTheme.pagePadding, bottom: 8, trailing: ZJTheme.pagePadding))
+                        .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 6, bottom: 6, trailing: ZJTheme.pagePadding + 6))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
                     } else {
@@ -71,7 +71,7 @@ struct GoalsView: View {
                                 GoalRow(goal: goal)
                             }
                             .buttonStyle(.plain)
-                            .listRowInsets(EdgeInsets(top: 8, leading: ZJTheme.pagePadding, bottom: 8, trailing: ZJTheme.pagePadding))
+                            .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 6, bottom: 6, trailing: ZJTheme.pagePadding + 6))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                             .swipeActions {
@@ -109,7 +109,16 @@ struct GoalsView: View {
             .background(alignment: .top) {
                 ZStack(alignment: .bottom) {
                     ZJTheme.pageBackground.ignoresSafeArea()
-                    ZJScene(name: "LiuliGoals", height: 255)
+                    GeometryReader { proxy in
+                        Image(decorative: "LiuliGoalsReference")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: proxy.size.width * 1.4, height: proxy.size.width * 1.4 / 1.5)
+                            .frame(width: proxy.size.width, height: 255, alignment: .bottom)
+                            .clipped()
+                    }
+                    .frame(height: 255)
+                    .allowsHitTesting(false)
                 }
                 .frame(height: backgroundHeight, alignment: .bottom)
             }
@@ -166,9 +175,26 @@ struct GoalsView: View {
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center) {
-                Text("我的目标")
-                    .font(ZJTheme.handwriting(36, relativeTo: .largeTitle))
-                    .foregroundStyle(ZJTheme.ink)
+                Menu {
+                    ForEach(GoalFilter.allCases, id: \.self) { filter in
+                        Button { selectedFilter = filter } label: {
+                            if selectedFilter == filter {
+                                Label(filter.title, systemImage: "checkmark")
+                            } else {
+                                Text(filter.title)
+                            }
+                        }
+                    }
+                } label: {
+                    Text("我的目标")
+                        .font(ZJTheme.handwriting(34, relativeTo: .largeTitle).weight(.bold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .frame(minHeight: 44, alignment: .leading)
+                }
+                .accessibilityLabel("我的目标，筛选目标")
+                .accessibilityIdentifier("目标筛选")
+                .accessibilityValue(selectedFilter.title)
+                .accessibilityHint("轻点标题选择全部、进行中或已完成目标")
                 Spacer(minLength: 8)
                 if !isAddingGoal {
                     Button(action: beginCreatingGoal) {
@@ -187,26 +213,6 @@ struct GoalsView: View {
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
                 Spacer(minLength: 8)
-                Menu {
-                    ForEach(GoalFilter.allCases, id: \.self) { filter in
-                        Button {
-                            selectedFilter = filter
-                        } label: {
-                            if selectedFilter == filter {
-                                Label(filter.title, systemImage: "checkmark")
-                            } else {
-                                Text(filter.title)
-                            }
-                        }
-                    }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease")
-                        .font(.system(size: 18, weight: .regular))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .frame(width: 44, height: 44)
-                }
-                .accessibilityLabel("目标筛选")
-                .accessibilityValue(selectedFilter.title)
             }
         }
     }
@@ -302,26 +308,56 @@ private struct GoalRow: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            ZJGoalIcon(iconName: goal.displayIconName, size: 36)
+            GoalListIcon(iconName: goal.displayIconName)
             Text(goal.name)
-                .font(.body.weight(.medium))
+                .font(ZJTheme.handwriting(20, relativeTo: .body))
                 .foregroundStyle(ZJTheme.ink)
                 .fixedSize(horizontal: false, vertical: true)
             Spacer(minLength: 8)
-            Text("\(progress.completed)/\(progress.total)")
-                .font(.subheadline)
-                .monospacedDigit()
-                .foregroundStyle(ZJTheme.secondaryInk)
             Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundStyle(ZJTheme.secondaryInk)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(ZJTheme.ink)
                 .accessibilityHidden(true)
         }
         .padding(.horizontal, 18)
-        .padding(.vertical, 18)
-        .frame(minHeight: 76)
-        .zjCard()
+        .padding(.vertical, 16)
+        .frame(minHeight: 78)
+        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
         .accessibilityElement(children: .combine)
         .accessibilityValue("完成 \(progress.completed) 个，共 \(progress.total) 个任务，进度百分之 \(progress.percentage)")
+    }
+}
+
+private struct GoalListIcon: View {
+    let iconName: String
+
+    var body: some View {
+        Group {
+            if iconName == "book.closed" {
+                Canvas { context, size in
+                    let cover = CGRect(x: 7, y: 4, width: 30, height: 36)
+                    context.fill(Path(roundedRect: cover, cornerRadius: 3), with: .color(ZJTheme.success))
+                    var spine = Path()
+                    spine.move(to: CGPoint(x: 12, y: 6))
+                    spine.addLine(to: CGPoint(x: 12, y: 34))
+                    spine.addLine(to: CGPoint(x: 35, y: 34))
+                    context.stroke(spine, with: .color(ZJTheme.onAccent), style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
+                    for index in 0..<42 {
+                        let x = CGFloat((index * 17 + 3) % 27) + 8
+                        let y = CGFloat((index * 11 + 9) % 33) + 5
+                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 0.7, height: 0.7)),
+                                     with: .color(ZJTheme.onAccent.opacity(0.35)))
+                    }
+                }
+            } else if iconName == "heart" {
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 34, weight: .regular))
+                    .foregroundStyle(ZJTheme.accent)
+            } else {
+                ZJIcon(systemName: iconName, size: 52)
+            }
+        }
+        .frame(width: 44, height: 44)
+        .accessibilityHidden(true)
     }
 }
