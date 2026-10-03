@@ -155,11 +155,16 @@ struct ProfileView: View {
 
     private var overview: some View {
         NavigationStack {
-            TimelineView(.periodic(from: .now, by: sessions.contains { $0.state == .running } ? 1 : 60)) { context in
+            TimelineView(.everyMinute) { minute in
+                let duration = StatisticsService.weekDuration(sessions: sessions, containing: minute.date)
+                let completed = completedCount
+                let rate = completionRate
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
                         ZJPaperHeader(title: "我的概况", subtitle: "每一步，都算数。", illustration: "LiuliWriting", identifier: "profile.overviewHeading")
-                        metrics(StatisticsService.snapshot(tasks: tasks, sessions: sessions, now: context.date))
+                        TimelineView(.periodic(from: .now, by: duration.isRunning ? 1 : 60)) { tick in
+                            metrics(secondsThisWeek: duration.seconds(now: tick.date), completed: completed, rate: rate)
+                        }
                         if !dynamicTypeSize.isAccessibilitySize {
                             Image(decorative: "LiuliOverview")
                                 .resizable()
@@ -185,13 +190,13 @@ struct ProfileView: View {
         }
     }
 
-    private func metrics(_ statistics: StatisticsSnapshot) -> some View {
+    private func metrics(secondsThisWeek: TimeInterval, completed: Int, rate: Int) -> some View {
         VStack(spacing: 0) {
-            ProfileMetricRow(title: "累计完成", value: "\(completedCount) 件", detail: "每一步都算数", systemImage: "checkmark.circle.fill", identifier: "profile.completed")
+            ProfileMetricRow(title: "累计完成", value: "\(completed) 件", detail: "每一步都算数", systemImage: "checkmark.circle.fill", identifier: "profile.completed")
             Divider().overlay(ZJTheme.divider)
-            ProfileMetricRow(title: "本周专注", value: ElapsedTimeText.string(for: statistics.secondsThisWeek), detail: "来自真实计时", systemImage: "clock.fill", identifier: "profile.weekFocus")
+            ProfileMetricRow(title: "本周专注", value: ElapsedTimeText.string(for: secondsThisWeek), detail: "来自真实计时", systemImage: "clock.fill", identifier: "profile.weekFocus")
             Divider().overlay(ZJTheme.divider)
-            ProfileMetricRow(title: "任务完成率", value: "\(completionRate)%", detail: "当前任务进度", systemImage: "leaf.fill", identifier: "profile.completionRate")
+            ProfileMetricRow(title: "任务完成率", value: "\(rate)%", detail: "当前任务进度", systemImage: "leaf.fill", identifier: "profile.completionRate")
         }
         .padding(.horizontal, 14)
         .zjPaperCard()

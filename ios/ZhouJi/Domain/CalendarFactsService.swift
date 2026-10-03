@@ -26,6 +26,21 @@ struct CalendarDayFacts {
 /// A read-only projection of completion dates and actual active intervals.
 @MainActor
 enum CalendarFactsService {
+    /// Capture saved history on model/date changes; subsequent ticks only project live intervals.
+    static func projection(_ date: Date, month: Date, tasks: [TodoTask], sessions: [TimingSession],
+                           calendar: Calendar = .current) -> CalendarLiveProjection {
+        CalendarLiveProjection(
+            savedDay: day(date, tasks: tasks, sessions: sessions, now: .distantPast, calendar: calendar),
+            savedActivity: activityDays(tasks: tasks, sessions: sessions, month: month, now: .distantPast, calendar: calendar),
+            running: sessions.compactMap { session in
+                guard session.state == .running, let start = session.runningStartedAt else { return nil }
+                return CalendarRunningTiming(id: session.id, title: session.taskTitleSnapshot,
+                    goalName: session.goalNameSnapshot, start: start)
+            },
+            dayBoundary: DateBoundaries.day(containing: date, calendar: calendar),
+            monthBoundary: calendar.dateInterval(of: .month, for: month), calendar: calendar)
+    }
+
     static func monthDays(containing date: Date, calendar: Calendar = .current) -> [Date?] {
         guard let month = calendar.dateInterval(of: .month, for: date),
               let range = calendar.range(of: .day, in: .month, for: date) else { return [] }
@@ -75,6 +90,61 @@ enum CalendarFactsService {
                     guard let next = calendar.date(byAdding: .day, value: 1, to: day), next > day else { break }
                     day = next
                 }
+            }
+        }
+        return days
+    }
+}
+
+fileprivate struct CalendarRunningTiming {
+    let id: UUID
+    let title: String
+    let goalName: String?
+    let start: Date
+}
+
+@MainActor
+struct CalendarLiveProjection {
+    fileprivate let savedDay: CalendarDayFacts
+    fileprivate let savedActivity: Set<Date>
+    fileprivate let running: [CalendarRunningTiming]
+    fileprivate let dayBoundary: DateInterval
+    fileprivate let monthBoundary: DateInterval?
+    fileprivate let calendar: Calendar
+
+    var isRunning: Bool { !running.isEmpty }
+
+    func day(now: Date) -> CalendarDayFacts {
+        guard !running.isEmpty else { return savedDay }
+        var timings = savedDay.timings
+        for live in running {
+            let interval = TimingInterval(startedAt: live.start, endedAt: max(live.start, now))
+            let seconds = DateBoundaries.overlapDuration(of: interval, with: dayBoundary)
+            guard seconds > 0 else { continue }
+            let index = timings.firstIndex { $0.id == live.id }
+            let saved = index.map { timings[$0] }
+            let timing = CalendarTiming(id: live.id, title: live.title, goalName: live.goalName,
+                time: min(saved?.time ?? .distantFuture, max(live.start, dayBoundary.start)),
+                seconds: (saved?.seconds ?? 0) + seconds, state: .running)
+            if let index { timings[index] = timing } else { timings.append(timing) }
+        }
+        timings.sort { $0.time < $1.time }
+        return CalendarDayFacts(completions: savedDay.completions, timings: timings)
+    }
+
+    func activityDays(now: Date) -> Set<Date> {
+        var days = savedActivity
+        guard let boundary = monthBoundary else { return days }
+        for live in running {
+            let interval = TimingInterval(startedAt: live.start, endedAt: max(live.start, now))
+            let end = min(interval.endedAt, boundary.end)
+            var day = calendar.startOfDay(for: max(interval.startedAt, boundary.start))
+            while day < end {
+                if DateBoundaries.overlapDuration(of: interval, with: DateBoundaries.day(containing: day, calendar: calendar)) > 0 {
+                    days.insert(day)
+                }
+                guard let next = calendar.date(byAdding: .day, value: 1, to: day), next > day else { break }
+                day = next
             }
         }
         return days

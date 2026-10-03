@@ -16,6 +16,21 @@ struct StatisticsSnapshot: Equatable {
 
 @MainActor
 enum StatisticsService {
+    /// Only the week duration needed by the overview, without task counts or goal grouping.
+    static func weekDuration(sessions: [TimingSession], containing date: Date,
+                             calendar: Calendar = .current) -> PeriodDurationProjection {
+        let boundary = DateBoundaries.mondayWeek(containing: date, calendar: calendar)
+        var savedSeconds: TimeInterval = 0
+        var runningStarts: [Date] = []
+        for session in sessions {
+            for interval in session.activeIntervals {
+                savedSeconds += DateBoundaries.overlapDuration(of: interval, with: boundary)
+            }
+            if session.state == .running, let start = session.runningStartedAt { runningStarts.append(start) }
+        }
+        return PeriodDurationProjection(savedSeconds: savedSeconds, runningStarts: runningStarts, boundary: boundary)
+    }
+
     static func snapshot(
         tasks: [TodoTask],
         sessions: [TimingSession],
@@ -106,5 +121,19 @@ enum StatisticsComparison {
         let difference = Int(max(0, current)) - Int(max(0, previous))
         guard difference != 0 else { return "和\(period)一样" }
         return "比\(period)\(difference > 0 ? "多" : "少") \(ElapsedTimeText.string(for: TimeInterval(abs(difference))))"
+    }
+}
+
+struct PeriodDurationProjection {
+    let savedSeconds: TimeInterval
+    let runningStarts: [Date]
+    let boundary: DateInterval
+
+    var isRunning: Bool { !runningStarts.isEmpty }
+
+    func seconds(now: Date) -> TimeInterval {
+        runningStarts.reduce(savedSeconds) { total, start in
+            total + DateBoundaries.overlapDuration(of: TimingInterval(startedAt: start, endedAt: max(start, now)), with: boundary)
+        }
     }
 }

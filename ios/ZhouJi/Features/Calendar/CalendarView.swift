@@ -12,9 +12,10 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationStack {
-            TimelineView(.periodic(from: .now, by: sessions.contains { $0.state == .running } ? 1 : 60)) { context in
-                let facts = CalendarFactsService.day(selectedDate, tasks: tasks, sessions: sessions, now: context.date)
-                let activity = CalendarFactsService.activityDays(tasks: tasks, sessions: sessions, month: month, now: context.date)
+            let projection = CalendarFactsService.projection(selectedDate, month: month, tasks: tasks, sessions: sessions)
+            TimelineView(.periodic(from: .now, by: projection.isRunning ? 1 : 60)) { context in
+                let facts = projection.day(now: context.date)
+                let activity = projection.activityDays(now: context.date)
                 ScrollView {
                     VStack(spacing: 14) {
                         monthHeader
@@ -54,9 +55,10 @@ struct CalendarView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $isDayPresented) {
                 NavigationStack {
-                    TimelineView(.periodic(from: .now, by: sessions.contains { $0.state == .running } ? 1 : 60)) { context in
+                    let projection = CalendarFactsService.projection(selectedDate, month: month, tasks: tasks, sessions: sessions)
+                    TimelineView(.periodic(from: .now, by: projection.isRunning ? 1 : 60)) { context in
                         ScrollView {
-                            dailyJournal(CalendarFactsService.day(selectedDate, tasks: tasks, sessions: sessions, now: context.date), now: context.date)
+                            dailyJournal(projection.day(now: context.date), now: context.date)
                                 .padding(ZJTheme.pagePadding)
                         }
                     }

@@ -43,9 +43,9 @@ struct TodayView: View {
     }
 
     private var singleTaskScrollID: UUID? {
-        guard navigationPath.isEmpty, !isTimerPresented,
-              incompleteTasks.count == 1 else { return nil }
-        return incompleteTasks.first?.id
+        guard navigationPath.isEmpty, !isTimerPresented else { return nil }
+        let candidates = Array(visibleTasks.lazy.filter { !$0.isCompleted }.prefix(2))
+        return candidates.count == 1 ? candidates.first?.id : nil
     }
 
     var body: some View {
@@ -54,8 +54,10 @@ struct TodayView: View {
                 VStack(spacing: 0) {
                     GeometryReader { proxy in
                         List {
+                            let incompleteTasks = self.incompleteTasks
+                            let completedTodayTasks = self.completedTodayTasks
                             if incompleteTasks.isEmpty {
-                                quietTodayContent(size: proxy.size)
+                                quietTodayContent(size: proxy.size, hasCompletedTasks: !completedTodayTasks.isEmpty)
                                     .frame(width: proxy.size.width)
                                     .frame(minHeight: proxy.size.height, alignment: .top)
                                     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
@@ -84,7 +86,7 @@ struct TodayView: View {
                                     .id("today.singleTaskClearance")
                             }
 
-                            completedTasksSection
+                            completedTasksSection(tasks: completedTodayTasks)
 
                             if incompleteTasks.count > 1 {
                                 floatingButtonClearance
@@ -188,7 +190,7 @@ struct TodayView: View {
                 .onChange(of: incompleteTasks.isEmpty) { _, isEmpty in
                     guard isEmpty else { return }
                     DispatchQueue.main.async {
-                        guard incompleteTasks.isEmpty else { return }
+                        guard self.incompleteTasks.isEmpty else { return }
                         scroll.scrollTo("today.header", anchor: .top)
                     }
                 }
@@ -204,25 +206,25 @@ struct TodayView: View {
         }
     }
 
-    private func quietTodayContent(size: CGSize) -> some View {
+    private func quietTodayContent(size: CGSize, hasCompletedTasks: Bool) -> some View {
         let isCompact = size.height < size.width * 1.2 + 192
         return VStack(spacing: isCompact ? 0 : 20) {
             TodayHeader(
                 date: referenceDate,
-                isDayComplete: !completedTodayTasks.isEmpty
+                isDayComplete: hasCompletedTasks
             )
             firstTaskButton(isCompact: isCompact)
         }
     }
 
     @ViewBuilder
-    private var completedTasksSection: some View {
-        if !completedTodayTasks.isEmpty {
+    private func completedTasksSection(tasks: [TodoTask]) -> some View {
+        if !tasks.isEmpty {
             Section {
-                taskSectionHeader(title: "已完成", count: completedTodayTasks.count)
+                taskSectionHeader(title: "已完成", count: tasks.count)
 
-                ForEach(completedTodayTasks) { task in
-                    row(for: task, isLast: task.id == completedTodayTasks.last?.id)
+                ForEach(tasks) { task in
+                    row(for: task, isLast: task.id == tasks.last?.id)
                 }
             }
         }

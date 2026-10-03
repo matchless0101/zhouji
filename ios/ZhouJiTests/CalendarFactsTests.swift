@@ -72,4 +72,64 @@ struct CalendarFactsTests {
         #expect(CalendarFactsService.day(date(9), tasks: [], sessions: [session], calendar: calendar).timings.isEmpty)
         #expect(CalendarFactsService.activityDays(tasks: [], sessions: [session], month: date(9), calendar: calendar).isEmpty)
     }
+    @Test func liveProjectionMatchesFactsAcrossMidnightAndKeepsHistoricalValues() {
+        let task = TodoTask(title: "原名称", completedAt: date(8, hour: 8))
+        let saved = TimingSession(taskID: task.id, taskTitleSnapshot: "已保存",
+            startedAt: date(8, hour: 10), activeIntervals: [
+                TimingInterval(startedAt: date(8, hour: 10), endedAt: date(8, hour: 11))
+            ], state: .finished)
+        let running = TimingSession(taskID: UUID(), taskTitleSnapshot: "跨夜",
+            startedAt: date(8, hour: 23, minute: 50),
+            runningStartedAt: date(8, hour: 23, minute: 50), state: .running)
+        let projection = CalendarFactsService.projection(date(9), month: date(15),
+            tasks: [task], sessions: [saved, running], calendar: calendar)
+        for now in [date(8, hour: 23, minute: 55), date(9), date(9, minute: 20), date(10), date(30, hour: 23), calendar.date(byAdding: .month, value: 1, to: date(1))!] {
+            let expected = CalendarFactsService.day(date(9), tasks: [task], sessions: [saved, running], now: now, calendar: calendar)
+            let actual = projection.day(now: now)
+            #expect(actual.seconds == expected.seconds)
+            #expect(actual.timings.map(\.id) == expected.timings.map(\.id))
+            #expect(actual.timings.map(\.time) == expected.timings.map(\.time))
+            #expect(projection.activityDays(now: now) == CalendarFactsService.activityDays(tasks: [task], sessions: [saved, running], month: date(15), now: now, calendar: calendar))
+        }
+        // A clock tick consumes captured facts, not historical model objects.
+        let historical = CalendarFactsService.projection(date(8), month: date(15),
+            tasks: [task], sessions: [saved, running], calendar: calendar)
+        saved.activeIntervalsData = Data()
+        task.title = "已修改"
+        #expect(historical.day(now: date(9, minute: 20)).seconds == 4200)
+        #expect(historical.day(now: date(9, minute: 20)).completions.first?.title == "原名称")
+    }
+
+    @Test func projectionRebuildReflectsPauseResumeAndCompletionUndo() {
+        let task = TodoTask(title: "完成小事", completedAt: date(9, hour: 8))
+        let session = TimingSession(taskID: task.id, taskTitleSnapshot: task.title,
+            startedAt: date(9, hour: 9), runningStartedAt: date(9, hour: 9), state: .running)
+        let first = CalendarFactsService.projection(date(9), month: date(9), tasks: [task], sessions: [session], calendar: calendar)
+        #expect(first.day(now: date(9, hour: 10)).seconds == 3600)
+        session.activeIntervals = [TimingInterval(startedAt: date(9, hour: 9), endedAt: date(9, hour: 10))]
+        session.state = .paused
+        session.runningStartedAt = nil
+        task.completedAt = nil
+        let paused = CalendarFactsService.projection(date(9), month: date(9), tasks: [task], sessions: [session], calendar: calendar)
+        #expect(paused.day(now: date(9, hour: 11)).seconds == 3600)
+        #expect(paused.day(now: date(9, hour: 11)).completions.isEmpty)
+        session.state = .running
+        session.runningStartedAt = date(9, hour: 11)
+        let resumed = CalendarFactsService.projection(date(9), month: date(9), tasks: [task], sessions: [session], calendar: calendar)
+        #expect(resumed.day(now: date(9, hour: 12)).seconds == 7200)
+        #expect(resumed.day(now: date(9, hour: 12)).timings.count == 1)
+    }
+
+    @Test func weeklyDurationProjectionMatchesFullStatisticsAcrossWeekBoundary() {
+        let session = TimingSession(taskID: UUID(), taskTitleSnapshot: "跨周",
+            startedAt: date(6, hour: 23), activeIntervals: [
+                TimingInterval(startedAt: date(6, hour: 23), endedAt: date(7, hour: 1))
+            ], runningStartedAt: date(7, hour: 2), state: .running)
+        let projection = StatisticsService.weekDuration(sessions: [session], containing: date(7), calendar: calendar)
+        for now in [date(7, hour: 2), date(7, hour: 3), date(14)] {
+            let expected = StatisticsService.snapshot(tasks: [], sessions: [session], now: now, periodDate: date(7), calendar: calendar)
+            #expect(projection.seconds(now: now) == expected.secondsThisWeek)
+        }
+    }
+
 }
