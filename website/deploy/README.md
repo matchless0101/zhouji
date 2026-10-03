@@ -41,6 +41,15 @@
 
 官网的 App Store 链接仍未提供，下载状态保持“即将上架”。正式下载、政策和邮箱仍在 `dist/config.js` 配置。
 
+## 隐私政策更新（2026-10-03）
+
+- 正式政策：`https://zhouji.xiangdangdang.top/privacy/`，适用于 iOS 1.0（构建 2）。明确可选联网登录及保存的账户数据、正式版本云同步尚未开放、没有通用备份恢复入口、默认榴莲头像、账户记录隔离和注销前本机副本。
+- 政策内联系邮箱已经用户明确授权公开；官网的隐私入口改为打开正式政策。
+- 发布目录：`/var/www/zhouji-site/releases/20261003-privacy-build2`。从原线上目录复制完整站点，只更新 `privacy/index.html` 和 `config.js`，随后原子切换 `current`；未修改 Nginx 或登录服务。
+- 上一版本保留在 `/var/www/zhouji-site/releases/20260922-privacy`，可通过切换 `current` 回退。
+- 验证：官网交互与资源测试 6 项通过；政策结构、链接、联系方式及版本说明检查通过。公网政策与配置逐字节匹配本地文件，首页返回 HTTP 200。
+- 本次仅更新网页，不修改安装包，也未提交 App 审核。
+
 ## Universal Links 更新
 
 已发布 `/.well-known/apple-app-site-association`，并兼容根目录 `/apple-app-site-association` 地址。两个地址直接返回 `application/json`，关联标识为 `7V46ZF4WY4.com.matchless.ZhouJi`，仅匹配 `/wechat/*`。更新前的 HTTPS 配置保存在 `/var/backups/zhouji-site/before-universal-links.conf`，原静态版本保留在 `releases/7cc1dcc`。
