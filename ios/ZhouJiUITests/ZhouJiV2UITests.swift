@@ -866,11 +866,13 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testSingleTodayTaskStartsTimerWithoutAddButtonOverlap() throws {
+    func testSingleTodayTaskSupportsManualScrollingWithoutAddButtonOverlap() throws {
         continueAfterFailure = false
         let app = makeApp()
         app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
+        let greeting = app.staticTexts["today.greeting"]
+        let initialGreetingY = greeting.frame.minY
         app.buttons["today.firstTask"].tap()
         let field = app.textFields["今天要做什么？"]
         XCTAssertTrue(field.waitForExistence(timeout: 3))
@@ -880,13 +882,17 @@ final class ZhouJiUITests: XCTestCase {
         let start = app.buttons["开始计时"].firstMatch
         let add = app.buttons["添加任务"]
         XCTAssertTrue(start.waitForExistence(timeout: 3))
-        saveScreenshot("today-single-task-ready", app: app)
-        XCTAssertTrue(start.isHittable, "刚添加任务后应可直接开始计时，无需先滚动找入口")
-        XCTAssertFalse(start.frame.intersects(add.frame), "新增按钮不能遮住任务计时入口")
+        XCTAssertEqual(greeting.frame.minY, initialGreetingY, accuracy: 2,
+                       "添加唯一任务后不应自动滚动首页")
         let list = app.collectionViews.firstMatch
+        for _ in 0..<3 where !start.isHittable || start.frame.intersects(add.frame) { list.swipeUp() }
+        saveScreenshot("today-single-task-ready", app: app)
+        XCTAssertTrue(start.isHittable, "单项任务的计时入口应可通过手动滚动操作")
+        XCTAssertFalse(start.frame.intersects(add.frame), "新增按钮不能遮住任务计时入口")
         XCTAssertTrue(list.exists)
         XCTAssertGreaterThanOrEqual(list.frame.maxY, add.frame.maxY, "列表应延伸到悬浮加号下方，不为加号保留固定横条")
         XCTAssertLessThanOrEqual(start.frame.maxY, app.buttons["tab.today"].frame.minY)
+        let beforeTimerGreetingY = greeting.frame.minY
         start.tap()
         XCTAssertTrue(app.buttons["暂停"].waitForExistence(timeout: 3))
         app.buttons["收起"].tap()
@@ -897,7 +903,12 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(add.isHittable)
         XCTAssertFalse(current.frame.intersects(add.frame))
         let taskTimer = app.buttons["查看计时"].firstMatch
-        XCTAssertTrue(taskTimer.isHittable, "收起计时页后任务操作仍应可见")
+        XCTAssertEqual(greeting.frame.minY, beforeTimerGreetingY, accuracy: 2,
+                       "收起计时页后不应因为只有一项任务而自动滚动")
+        for _ in 0..<3 where !taskTimer.isHittable || taskTimer.frame.intersects(add.frame) || taskTimer.frame.intersects(current.frame) {
+            list.swipeUp()
+        }
+        XCTAssertTrue(taskTimer.isHittable, "收起计时页后可手动滚动操作任务")
         XCTAssertFalse(taskTimer.frame.intersects(current.frame))
         XCTAssertFalse(taskTimer.frame.intersects(add.frame))
         saveScreenshot("today-single-task-running", app: app)

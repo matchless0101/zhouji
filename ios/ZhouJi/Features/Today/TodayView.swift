@@ -42,16 +42,6 @@ struct TodayView: View {
             }
     }
 
-    private var singleTaskScrollCandidates: [UUID] {
-        guard navigationPath.isEmpty, !isTimerPresented else { return [] }
-        return visibleTasks.lazy.filter { !$0.isCompleted }.prefix(2).map(\.id)
-    }
-
-    private var singleTaskScrollID: UUID? {
-        let candidates = singleTaskScrollCandidates
-        return candidates.count == 1 ? candidates.first : nil
-    }
-
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollViewReader { scroll in
@@ -94,12 +84,6 @@ struct TodayView: View {
                         .contentMargins(.horizontal, 0, for: .scrollContent)
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
-                        .onGeometryChange(for: CGSize.self) { proxy in
-                            proxy.size
-                        } action: { _ in
-                            // Returning from task entry restores the tab bar and changes the viewport.
-                            scrollToSingleTask(using: scroll)
-                        }
                     }
                     .clipped()
                     .overlay(alignment: .bottomTrailing) {
@@ -179,11 +163,6 @@ struct TodayView: View {
                 .onDisappear {
                     undoDismissTask?.cancel()
                 }
-                .onChange(of: singleTaskScrollCandidates, initial: true) { oldCandidates, _ in
-                    // Completing the penultimate task should not interrupt the row animation with a scroll.
-                    guard oldCandidates.count < 2 else { return }
-                    scrollToSingleTask(using: scroll)
-                }
                 .onChange(of: incompleteTasks.isEmpty) { _, isEmpty in
                     guard isEmpty else { return }
                     DispatchQueue.main.async {
@@ -192,15 +171,6 @@ struct TodayView: View {
                     }
                 }
             }
-        }
-    }
-
-    private func scrollToSingleTask(using scroll: ScrollViewProxy) {
-        guard let taskID = singleTaskScrollID else { return }
-        DispatchQueue.main.async {
-            guard singleTaskScrollID == taskID else { return }
-            // Keep task controls above the floating add button without moving list clearance between sections.
-            scroll.scrollTo(taskID, anchor: UnitPoint(x: 0.5, y: 0.8))
         }
     }
 
