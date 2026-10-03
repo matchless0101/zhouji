@@ -14,6 +14,7 @@ enum TimerStartDecision: Equatable {
 final class TimerController {
     private(set) var activeSession: TimingSession?
     private(set) var errorMessage: String?
+    @ObservationIgnored private var storageFailure: String?
 
     @ObservationIgnored private var modelContext: ModelContext?
     @ObservationIgnored private var nowProvider: () -> Date
@@ -39,6 +40,7 @@ final class TimerController {
     func reloadAfterBackupRestore() { restorePersistedSession() }
 
     func requestStart(for task: TodoTask) -> TimerStartDecision {
+        if let storageFailure { errorMessage = storageFailure; return .failed }
         guard let activeSession else {
             return start(task: task) ? .started : .failed
         }
@@ -62,7 +64,8 @@ final class TimerController {
             return true
         }
 
-        closeRunningInterval(for: session, at: nowProvider())
+        do { try closeRunningInterval(for: session, at: nowProvider()) }
+        catch { errorMessage = error.localizedDescription; return false }
         session.state = .paused
         return saveContext()
     }
@@ -73,6 +76,8 @@ final class TimerController {
             return true
         }
 
+        do { _ = try session.activeIntervals }
+        catch { errorMessage = error.localizedDescription; return false }
         session.runningStartedAt = nowProvider()
         session.state = .running
         return saveContext()
@@ -82,9 +87,12 @@ final class TimerController {
     func finishActiveSession() -> Bool {
         guard let session = activeSession else { return true }
 
+        do { _ = try session.activeIntervals }
+        catch { errorMessage = error.localizedDescription; return false }
         let now = nowProvider()
         if session.state == .running {
-            closeRunningInterval(for: session, at: now)
+            do { try closeRunningInterval(for: session, at: now) }
+            catch { errorMessage = error.localizedDescription; return false }
         }
 
         session.state = .finished
@@ -116,7 +124,8 @@ final class TimerController {
         }
 
         let now = nowProvider()
-        let session = TimingSession(
+        let session: TimingSession
+        do { session = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             goalIDSnapshot: task.goal?.id,
@@ -124,7 +133,7 @@ final class TimerController {
             startedAt: now,
             runningStartedAt: now,
             state: .running
-        )
+        ) } catch { errorMessage = error.localizedDescription; return false }
 
         modelContext.insert(session)
         guard saveContext() else {
@@ -136,11 +145,13 @@ final class TimerController {
         return true
     }
 
-    private func closeRunningInterval(for session: TimingSession, at proposedEnd: Date) {
+    private func closeRunningInterval(for session: TimingSession, at proposedEnd: Date) throws {
         guard let startedAt = session.runningStartedAt else { return }
         let endedAt = max(proposedEnd, startedAt)
         let interval = TimingInterval(startedAt: startedAt, endedAt: endedAt)
-        session.activeIntervals.append(interval)
+        var intervals = try session.activeIntervals
+        intervals.append(interval)
+        try session.setActiveIntervals(intervals)
         session.accumulatedSeconds += interval.duration
         session.runningStartedAt = nil
     }
@@ -152,7 +163,11 @@ final class TimerController {
             let descriptor = FetchDescriptor<TimingSession>(
                 sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
             )
-            let unfinished = try modelContext.fetch(descriptor).filter {
+            let sessions = try modelContext.fetch(descriptor)
+            for session in sessions { _ = try session.activeIntervals }
+            storageFailure = nil
+            errorMessage = nil
+            let unfinished = sessions.filter {
                 $0.state != .finished
             }
 
@@ -162,7 +177,7 @@ final class TimerController {
                 let repairDate = nowProvider()
                 for duplicate in unfinished.dropFirst() {
                     if duplicate.state == .running {
-                        closeRunningInterval(for: duplicate, at: repairDate)
+                        try closeRunningInterval(for: duplicate, at: repairDate)
                     }
                     duplicate.state = .finished
                     duplicate.endedAt = repairDate
@@ -171,7 +186,8 @@ final class TimerController {
                 try modelContext.save()
             }
         } catch {
-            errorMessage = "未能恢复上次计时：\(error.localizedDescription)"
+            storageFailure = "未能恢复上次计时：\(error.localizedDescription)"
+            errorMessage = storageFailure
         }
     }
 

@@ -142,9 +142,9 @@ struct ZhouJiApp: App {
         }
         context.insert(TodoTask(title: "晨间阅读", completedAt: today.addingTimeInterval(60)))
         context.insert(TodoTask(title: "回复师消息", completedAt: today.addingTimeInterval(120)))
-        func session(_ task: TodoTask, start: Date, minutes: Double, goal: Goal?) {
+        func session(_ task: TodoTask, start: Date, minutes: Double, goal: Goal?) throws {
             let end = start.addingTimeInterval(minutes * 60)
-            context.insert(TimingSession(
+            context.insert(try TimingSession(
                 taskID: task.id, taskTitleSnapshot: task.title,
                 goalIDSnapshot: goal?.id, goalNameSnapshot: goal?.name,
                 startedAt: start, endedAt: end,
@@ -152,11 +152,11 @@ struct ZhouJiApp: App {
                 accumulatedSeconds: minutes * 60, state: .finished
             ))
         }
-        session(pending[0], start: today.addingTimeInterval(3_600), minutes: 62, goal: thesis)
-        session(pending[0], start: weekStart.addingTimeInterval(3_600), minutes: 128, goal: thesis)
-        session(pending[1], start: weekStart.addingTimeInterval(12_000), minutes: 100, goal: career)
-        session(pending[2], start: weekStart.addingTimeInterval(20_000), minutes: 65, goal: digital)
-        session(pending[2], start: today.addingTimeInterval(12_000), minutes: 40, goal: nil)
+        try session(pending[0], start: today.addingTimeInterval(3_600), minutes: 62, goal: thesis)
+        try session(pending[0], start: weekStart.addingTimeInterval(3_600), minutes: 128, goal: thesis)
+        try session(pending[1], start: weekStart.addingTimeInterval(12_000), minutes: 100, goal: career)
+        try session(pending[2], start: weekStart.addingTimeInterval(20_000), minutes: 65, goal: digital)
+        try session(pending[2], start: today.addingTimeInterval(12_000), minutes: 40, goal: nil)
         try context.save()
     }
     #endif

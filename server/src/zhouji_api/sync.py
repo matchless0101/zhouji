@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import json
 import time
-import uuid
 
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -280,7 +279,3 @@ def sync_router(database, authenticate):
         }
 
     return router
-
-
-def new_op_id() -> str:
-    return uuid.uuid4().hex

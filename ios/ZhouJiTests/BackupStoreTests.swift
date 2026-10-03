@@ -16,7 +16,7 @@ struct BackupStoreTests {
 
         let start = date(5_000)
         let end = date(5_600)
-        let session = TimingSession(
+        let session = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             goalIDSnapshot: goal.id,
@@ -51,7 +51,7 @@ struct BackupStoreTests {
         #expect(restoredTask.goal?.id == goal.id)
         #expect(restoredDeleted.deletedAt == date(4_000))
         #expect(restoredSession.accumulatedSeconds == 600)
-        #expect(restoredSession.activeIntervals.count == 1)
+        #expect(try restoredSession.activeIntervals.count == 1)
         #expect(restoredSession.taskTitleSnapshot == "写摘要")
     }
 

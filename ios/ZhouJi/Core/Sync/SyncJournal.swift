@@ -53,7 +53,6 @@ struct SyncJournalConflict: Codable, Equatable, Identifiable, Sendable {
 }
 
 struct SyncJournal: Codable, Equatable, Sendable {
-    var cursor: Int = 0
     var entries: [String: SyncJournalEntry] = [:]
     var conflicts: [SyncJournalConflict] = []
     /// Set when offline queue / entity count exceeds R4 threshold and full reconcile is required.
@@ -99,9 +98,13 @@ struct SyncJournalStore {
         fileURL = directory.appendingPathComponent("sync-journal-" + scope + ".json")
     }
 
-    func load() -> SyncJournal {
-        guard let data = try? Data(contentsOf: fileURL) else { return SyncJournal() }
-        return (try? JSONDecoder().decode(SyncJournal.self, from: data)) ?? SyncJournal()
+    func load() throws -> SyncJournal {
+        do {
+            let data = try Data(contentsOf: fileURL)
+            return try JSONDecoder().decode(SyncJournal.self, from: data)
+        } catch let error as CocoaError where error.code == .fileReadNoSuchFile {
+            return SyncJournal()
+        } catch { throw ContentSyncError.server("同步日志无法读取，原文件已保留，请先修复后再同步。") }
     }
 
     func save(_ journal: SyncJournal) throws {

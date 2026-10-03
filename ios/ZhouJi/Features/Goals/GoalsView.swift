@@ -217,35 +217,32 @@ struct GoalsView: View {
         }
     }
 
-    @ViewBuilder
     private var addGoalControls: some View {
         VStack(spacing: 8) {
-            if isAddingGoal {
-                HStack(spacing: 10) {
-                    TextField("目标名称", text: $draftName)
-                        .textFieldStyle(.plain)
-                        .focused($isGoalFieldFocused)
-                        .submitLabel(.done)
-                        .onSubmit(createGoal)
-                        .padding(.horizontal, 14)
-                        .frame(minHeight: ZJTheme.controlHeight)
-                        .background(ZJTheme.mutedSurface, in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
+            HStack(spacing: 10) {
+                TextField("目标名称", text: $draftName)
+                    .textFieldStyle(.plain)
+                    .focused($isGoalFieldFocused)
+                    .submitLabel(.done)
+                    .onSubmit(createGoal)
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: ZJTheme.controlHeight)
+                    .background(ZJTheme.mutedSurface, in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
 
-                    Button("取消") { cancelCreatingGoal() }
-                        .foregroundStyle(ZJTheme.secondaryInk)
+                Button("取消") { cancelCreatingGoal() }
+                    .foregroundStyle(ZJTheme.secondaryInk)
 
-                    Button("创建") { createGoal() }
-                        .fontWeight(.semibold)
-                        .foregroundStyle(normalizedDraftName.isEmpty ? ZJTheme.secondaryInk.opacity(0.45) : ZJTheme.accent)
-                        .disabled(normalizedDraftName.isEmpty)
-                }
-                .padding(12)
-                .zjCard()
-                .padding(.horizontal, ZJTheme.pagePadding)
+                Button("创建") { createGoal() }
+                    .fontWeight(.semibold)
+                    .foregroundStyle(normalizedDraftName.isEmpty ? ZJTheme.secondaryInk.opacity(0.45) : ZJTheme.accent)
+                    .disabled(normalizedDraftName.isEmpty)
             }
+            .padding(12)
+            .zjCard()
+            .padding(.horizontal, ZJTheme.pagePadding)
         }
         .padding(.top, 8)
-        .padding(.bottom, isAddingGoal ? 8 : 16)
+        .padding(.bottom, 8)
         .background(Color.clear)
     }
 

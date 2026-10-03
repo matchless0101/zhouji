@@ -53,24 +53,6 @@ struct ZJAddButtonStyle: ButtonStyle {
     }
 }
 
-/// Preserve each printed composition, including artwork near the edges on small screens.
-struct ZJScene: View {
-    let name: String
-    let height: CGFloat?
-
-    var body: some View {
-        GeometryReader { proxy in
-            Image(name)
-                .resizable()
-                .scaledToFit()
-                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .bottom)
-        }
-        .frame(height: height)
-        .accessibilityHidden(true)
-        .allowsHitTesting(false)
-    }
-}
-
 /// Printed artwork replaces matching symbols; specialized controls keep their existing meaning.
 struct ZJIcon: View {
     let systemName: String

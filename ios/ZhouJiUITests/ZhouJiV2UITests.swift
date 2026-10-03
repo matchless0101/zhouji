@@ -680,7 +680,9 @@ final class ZhouJiUITests: XCTestCase {
         saveScreenshot("goal-settings-approved-design", app: app)
         app.buttons["保存设置"].tap()
         app.buttons["返回目标列表"].tap()
-        XCTAssertTrue(app.staticTexts["3/5"].waitForExistence(timeout: 3))
+        let row = app.buttons.containing(.staticText, identifier: "多读书").firstMatch
+        XCTAssertTrue(row.waitForExistence(timeout: 3))
+        XCTAssertTrue((row.value as? String ?? "").contains("完成 3 个，共 5 个任务"))
     }
 
     @MainActor
@@ -1184,12 +1186,17 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "goals", "-ZJPreviewSampleData", "-appAppearance", "light",
                                 "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         app.launch()
+        // Reference cards are shorter; populate enough rows to exercise a real scroll.
+        for name in ["滚动目标一", "滚动目标二", "滚动目标三"] { createGoal(named: name, in: app) }
         let newGoal = app.buttons["新建目标"]
         XCTAssertTrue(newGoal.waitForExistence(timeout: 3))
         let initialFrame = newGoal.frame
-        let initialGoalY = app.staticTexts["求职"].frame.minY
+        let goalRow = app.staticTexts["求职"]
+        XCTAssertTrue(goalRow.exists)
+        let initialGoalY = goalRow.frame.minY
         app.swipeUp()
-        XCTAssertLessThan(app.staticTexts["求职"].frame.minY, initialGoalY)
+        XCTAssertTrue(!goalRow.exists || goalRow.frame.minY < initialGoalY,
+                      "滚动后原目标应向上移动或离开可见列表")
         XCTAssertTrue(newGoal.isHittable)
         XCTAssertEqual(newGoal.frame.minY, initialFrame.minY, accuracy: 1)
         XCTAssertGreaterThan(newGoal.frame.midX, app.frame.midX)
@@ -1492,11 +1499,10 @@ final class ZhouJiUITests: XCTestCase {
                                     bitsPerComponent: 8, bytesPerRow: width * 4,
                                     space: CGColorSpaceCreateDeviceRGB(),
                                     bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
-            context.translateBy(x: 0, y: CGFloat(height))
-            context.scaleBy(x: 1, y: -1)
             context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         }
-        // Sample the outer paper margin; use the median to ignore individual paper specks.
+        // Bitmap row zero is the screenshot top. Do not flip and sample bottom artwork.
+        // Use the median to ignore individual paper specks.
         let sampleX = Int(Double(width) * 0.015)
         let sampleY = Int(Double(height) * 0.12)
         var channels = [[Int](), [Int](), [Int]()]

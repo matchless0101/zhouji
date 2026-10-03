@@ -12,54 +12,66 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationStack {
-            let projection = CalendarFactsService.projection(selectedDate, month: month, tasks: tasks, sessions: sessions)
-            TimelineView(.periodic(from: .now, by: projection.isRunning ? 1 : 60)) { context in
-                let facts = projection.day(now: context.date)
-                let activity = projection.activityDays(now: context.date)
-                ScrollView {
-                    VStack(spacing: 14) {
-                        monthHeader
-                        monthGrid(activity: activity, now: context.date)
-                            .background(ZJTheme.pageBackground)
-                        daySummary(facts)
-                        Color.clear
-                            .aspectRatio(1.2, contentMode: .fit)
-                            .padding(.horizontal, -ZJTheme.pagePadding)
-                            .accessibilityHidden(true)
-                            .overlay(alignment: .topTrailing) {
-                                if viewportHeight >= 700 && !dynamicTypeSize.isAccessibilitySize {
-                                    Text("好的时光，\n都在路上。")
-                                    .font(ZJTheme.handwriting(20, relativeTo: .body))
-                                    .lineSpacing(5)
-                                    .foregroundStyle(ZJTheme.ink)
-                                    .rotationEffect(.degrees(-9))
-                                    .padding(.trailing, 28)
-                                    .padding(.top, 4)
-                                }
+            Group {
+                switch Result(catching: { try CalendarFactsService.projection(selectedDate, month: month, tasks: tasks, sessions: sessions) }) {
+                case .failure(let error):
+                    Text(error.localizedDescription).foregroundStyle(ZJTheme.secondaryInk).padding()
+                case .success(let projection):
+                    TimelineView(.periodic(from: .now, by: projection.isRunning ? 1 : 60)) { context in
+                        let facts = projection.day(now: context.date)
+                        let activity = projection.activityDays(now: context.date)
+                        ScrollView {
+                            VStack(spacing: 14) {
+                                monthHeader
+                                monthGrid(activity: activity, now: context.date)
+                                    .background(ZJTheme.pageBackground)
+                                daySummary(facts)
+                                Color.clear
+                                    .aspectRatio(1.2, contentMode: .fit)
+                                    .padding(.horizontal, -ZJTheme.pagePadding)
+                                    .accessibilityHidden(true)
+                                    .overlay(alignment: .topTrailing) {
+                                        if viewportHeight >= 700 && !dynamicTypeSize.isAccessibilitySize {
+                                            Text("好的时光，\n都在路上。")
+                                            .font(ZJTheme.handwriting(20, relativeTo: .body))
+                                            .lineSpacing(5)
+                                            .foregroundStyle(ZJTheme.ink)
+                                            .rotationEffect(.degrees(-9))
+                                            .padding(.trailing, 28)
+                                            .padding(.top, 4)
+                                        }
+                                    }
                             }
+                            .padding(.horizontal, ZJTheme.pagePadding)
+                            .padding(.top, 20)
+                        }
+                        .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
+                        .background(alignment: .bottom) {
+                            Image(decorative: "LiuliCalendarReference")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .accessibilityHidden(true)
+                                .allowsHitTesting(false)
+                        }
                     }
-                    .padding(.horizontal, ZJTheme.pagePadding)
-                    .padding(.top, 20)
-                }
-                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
-                .background(alignment: .bottom) {
-                    Image(decorative: "LiuliCalendarReference")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity)
-                        .accessibilityHidden(true)
-                        .allowsHitTesting(false)
                 }
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $isDayPresented) {
                 NavigationStack {
-                    let projection = CalendarFactsService.projection(selectedDate, month: month, tasks: tasks, sessions: sessions)
-                    TimelineView(.periodic(from: .now, by: projection.isRunning ? 1 : 60)) { context in
-                        ScrollView {
-                            dailyJournal(projection.day(now: context.date), now: context.date)
-                                .padding(ZJTheme.pagePadding)
+                    Group {
+                        switch Result(catching: { try CalendarFactsService.projection(selectedDate, month: month, tasks: tasks, sessions: sessions) }) {
+                        case .failure(let error):
+                            Text(error.localizedDescription).foregroundStyle(ZJTheme.secondaryInk).padding()
+                        case .success(let projection):
+                            TimelineView(.periodic(from: .now, by: projection.isRunning ? 1 : 60)) { context in
+                                ScrollView {
+                                    dailyJournal(projection.day(now: context.date), now: context.date)
+                                        .padding(ZJTheme.pagePadding)
+                                }
+                            }
                         }
                     }
                     .background(ZJTheme.pageBackground.ignoresSafeArea())

@@ -38,13 +38,80 @@ import Testing
 
 @MainActor
 struct ContentSyncStoreTests {
+    @Test func malformedGoalSnapshotPreservesExistingSession() throws {
+        let context = try makeContext()
+        let goalID = UUID()
+        let session = try TimingSession(taskID: UUID(), taskTitleSnapshot: "原任务",
+            goalIDSnapshot: goalID, goalNameSnapshot: "原目标",
+            startedAt: Date(timeIntervalSince1970: 1000),
+            endedAt: Date(timeIntervalSince1970: 1060),
+            activeIntervals: [TimingInterval(startedAt: Date(timeIntervalSince1970: 1000),
+                                            endedAt: Date(timeIntervalSince1970: 1060))],
+            accumulatedSeconds: 60, state: .finished)
+        context.insert(session)
+        try context.save()
+        let entity = SyncEntityPayload(entityType: "timing_session", entityId: session.id.uuidString,
+            version: 2, serverSeq: 1, updatedAt: 2000, deletedAt: nil,
+            payload: ["taskId": .string(session.taskID.uuidString),
+                "taskTitleSnapshot": .string("不应写入"),
+                "goalIdSnapshot": .string(goalID.uuidString), "goalNameSnapshot": .int(123),
+                "startedAt": .int(1000), "endedAt": .int(1060),
+                "accumulatedSeconds": .double(60),
+                "activeIntervals": .array([.object(["startedAt": .int(1000), "endedAt": .int(1060)])])])
+        #expect(throws: (any Error).self) { try ContentSyncStore.apply(entities: [entity], in: context) }
+        #expect(session.goalNameSnapshot == "原目标")
+        #expect(session.taskTitleSnapshot == "原任务")
+    }
+
+    @Test func malformedCloudBatchLeavesExistingFactsUntouched() throws {
+        let context = try makeContext()
+        let task = TodoTask(title: "原任务", createdAt: Date(timeIntervalSince1970: 1000))
+        context.insert(task)
+        try context.save()
+        let entities = [
+            SyncEntityPayload(entityType: "task", entityId: task.id.uuidString, version: 2,
+                serverSeq: 1, updatedAt: 2000, deletedAt: nil,
+                payload: ["title": .string("不应写入"), "createdAt": .int(1000),
+                    "completedAt": .null, "deletedAt": .null, "goalId": .null]),
+            SyncEntityPayload(entityType: "task", entityId: UUID().uuidString, version: 1,
+                serverSeq: 2, updatedAt: 2000, deletedAt: nil,
+                payload: ["title": .string("缺少创建时间")])
+        ]
+        #expect(throws: (any Error).self) { try ContentSyncStore.apply(entities: entities, in: context) }
+        #expect(task.title == "原任务")
+        #expect(task.createdAt == Date(timeIntervalSince1970: 1000))
+        #expect(try context.fetch(FetchDescriptor<TodoTask>()).count == 1)
+    }
+
+    @Test func malformedSavedIntervalsCannotBeUploaded() throws {
+        let context = try makeContext()
+        let session = try TimingSession(taskID: UUID(), taskTitleSnapshot: "坏区间",
+            startedAt: Date(timeIntervalSince1970: 1000), state: .finished)
+        session.activeIntervalsData = Data("broken".utf8)
+        context.insert(session)
+        try context.save()
+        #expect(throws: (any Error).self) { try ContentSyncStore.factChanges(in: context) }
+        #expect(session.activeIntervalsData == Data("broken".utf8))
+    }
+
+    @Test func corruptJournalIsNotTreatedAsFirstSync() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let url = directory.appendingPathComponent("sync-journal-corrupt.json")
+        let data = Data("broken".utf8)
+        try data.write(to: url)
+        #expect(throws: (any Error).self) { _ = try SyncJournalStore(directory: directory, scope: "corrupt").load() }
+        #expect(try Data(contentsOf: url) == data)
+    }
+
     @Test func factChangesSkipUnfinishedSessionsAndIncludeSoftDeletes() throws {
         let context = try makeContext()
         let goal = try GoalService.create(name: "论文", in: context)
         let task = try TaskService.create(title: "写摘要", goal: goal, in: context)
         try TaskService.softDelete(task, in: context)
         let start = Date.now.addingTimeInterval(-600)
-        let finished = TimingSession(
+        let finished = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             startedAt: start,
@@ -53,7 +120,7 @@ struct ContentSyncStoreTests {
             accumulatedSeconds: 600,
             state: .finished
         )
-        let running = TimingSession(
+        let running = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             startedAt: start,
@@ -142,7 +209,7 @@ struct ContentSyncStoreTests {
         let task = try TaskService.create(title: "上传任务", in: source)
         try TaskService.setCompleted(task, completed: true, in: source)
         let start = Date.now.addingTimeInterval(-300)
-        let session = TimingSession(
+        let session = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             startedAt: start,
@@ -158,7 +225,6 @@ struct ContentSyncStoreTests {
         let api = SyncAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -190,7 +256,7 @@ struct ContentSyncStoreTests {
         // Second upload should be empty pending after journal refresh.
         let second = try ContentSyncStore.pendingChanges(
             in: source,
-            journal: SyncJournalStore(directory: journalDir, scope: "account-test").load()
+            journal: try SyncJournalStore(directory: journalDir, scope: "account-test").load()
         )
         #expect(second.isEmpty)
     }
@@ -217,7 +283,7 @@ struct ContentSyncStoreTests {
         let fileURL = journalDir.appendingPathComponent("sync-journal-\(scope).json")
         try #require(json.data(using: .utf8)).write(to: fileURL)
 
-        let journal = SyncJournalStore(directory: journalDir, scope: scope).load()
+        let journal = try SyncJournalStore(directory: journalDir, scope: scope).load()
         #expect(journal.entries[key]?.version == 1)
         #expect(journal.entries[key]?.payload == nil)
         let pending = try ContentSyncStore.pendingChanges(in: context, journal: journal)
@@ -256,7 +322,6 @@ struct ContentSyncStoreTests {
         let api = SyncAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -270,7 +335,7 @@ struct ContentSyncStoreTests {
 
         let pending = try ContentSyncStore.pendingChanges(
             in: context,
-            journal: SyncJournalStore(directory: journalDir, scope: "content-edits").load()
+            journal: try SyncJournalStore(directory: journalDir, scope: "content-edits").load()
         )
         let goalChange = try #require(pending.first { $0.entityId == goal.id.uuidString })
         let taskChange = try #require(pending.first { $0.entityId == task.id.uuidString })
@@ -290,7 +355,6 @@ struct ContentSyncStoreTests {
         let api = SyncAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -302,7 +366,7 @@ struct ContentSyncStoreTests {
         try context.save()
         let pending = try ContentSyncStore.pendingChanges(
             in: context,
-            journal: SyncJournalStore(directory: journalDir, scope: "undo-delete").load()
+            journal: try SyncJournalStore(directory: journalDir, scope: "undo-delete").load()
         )
         let change = try #require(pending.first { $0.entityId == task.id.uuidString })
         #expect(change.op == "upsert")
@@ -323,7 +387,6 @@ struct ContentSyncStoreTests {
         }
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -331,7 +394,7 @@ struct ContentSyncStoreTests {
 
         let pending = try ContentSyncStore.pendingChanges(
             in: context,
-            journal: SyncJournalStore(directory: journalDir, scope: "in-flight-edit").load()
+            journal: try SyncJournalStore(directory: journalDir, scope: "in-flight-edit").load()
         )
         let change = try #require(pending.first { $0.entityId == task.id.uuidString })
         #expect(change.payload["title"] == .string("响应前的新标题"))
@@ -350,7 +413,7 @@ struct ContentSyncStoreTests {
             completedAt: completedAt,
             goal: goal
         )
-        let session = TimingSession(
+        let session = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: "历史任务快照",
             goalIDSnapshot: goal.id,
@@ -416,7 +479,6 @@ struct ContentSyncStoreTests {
         let api = ConflictAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -438,7 +500,6 @@ struct ContentSyncStoreTests {
         let api = ConflictAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -457,7 +518,6 @@ struct ContentSyncStoreTests {
         let api = PurgedConflictAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -473,7 +533,7 @@ struct ContentSyncStoreTests {
         #expect(store.message == "云端记录已永久删除；保留的副本仅存于本机，不再上传。")
         let pending = try ContentSyncStore.pendingChanges(
             in: context,
-            journal: SyncJournalStore(directory: journalDir, scope: "purged-local").load()
+            journal: try SyncJournalStore(directory: journalDir, scope: "purged-local").load()
         )
         #expect(pending.isEmpty)
 
@@ -494,7 +554,6 @@ struct ContentSyncStoreTests {
         let api = PurgedConflictAPIMock()
         let store = ContentSyncStore(
             api: api,
-            defaults: UserDefaults(suiteName: "content-sync-tests")!,
             forcesEnabled: true,
             journalDirectory: journalDir
         )
@@ -511,7 +570,7 @@ struct ContentSyncStoreTests {
         #expect(store.localOnlyCount == 0)
         let pending = try ContentSyncStore.pendingChanges(
             in: context,
-            journal: SyncJournalStore(directory: journalDir, scope: "purged-cloud").load()
+            journal: try SyncJournalStore(directory: journalDir, scope: "purged-cloud").load()
         )
         #expect(pending.isEmpty)
     }

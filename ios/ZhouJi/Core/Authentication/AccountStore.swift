@@ -126,18 +126,7 @@ final class AccountStore {
         do {
             var result = try await api.login(challenge: challenge, code: code, identityToken: identityToken)
             result.appleUser = appleUser
-            let prepared: LocalLibrary?
-            do {
-                prepared = try libraries?.prepareLogin(accountID: result.account.id)
-                try storage.save(result)
-            }
-            catch {
-                try? await api.logout(token: result.token)
-                throw error
-            }
-            if let prepared { libraries?.completeLogin(accountID: result.account.id, prepared: prepared) }
-            session = result
-            account = result.account
+            try await persistLogin(result)
             message = nil
         } catch { message = error.localizedDescription }
     }
@@ -157,20 +146,23 @@ final class AccountStore {
             var result = try await api.loginWeChat(challenge: pending.challenge, code: code)
             result.appleUser = nil
             guard result.account.provider == "wechat" else { throw AccountError.invalidResponse }
-            let prepared: LocalLibrary?
-            do {
-                prepared = try libraries?.prepareLogin(accountID: result.account.id)
-                try storage.save(result)
-            }
-            catch {
-                try? await api.logout(token: result.token)
-                throw error
-            }
-            if let prepared { libraries?.completeLogin(accountID: result.account.id, prepared: prepared) }
-            session = result
-            account = result.account
+            try await persistLogin(result)
             challenge = nil
         } catch { message = error.localizedDescription }
+    }
+
+    private func persistLogin(_ result: AccountSession) async throws {
+        let prepared: LocalLibrary?
+        do {
+            prepared = try libraries?.prepareLogin(accountID: result.account.id)
+            try storage.save(result)
+        } catch {
+            try? await api.logout(token: result.token)
+            throw error
+        }
+        if let prepared { libraries?.completeLogin(accountID: result.account.id, prepared: prepared) }
+        session = result
+        account = result.account
     }
 
     func weChatEnteredBackground() { weChat.applicationDidEnterBackground() }

@@ -15,7 +15,7 @@ struct GoalAndStatisticsTests {
         let dayStart = Calendar.current.startOfDay(for: .now)
         let sessionStart = dayStart.addingTimeInterval(3_600)
         let now = sessionStart.addingTimeInterval(600)
-        let historicalSession = TimingSession(
+        let historicalSession = try TimingSession(
             taskID: completed.id,
             taskTitleSnapshot: completed.title,
             goalIDSnapshot: goal.id,
@@ -47,7 +47,7 @@ struct GoalAndStatisticsTests {
         #expect(historicalSession.goalIDSnapshot == goal.id)
         #expect(historicalSession.goalNameSnapshot == "完成毕业论文")
 
-        let statisticsAfterDeletion = StatisticsService.snapshot(
+        let statisticsAfterDeletion = try StatisticsService.snapshot(
             tasks: [completed, pending, deleted],
             sessions: [historicalSession],
             now: now
@@ -98,7 +98,7 @@ struct GoalAndStatisticsTests {
             deletedAt: completedAt.addingTimeInterval(60)
         )
         let goalID = UUID()
-        let session = TimingSession(
+        let session = try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             goalIDSnapshot: goalID,
@@ -110,7 +110,7 @@ struct GoalAndStatisticsTests {
             state: .finished
         )
 
-        let snapshot = StatisticsService.snapshot(
+        let snapshot = try StatisticsService.snapshot(
             tasks: [task],
             sessions: [session],
             now: now,

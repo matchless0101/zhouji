@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 import logging
 
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from sqlalchemy import Engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -55,8 +55,7 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
     app.include_router(auth_router(database, apple_provider, wechat_provider))
 
     @app.get("/api/v1/health/live")
-    def liveness(response: Response):
-        response.headers["Cache-Control"] = "no-store"
+    def liveness():
         return {"status": "ok"}
 
     @app.get("/api/v1/health/ready")
@@ -73,8 +72,8 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
             return JSONResponse(
                 status_code=503,
                 content={"status": "unavailable"},
-                headers={"Cache-Control": "no-store", "Retry-After": "5"},
+                headers={"Retry-After": "5"},
             )
-        return JSONResponse(content={"status": "ok"}, headers={"Cache-Control": "no-store"})
+        return JSONResponse(content={"status": "ok"})
 
     return app

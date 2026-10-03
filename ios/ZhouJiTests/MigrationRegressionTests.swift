@@ -20,7 +20,7 @@ struct MigrationRegressionTests {
         #expect(seed.pending.isCompleted)
 
         let now = Date.now
-        let snapshot = StatisticsService.snapshot(
+        let snapshot = try StatisticsService.snapshot(
             tasks: [seed.pending, seed.completed],
             sessions: [seed.session],
             now: now,
@@ -59,7 +59,7 @@ struct MigrationRegressionTests {
 
         let tasks = try context.fetch(FetchDescriptor<TodoTask>())
         let sessions = try context.fetch(FetchDescriptor<TimingSession>())
-        let snapshot = StatisticsService.snapshot(
+        let snapshot = try StatisticsService.snapshot(
             tasks: tasks,
             sessions: sessions.filter { $0.state == .finished },
             now: noon,
@@ -107,7 +107,7 @@ struct MigrationRegressionTests {
 
         let start = try #require(calendar.date(from: DateComponents(year: 2026, month: 9, day: 8, hour: 23, minute: 30)))
         let end = try #require(calendar.date(from: DateComponents(year: 2026, month: 9, day: 9, hour: 0, minute: 30)))
-        let cross = TimingSession(
+        let cross = try TimingSession(
             taskID: completed.id,
             taskTitleSnapshot: completed.title,
             goalIDSnapshot: goal.id,
@@ -120,7 +120,7 @@ struct MigrationRegressionTests {
         )
         let v1SessionStart = try #require(calendar.date(from: DateComponents(year: 2026, month: 9, day: 9, hour: 8)))
         let v1SessionEnd = try #require(calendar.date(from: DateComponents(year: 2026, month: 9, day: 9, hour: 8, minute: 10)))
-        let finished = TimingSession(
+        let finished = try TimingSession(
             taskID: pending.id,
             taskTitleSnapshot: pending.title,
             startedAt: v1SessionStart,
@@ -130,7 +130,7 @@ struct MigrationRegressionTests {
             state: .finished
         )
         let runningStart = try #require(calendar.date(from: DateComponents(year: 2026, month: 9, day: 9, hour: 10)))
-        let running = TimingSession(
+        let running = try TimingSession(
             taskID: pending.id,
             taskTitleSnapshot: pending.title,
             goalIDSnapshot: goal.id,

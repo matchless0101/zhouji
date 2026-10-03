@@ -15,7 +15,7 @@ import Testing
     private func fixture() throws -> (ModelContext, TodoTask, TimingSession) {
         let db = try context()
         let task = try TaskService.create(title: "备份计时", at: date(100), in: db)
-        let session = TimingSession(taskID: task.id, taskTitleSnapshot: task.title,
+        let session = try TimingSession(taskID: task.id, taskTitleSnapshot: task.title,
             startedAt: date(200.125), endedAt: date(201.875),
             activeIntervals: [.init(startedAt: date(200.125), endedAt: date(201.875))],
             accumulatedSeconds: 1.75, state: .finished)
@@ -27,14 +27,14 @@ import Testing
     @Test func runningBackupFreezesAtExportAndRestoresPausedWithoutChangingLiveTimer() throws {
         let db = try context()
         let task = try TaskService.create(title: "跨夜任务", at: date(100), in: db)
-        let session = TimingSession(taskID: task.id, taskTitleSnapshot: task.title, startedAt: date(200),
+        let session = try TimingSession(taskID: task.id, taskTitleSnapshot: task.title, startedAt: date(200),
             activeIntervals: [.init(startedAt: date(200), endedAt: date(210))], accumulatedSeconds: 10,
             runningStartedAt: date(86_395.125), state: .running)
         db.insert(session)
         try db.save()
         let backup = try BackupStore.exportDocument(from: db, exportedAt: date(86_405.875))
         #expect(session.state == .running && session.runningStartedAt == date(86_395.125))
-        #expect(session.activeIntervals.count == 1 && session.accumulatedSeconds == 10)
+        #expect(try session.activeIntervals.count == 1 && session.accumulatedSeconds == 10)
         let decoded = try BackupStore.decode(BackupStore.encode(backup))
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
@@ -47,9 +47,9 @@ import Testing
         let restoredSessions = try reopened.fetch(FetchDescriptor<TimingSession>())
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = try #require(TimeZone(secondsFromGMT: 0))
-        let firstDay = StatisticsService.snapshot(tasks: [], sessions: restoredSessions,
+        let firstDay = try StatisticsService.snapshot(tasks: [], sessions: restoredSessions,
             now: date(300_000), periodDate: date(500), calendar: calendar)
-        let nextDay = StatisticsService.snapshot(tasks: [], sessions: restoredSessions,
+        let nextDay = try StatisticsService.snapshot(tasks: [], sessions: restoredSessions,
             now: date(300_000), periodDate: date(86_410), calendar: calendar)
         #expect(firstDay.secondsToday == 14.875)
         #expect(nextDay.secondsToday == 5.875)
@@ -57,7 +57,7 @@ import Testing
         timer.configure(with: reopened)
         #expect(timer.activeSession?.state == .paused)
         #expect(timer.elapsed(at: date(300_000)) == 20.75)
-        #expect(timer.activeSession?.activeIntervals.last?.endedAt == date(86_405.875))
+        #expect(try timer.activeSession?.activeIntervals.last?.endedAt == date(86_405.875))
     }
 
     @Test func versionTwoPreservesFractionalIntervalsAndLegacyRunningFileIsSafe() throws {
@@ -70,11 +70,11 @@ import Testing
         session.state = .running
         session.endedAt = nil
         session.runningStartedAt = date(220)
-        session.activeIntervals = [.init(startedAt: date(200), endedAt: date(201))]
+        try session.setActiveIntervals([.init(startedAt: date(200), endedAt: date(201))])
         session.accumulatedSeconds = 1.75 // v1's total retained fractions while its dates were rounded.
         let legacy = ZhouJiBackupDocument(schemaVersion: 1, format: BackupStore.formatIdentifier,
             exportedAt: date(230), applicationVersion: "old", goals: [],
-            tasks: backup.tasks, timingSessions: [BackupTimingSession(session)])
+            tasks: backup.tasks, timingSessions: [try BackupTimingSession(session)])
         let restored = try BackupStore.decode(BackupStore.encode(legacy))
         #expect(restored.timingSessions[0].state == .paused)
         #expect(restored.timingSessions[0].accumulatedSeconds == 11)

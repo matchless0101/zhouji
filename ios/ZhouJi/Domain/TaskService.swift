@@ -39,9 +39,11 @@ enum TaskService {
     static func setCompleted(
         _ task: TodoTask,
         completed: Bool,
+        timer: TimerController? = nil,
         at date: Date = .now,
         in context: ModelContext
     ) throws {
+        if completed { try finishTimer(for: task, timer: timer) }
         let previousCompletedAt = task.completedAt
         task.completedAt = completed ? date : nil
         do {
@@ -54,9 +56,11 @@ enum TaskService {
 
     static func softDelete(
         _ task: TodoTask,
+        timer: TimerController? = nil,
         at date: Date = .now,
         in context: ModelContext
     ) throws {
+        try finishTimer(for: task, timer: timer)
         let previousDeletedAt = task.deletedAt
         task.deletedAt = date
         do {
@@ -80,4 +84,18 @@ enum TaskService {
             throw error
         }
     }
+
+    private static func finishTimer(for task: TodoTask, timer: TimerController?) throws {
+        guard let timer, timer.activeTaskID == task.id else { return }
+        guard timer.finishActiveSession() else {
+            let error = TaskTimerError(message: timer.errorMessage ?? "未能保存当前计时。")
+            timer.clearError()
+            throw error
+        }
+    }
+}
+
+private struct TaskTimerError: LocalizedError {
+    let message: String
+    var errorDescription: String? { message }
 }

@@ -79,16 +79,7 @@ enum BackupStore {
         let goals = try context.fetch(FetchDescriptor<Goal>())
         let tasks = try context.fetch(FetchDescriptor<TodoTask>())
         let sessions = try context.fetch(FetchDescriptor<TimingSession>())
-        for session in sessions {
-            guard TimingSessionState(rawValue: session.stateRawValue) != nil else {
-                throw BackupError.invalidContent("未知计时状态。")
-            }
-            if !session.activeIntervalsData.isEmpty {
-                guard (try? JSONDecoder().decode([TimingInterval].self, from: session.activeIntervalsData)) != nil else {
-                    throw BackupError.invalidContent("计时区间无法读取。")
-                }
-            }
-        }
+        for session in sessions { _ = try session.activeIntervals }
         let document = ZhouJiBackupDocument(
             schemaVersion: schemaVersion,
             format: formatIdentifier,
@@ -96,7 +87,7 @@ enum BackupStore {
             applicationVersion: applicationVersion,
             goals: goals.map(BackupGoal.init).sorted { $0.id.uuidString < $1.id.uuidString },
             tasks: tasks.map(BackupTask.init).sorted { $0.id.uuidString < $1.id.uuidString },
-            timingSessions: sessions.map(BackupTimingSession.init).sorted { $0.id.uuidString < $1.id.uuidString },
+            timingSessions: try sessions.map(BackupTimingSession.init).sorted { $0.id.uuidString < $1.id.uuidString },
             dataScope: LibraryScope.of(context)
         )
         return try prepared(document, allowEmpty: true)
@@ -293,7 +284,7 @@ enum BackupStore {
         }
 
         for dto in document.timingSessions {
-            let model = sessionsByID[dto.id] ?? TimingSession(
+            let model = try sessionsByID[dto.id] ?? TimingSession(
                 id: dto.id,
                 taskID: dto.taskID,
                 taskTitleSnapshot: dto.taskTitleSnapshot,
@@ -312,7 +303,7 @@ enum BackupStore {
             model.goalNameSnapshot = dto.goalNameSnapshot
             model.startedAt = dto.startedAt
             model.endedAt = dto.endedAt
-            model.activeIntervals = dto.activeIntervals
+            try model.setActiveIntervals(dto.activeIntervals)
             model.accumulatedSeconds = dto.accumulatedSeconds
             model.runningStartedAt = dto.runningStartedAt
             model.state = dto.state
@@ -386,6 +377,7 @@ enum BackupStore {
                 throw BackupError.invalidContent("计时总时长与有效区间不一致。")
             }
             switch session.state {
+            case .invalid: throw BackupError.invalidContent("未知计时状态。")
             case .finished:
                 guard let end = session.endedAt, end >= previousEnd, session.runningStartedAt == nil else {
                     throw BackupError.invalidContent("已结束计时的状态或结束时间无效。")
@@ -422,7 +414,7 @@ enum BackupStore {
             }
         }
         for dto in document.timingSessions {
-            guard let model = sessionsByID[dto.id], BackupTimingSession(model) == dto else {
+            guard let model = sessionsByID[dto.id], try BackupTimingSession(model) == dto else {
                 throw BackupError.importFailed("计时字段校验失败。")
             }
         }
@@ -504,7 +496,7 @@ struct BackupTimingSession: Codable, Equatable, Sendable {
     var runningStartedAt: Date?
     var state: TimingSessionState
 
-    init(_ session: TimingSession) {
+    init(_ session: TimingSession) throws {
         id = session.id
         taskID = session.taskID
         taskTitleSnapshot = session.taskTitleSnapshot
@@ -512,7 +504,7 @@ struct BackupTimingSession: Codable, Equatable, Sendable {
         goalNameSnapshot = session.goalNameSnapshot
         startedAt = session.startedAt
         endedAt = session.endedAt
-        activeIntervals = session.activeIntervals
+        activeIntervals = try session.activeIntervals
         accumulatedSeconds = session.accumulatedSeconds
         runningStartedAt = session.runningStartedAt
         state = session.state

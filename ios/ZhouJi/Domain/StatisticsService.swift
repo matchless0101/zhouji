@@ -18,12 +18,12 @@ struct StatisticsSnapshot: Equatable {
 enum StatisticsService {
     /// Only the week duration needed by the overview, without task counts or goal grouping.
     static func weekDuration(sessions: [TimingSession], containing date: Date,
-                             calendar: Calendar = .current) -> PeriodDurationProjection {
+                             calendar: Calendar = .current) throws -> PeriodDurationProjection {
         let boundary = DateBoundaries.mondayWeek(containing: date, calendar: calendar)
         var savedSeconds: TimeInterval = 0
         var runningStarts: [Date] = []
         for session in sessions {
-            for interval in session.activeIntervals {
+            for interval in try session.activeIntervals {
                 savedSeconds += DateBoundaries.overlapDuration(of: interval, with: boundary)
             }
             if session.state == .running, let start = session.runningStartedAt { runningStarts.append(start) }
@@ -37,7 +37,7 @@ enum StatisticsService {
         now: Date = .now,
         periodDate: Date? = nil,
         calendar: Calendar = .current
-    ) -> StatisticsSnapshot {
+    ) throws -> StatisticsSnapshot {
         let day = DateBoundaries.day(containing: periodDate ?? now, calendar: calendar)
         let week = DateBoundaries.mondayWeek(containing: periodDate ?? now, calendar: calendar)
 
@@ -53,7 +53,7 @@ enum StatisticsService {
         var goalTotals: [UUID: (name: String, seconds: TimeInterval)] = [:]
 
         for session in sessions {
-            let intervals = effectiveIntervals(for: session, now: now)
+            let intervals = try effectiveIntervals(for: session, now: now)
             let daySeconds = intervals.reduce(0) {
                 $0 + DateBoundaries.overlapDuration(of: $1, with: day)
             }
@@ -93,8 +93,8 @@ enum StatisticsService {
     static func effectiveIntervals(
         for session: TimingSession,
         now: Date
-    ) -> [TimingInterval] {
-        var intervals = session.activeIntervals
+    ) throws -> [TimingInterval] {
+        var intervals = try session.activeIntervals
         if session.state == .running, let runningStartedAt = session.runningStartedAt {
             intervals.append(
                 TimingInterval(startedAt: runningStartedAt, endedAt: max(now, runningStartedAt))

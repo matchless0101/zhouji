@@ -156,14 +156,19 @@ struct ProfileView: View {
     private var overview: some View {
         NavigationStack {
             TimelineView(.everyMinute) { minute in
-                let duration = StatisticsService.weekDuration(sessions: sessions, containing: minute.date)
+                let duration = Result(catching: { try StatisticsService.weekDuration(sessions: sessions, containing: minute.date) })
                 let completed = completedCount
                 let rate = completionRate
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
                         ZJPaperHeader(title: "我的概况", subtitle: "每一步，都算数。", illustration: "LiuliWriting", identifier: "profile.overviewHeading")
-                        TimelineView(.periodic(from: .now, by: duration.isRunning ? 1 : 60)) { tick in
-                            metrics(secondsThisWeek: duration.seconds(now: tick.date), completed: completed, rate: rate)
+                        switch duration {
+                        case .failure(let error):
+                            Text(error.localizedDescription).foregroundStyle(ZJTheme.secondaryInk)
+                        case .success(let duration):
+                            TimelineView(.periodic(from: .now, by: duration.isRunning ? 1 : 60)) { tick in
+                                metrics(secondsThisWeek: duration.seconds(now: tick.date), completed: completed, rate: rate)
+                            }
                         }
                         if !dynamicTypeSize.isAccessibilitySize {
                             Image(decorative: "LiuliOverview")

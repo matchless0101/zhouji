@@ -43,7 +43,7 @@ enum LegacyDataFixtures {
 
         let start = dayStart.addingTimeInterval(10 * 3_600)
         let end = dayStart.addingTimeInterval(10 * 3_600 + 600)
-        let session = TimingSession(
+        let session = try TimingSession(
             taskID: pending.id,
             taskTitleSnapshot: pending.title,
             startedAt: start,
@@ -93,7 +93,7 @@ enum LegacyDataFixtures {
         guard let yesterdayNoon = calendar.date(byAdding: .day, value: -1, to: calendar.startOfDay(for: .now))?.addingTimeInterval(12 * 3_600) else {
             throw FixtureError.invalidCalendar
         }
-        let crossMidnight = TimingSession(
+        let crossMidnight = try TimingSession(
             taskID: v2.doneTask.id,
             taskTitleSnapshot: v2.doneTask.title,
             goalIDSnapshot: v2.goal.id,
@@ -105,7 +105,7 @@ enum LegacyDataFixtures {
             state: .finished
         )
         let runningStart = calendar.startOfDay(for: .now).addingTimeInterval(8 * 3_600)
-        let running = TimingSession(
+        let running = try TimingSession(
             taskID: v2.v1.pending.id,
             taskTitleSnapshot: v2.v1.pending.title,
             goalIDSnapshot: v2.goal.id,

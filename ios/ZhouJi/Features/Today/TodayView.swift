@@ -389,15 +389,8 @@ struct TodayView: View {
     }
 
     private func toggleCompletion(of task: TodoTask) {
-        if !task.isCompleted, timer.activeTaskID == task.id {
-            guard timer.finishActiveSession() else {
-                presentTimerErrorIfNeeded()
-                return
-            }
-        }
-
         do {
-            try TaskService.setCompleted(task, completed: !task.isCompleted, in: modelContext)
+            try TaskService.setCompleted(task, completed: !task.isCompleted, timer: timer, in: modelContext)
         } catch {
             presentedError = error.localizedDescription
         }
@@ -416,15 +409,8 @@ struct TodayView: View {
     }
 
     private func delete(_ task: TodoTask) {
-        if timer.activeTaskID == task.id {
-            guard timer.finishActiveSession() else {
-                presentTimerErrorIfNeeded()
-                return
-            }
-        }
-
         do {
-            try TaskService.softDelete(task, in: modelContext)
+            try TaskService.softDelete(task, timer: timer, in: modelContext)
             undoCandidate = task
             scheduleUndoDismissal()
         } catch {

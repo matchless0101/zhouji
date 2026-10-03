@@ -18,13 +18,13 @@ struct V3StatisticsTests {
         )
         let start = try date(2026, 9, 6, 23, 30, calendar: calendar)
         let end = try date(2026, 9, 7, 0, 30, calendar: calendar)
-        let session = finishedSession(
+        let session = try finishedSession(
             task: mondayCompletion,
             start: start,
             end: end
         )
 
-        let snapshot = StatisticsService.snapshot(
+        let snapshot = try StatisticsService.snapshot(
             tasks: [sundayCompletion, mondayCompletion],
             sessions: [session],
             now: now,
@@ -45,26 +45,26 @@ struct V3StatisticsTests {
         let thesisID = UUID()
         let exerciseID = UUID()
 
-        let thesis = finishedSession(
+        let thesis = try finishedSession(
             task: baseTask,
             start: try date(2026, 9, 9, 8, calendar: calendar),
             end: try date(2026, 9, 9, 9, calendar: calendar),
             goalID: thesisID,
             goalName: "论文"
         )
-        let exercise = finishedSession(
+        let exercise = try finishedSession(
             task: baseTask,
             start: try date(2026, 9, 9, 9, calendar: calendar),
             end: try date(2026, 9, 9, 11, calendar: calendar),
             goalID: exerciseID,
             goalName: "运动"
         )
-        let unassigned = finishedSession(
+        let unassigned = try finishedSession(
             task: baseTask,
             start: try date(2026, 9, 9, 7, 30, calendar: calendar),
             end: try date(2026, 9, 9, 8, calendar: calendar)
         )
-        let running = TimingSession(
+        let running = try TimingSession(
             taskID: baseTask.id,
             taskTitleSnapshot: baseTask.title,
             goalIDSnapshot: thesisID,
@@ -74,7 +74,7 @@ struct V3StatisticsTests {
             state: .running
         )
 
-        let snapshot = StatisticsService.snapshot(
+        let snapshot = try StatisticsService.snapshot(
             tasks: [],
             sessions: [thesis, exercise, unassigned, running],
             now: now,
@@ -112,9 +112,9 @@ struct V3StatisticsTests {
     func comparisonIncludesTheWholePreviousDayForAnOngoingTimer() throws {
         let calendar = shanghaiCalendar
         let start = try date(2026, 9, 8, 20, calendar: calendar)
-        let running = TimingSession(taskID: UUID(), taskTitleSnapshot: "跨夜投入",
+        let running = try TimingSession(taskID: UUID(), taskTitleSnapshot: "跨夜投入",
                                     startedAt: start, runningStartedAt: start, state: .running)
-        let snapshot = StatisticsService.snapshot(
+        let snapshot = try StatisticsService.snapshot(
             tasks: [], sessions: [running], now: try date(2026, 9, 9, 10, calendar: calendar),
             periodDate: try date(2026, 9, 8, 10, calendar: calendar), calendar: calendar
         )
@@ -152,8 +152,8 @@ struct V3StatisticsTests {
         end: Date,
         goalID: UUID? = nil,
         goalName: String? = nil
-    ) -> TimingSession {
-        TimingSession(
+    ) throws -> TimingSession {
+        try TimingSession(
             taskID: task.id,
             taskTitleSnapshot: task.title,
             goalIDSnapshot: goalID,

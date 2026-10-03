@@ -25,18 +25,14 @@ enum ZJTheme {
 
     static let success = Color(red: 0.386, green: 0.463, blue: 0.322, opacity: 1)
 
-    static let timerAccent = Color(red: 0.753, green: 0.361, blue: 0.239, opacity: 1)
+    static let timerAccent = accent
 
-    static let timerSoft = Color(red: 0.951, green: 0.849, blue: 0.738, opacity: 1)
+    static let timerSoft = accentSoft
 
     static let pagePadding: CGFloat = 18
-    static let pageTopSpacing: CGFloat = 42
-    static let compactPageTopSpacing: CGFloat = 22
-    static let rowVerticalPadding: CGFloat = 12
     static let controlHeight: CGFloat = 48
     static let cornerRadius: CGFloat = 22
     static let compactCornerRadius: CGFloat = 14
-    static let hairlineOpacity = 0.62
 
     static var pageBackground: ZJPaperBackground { ZJPaperBackground() }
 
@@ -59,7 +55,6 @@ enum ZJTheme {
         }
     }
 
-    static func goalProgress(for iconName: String) -> Color { success }
 }
 
 struct ZJGoalIcon: View {
@@ -74,52 +69,6 @@ struct ZJGoalIcon: View {
     }
 }
 
-struct ZJBrandHeader: View {
-    let subtitle: String
-    let systemImage: String
-    var actionLabel: String?
-    var action: (() -> Void)?
-
-    var body: some View {
-        HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("粥记")
-                    .font(.system(.title2, design: .default, weight: .bold))
-                    .foregroundStyle(ZJTheme.ink)
-
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer(minLength: 12)
-
-            if let action {
-                Button(action: action) {
-                    Image(systemName: systemImage)
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(ZJTheme.accent)
-                        .frame(width: 44, height: 44)
-                        .background(ZJTheme.surface, in: Circle())
-                        .overlay {
-                            Circle().stroke(ZJTheme.divider.opacity(0.7), lineWidth: 0.5)
-                        }
-                        .shadow(color: ZJTheme.accent.opacity(0.10), radius: 12, x: 0, y: 4)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(actionLabel ?? "操作")
-            } else {
-                Image(systemName: systemImage)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                    .frame(width: 44, height: 44)
-                    .accessibilityHidden(true)
-            }
-        }
-    }
-}
-
 private struct ZJCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
@@ -129,72 +78,6 @@ private struct ZJCardModifier: ViewModifier {
                     .stroke(ZJTheme.divider.opacity(0.35), lineWidth: 0.7)
             }
             .shadow(color: ZJTheme.secondaryInk.opacity(0.055), radius: 6, x: 0, y: 2)
-    }
-}
-
-struct ZJPrimaryButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(isEnabled ? ZJTheme.accent : ZJTheme.secondaryInk)
-            .background(
-                isEnabled ? ZJTheme.accentSoft : ZJTheme.mutedSurface,
-                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(isEnabled ? ZJTheme.accent.opacity(0.18) : ZJTheme.divider, lineWidth: 1)
-            }
-            .shadow(color: isEnabled ? ZJTheme.accent.opacity(0.09) : .clear, radius: 12, x: 0, y: 5)
-            .opacity(configuration.isPressed ? 0.82 : 1)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
-struct ZJSecondaryButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(isEnabled ? ZJTheme.ink : ZJTheme.secondaryInk)
-            .background(
-                ZJTheme.surface,
-                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(ZJTheme.divider.opacity(0.78), lineWidth: 0.7)
-            }
-            .shadow(color: ZJTheme.accent.opacity(0.06), radius: 12, x: 0, y: 5)
-            .opacity(configuration.isPressed ? 0.7 : (isEnabled ? 1 : 0.55))
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
-    }
-}
-
-struct ZJTimerButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(isEnabled ? ZJTheme.timerAccent : ZJTheme.secondaryInk)
-            .background(
-                isEnabled ? ZJTheme.timerSoft : ZJTheme.mutedSurface,
-                in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-            )
-            .overlay {
-                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(isEnabled ? ZJTheme.timerAccent.opacity(0.20) : ZJTheme.divider, lineWidth: 1)
-            }
-            .shadow(color: isEnabled ? ZJTheme.timerAccent.opacity(0.10) : .clear, radius: 12, x: 0, y: 5)
-            .opacity(configuration.isPressed ? 0.82 : 1)
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
-            .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
 
@@ -255,16 +138,4 @@ extension View {
     func zjCard() -> some View {
         modifier(ZJCardModifier())
     }
-}
-
-extension ButtonStyle where Self == ZJPrimaryButtonStyle {
-    static var zjPrimary: ZJPrimaryButtonStyle { .init() }
-}
-
-extension ButtonStyle where Self == ZJSecondaryButtonStyle {
-    static var zjSecondary: ZJSecondaryButtonStyle { .init() }
-}
-
-extension ButtonStyle where Self == ZJTimerButtonStyle {
-    static var zjTimer: ZJTimerButtonStyle { .init() }
 }

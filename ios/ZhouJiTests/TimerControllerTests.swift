@@ -5,6 +5,35 @@ import Testing
 
 @MainActor
 struct TimerControllerTests {
+    @Test func corruptIntervalsBlockPauseWithoutChangingStoredFacts() throws {
+        let context = try makeContext()
+        let timer = TimerController(nowProvider: { Date(timeIntervalSince1970: 2000) })
+        timer.configure(with: context)
+        let task = TodoTask(title: "保护坏数据")
+        #expect(timer.requestStart(for: task) == .started)
+        let session = try #require(timer.activeSession)
+        session.activeIntervalsData = Data("broken".utf8)
+        #expect(!timer.pause())
+        #expect(timer.errorMessage != nil)
+        #expect(session.state == .running)
+        #expect(session.runningStartedAt == Date(timeIntervalSince1970: 2000))
+        #expect(session.activeIntervalsData == Data("broken".utf8))
+    }
+
+    @Test func unknownSavedStateBlocksNewTimer() throws {
+        let context = try makeContext()
+        let session = try TimingSession(taskID: UUID(), taskTitleSnapshot: "未知状态",
+            startedAt: Date(timeIntervalSince1970: 1000), state: .paused)
+        session.stateRawValue = "broken"
+        context.insert(session)
+        try context.save()
+        let timer = TimerController()
+        timer.configure(with: context)
+        #expect(timer.errorMessage != nil)
+        #expect(timer.requestStart(for: TodoTask(title: "不能覆盖")) == .failed)
+        #expect(session.stateRawValue == "broken")
+    }
+
     @Test
     func pauseAndResumePersistSeparateRunningIntervals() throws {
         let context = try makeContext()
@@ -30,7 +59,7 @@ struct TimerControllerTests {
         let session = try #require(sessions.first)
         #expect(session.state == .finished)
         #expect(session.accumulatedSeconds == 15)
-        #expect(session.activeIntervals.count == 2)
+        #expect(try session.activeIntervals.count == 2)
     }
 
     @Test

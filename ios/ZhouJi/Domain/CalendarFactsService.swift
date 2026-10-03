@@ -28,10 +28,10 @@ struct CalendarDayFacts {
 enum CalendarFactsService {
     /// Capture saved history on model/date changes; subsequent ticks only project live intervals.
     static func projection(_ date: Date, month: Date, tasks: [TodoTask], sessions: [TimingSession],
-                           calendar: Calendar = .current) -> CalendarLiveProjection {
+                           calendar: Calendar = .current) throws -> CalendarLiveProjection {
         CalendarLiveProjection(
-            savedDay: day(date, tasks: tasks, sessions: sessions, now: .distantPast, calendar: calendar),
-            savedActivity: activityDays(tasks: tasks, sessions: sessions, month: month, now: .distantPast, calendar: calendar),
+            savedDay: try day(date, tasks: tasks, sessions: sessions, now: .distantPast, calendar: calendar),
+            savedActivity: try activityDays(tasks: tasks, sessions: sessions, month: month, now: .distantPast, calendar: calendar),
             running: sessions.compactMap { session in
                 guard session.state == .running, let start = session.runningStartedAt else { return nil }
                 return CalendarRunningTiming(id: session.id, title: session.taskTitleSnapshot,
@@ -52,15 +52,15 @@ enum CalendarFactsService {
     }
 
     static func day(_ date: Date, tasks: [TodoTask], sessions: [TimingSession],
-                    now: Date = .now, calendar: Calendar = .current) -> CalendarDayFacts {
+                    now: Date = .now, calendar: Calendar = .current) throws -> CalendarDayFacts {
         let boundary = DateBoundaries.day(containing: date, calendar: calendar)
         let completions = tasks.compactMap { task -> CalendarCompletion? in
             guard let time = task.completedAt, time >= boundary.start, time < boundary.end else { return nil }
             return CalendarCompletion(id: task.id, title: task.title, time: time,
                                       iconName: task.goal?.displayIconName ?? "checkmark")
         }.sorted { $0.time < $1.time }
-        let timings = sessions.compactMap { session -> CalendarTiming? in
-            let intervals = StatisticsService.effectiveIntervals(for: session, now: now)
+        let timings = try sessions.compactMap { session -> CalendarTiming? in
+            let intervals = try StatisticsService.effectiveIntervals(for: session, now: now)
             let seconds = intervals.reduce(0) { $0 + DateBoundaries.overlapDuration(of: $1, with: boundary) }
             guard seconds > 0 else { return nil }
             let first = intervals.filter { DateBoundaries.overlapDuration(of: $0, with: boundary) > 0 }
@@ -73,14 +73,14 @@ enum CalendarFactsService {
     }
 
     static func activityDays(tasks: [TodoTask], sessions: [TimingSession], month: Date,
-                             now: Date = .now, calendar: Calendar = .current) -> Set<Date> {
+                             now: Date = .now, calendar: Calendar = .current) throws -> Set<Date> {
         guard let boundary = calendar.dateInterval(of: .month, for: month) else { return [] }
         var days = Set(tasks.compactMap { task -> Date? in
             guard let time = task.completedAt, time >= boundary.start, time < boundary.end else { return nil }
             return calendar.startOfDay(for: time)
         })
         for session in sessions {
-            for interval in StatisticsService.effectiveIntervals(for: session, now: now) {
+            for interval in try StatisticsService.effectiveIntervals(for: session, now: now) {
                 let end = min(interval.endedAt, boundary.end)
                 var day = calendar.startOfDay(for: max(interval.startedAt, boundary.start))
                 while day < end {
