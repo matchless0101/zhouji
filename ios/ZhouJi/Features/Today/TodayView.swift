@@ -42,10 +42,14 @@ struct TodayView: View {
             }
     }
 
+    private var singleTaskScrollCandidates: [UUID] {
+        guard navigationPath.isEmpty, !isTimerPresented else { return [] }
+        return visibleTasks.lazy.filter { !$0.isCompleted }.prefix(2).map(\.id)
+    }
+
     private var singleTaskScrollID: UUID? {
-        guard navigationPath.isEmpty, !isTimerPresented else { return nil }
-        let candidates = Array(visibleTasks.lazy.filter { !$0.isCompleted }.prefix(2))
-        return candidates.count == 1 ? candidates.first?.id : nil
+        let candidates = singleTaskScrollCandidates
+        return candidates.count == 1 ? candidates.first : nil
     }
 
     var body: some View {
@@ -77,14 +81,9 @@ struct TodayView: View {
                                 }
                             }
 
-                            if incompleteTasks.count == 1 {
-                                floatingButtonClearance
-                                    .id("today.singleTaskClearance")
-                            }
-
                             completedTasksSection(tasks: completedTodayTasks)
 
-                            if incompleteTasks.count > 1 {
+                            if !incompleteTasks.isEmpty {
                                 floatingButtonClearance
                             }
                         }
@@ -180,7 +179,9 @@ struct TodayView: View {
                 .onDisappear {
                     undoDismissTask?.cancel()
                 }
-                .onChange(of: singleTaskScrollID, initial: true) { _, _ in
+                .onChange(of: singleTaskScrollCandidates, initial: true) { oldCandidates, _ in
+                    // Completing the penultimate task should not interrupt the row animation with a scroll.
+                    guard oldCandidates.count < 2 else { return }
                     scrollToSingleTask(using: scroll)
                 }
                 .onChange(of: incompleteTasks.isEmpty) { _, isEmpty in
@@ -198,7 +199,8 @@ struct TodayView: View {
         guard let taskID = singleTaskScrollID else { return }
         DispatchQueue.main.async {
             guard singleTaskScrollID == taskID else { return }
-            scroll.scrollTo("today.singleTaskClearance", anchor: .bottom)
+            // Keep task controls above the floating add button without moving list clearance between sections.
+            scroll.scrollTo(taskID, anchor: UnitPoint(x: 0.5, y: 0.8))
         }
     }
 

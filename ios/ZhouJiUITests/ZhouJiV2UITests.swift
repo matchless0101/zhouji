@@ -829,6 +829,43 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testCompletingPenultimateTodayTaskKeepsSectionSpacingAndArtworkPosition() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "light"]
+        app.launch()
+        let pending = app.buttons.matching(identifier: "完成任务")
+        XCTAssertEqual(pending.count, 3)
+        pending.firstMatch.tap()
+        XCTAssertEqual(pending.count, 2)
+
+        let greeting = app.staticTexts["today.greeting"]
+        let completedHeader = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "已完成，")).firstMatch
+        XCTAssertTrue(completedHeader.exists)
+        let remaining = app.cells.containing(.staticText, identifier: "练习 SwiftUI").element
+        let beforeGap = completedHeader.frame.minY - remaining.frame.maxY
+        let beforeGreeting = greeting.frame
+        saveScreenshot("today-two-tasks-before-completion", app: app)
+
+        pending.firstMatch.tap()
+        XCTAssertEqual(pending.count, 1)
+        XCTAssertEqual(completedHeader.frame.minY - remaining.frame.maxY, beforeGap, accuracy: 2,
+                       "从两项变为一项时，不应突然在未完成与已完成之间插入留白")
+        XCTAssertEqual(greeting.frame.minY, beforeGreeting.minY, accuracy: 2,
+                       "完成倒数第二项不应强制滚动首页插画")
+        saveScreenshot("today-one-task-after-completion", app: app)
+
+        let start = remaining.buttons["开始计时"]
+        let add = app.buttons["添加任务"]
+        let list = app.collectionViews.firstMatch
+        for _ in 0..<3 where !start.isHittable || start.frame.intersects(add.frame) { list.swipeUp() }
+        XCTAssertTrue(start.isHittable)
+        XCTAssertFalse(start.frame.intersects(add.frame))
+        start.tap()
+        XCTAssertTrue(app.buttons["暂停"].waitForExistence(timeout: 3))
+    }
+
+    @MainActor
     func testSingleTodayTaskStartsTimerWithoutAddButtonOverlap() throws {
         continueAfterFailure = false
         let app = makeApp()
