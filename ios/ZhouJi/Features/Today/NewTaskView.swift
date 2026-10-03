@@ -40,8 +40,10 @@ struct NewTaskView: View {
                 .scrollDismissesKeyboard(.interactively)
             }
         }
+        .background(TaskNavigationBackground())
         .tint(ZJTheme.accent)
         .toolbar(.hidden, for: .navigationBar)
+        .toolbar(.hidden, for: .tabBar)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             submitBar
         }
@@ -295,4 +297,35 @@ struct NewTaskView: View {
         NewTaskView()
     }
     .modelContainer(for: [Goal.self, TodoTask.self, TimingSession.self], inMemory: true)
+}
+
+// SwiftUI's native navigation/tab containers can expose their default background
+// before the hidden tab bar finishes its transition. Keep that surface on paper.
+private struct TaskNavigationBackground: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> PaperController { PaperController() }
+    func updateUIViewController(_ controller: PaperController, context: Context) {
+        controller.applyBackground()
+    }
+
+    final class PaperController: UIViewController {
+        override func loadView() {
+            view = UIView()
+            view.backgroundColor = .clear
+            view.isUserInteractionEnabled = false
+        }
+
+        override func didMove(toParent parent: UIViewController?) {
+            super.didMove(toParent: parent)
+            applyBackground()
+        }
+
+        func applyBackground() {
+            var ancestor = parent
+            while let controller = ancestor {
+                controller.view.backgroundColor = UIColor(ZJTheme.background)
+                if controller is UITabBarController { break }
+                ancestor = controller.parent
+            }
+        }
+    }
 }
