@@ -301,10 +301,10 @@ struct NewTaskView: View {
 
 // SwiftUI's native navigation/tab containers can expose their default background
 // before the hidden tab bar finishes its transition. Keep that surface on paper.
-private struct TaskNavigationBackground: UIViewControllerRepresentable {
+struct TaskNavigationBackground: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> PaperController { PaperController() }
     func updateUIViewController(_ controller: PaperController, context: Context) {
-        controller.applyBackground()
+        // The paper theme is fixed; text edits must not rewrite native backgrounds.
     }
 
     final class PaperController: UIViewController {
@@ -319,11 +319,16 @@ private struct TaskNavigationBackground: UIViewControllerRepresentable {
             applyBackground()
         }
 
-        func applyBackground() {
+        private static let paperColor = UIColor(ZJTheme.background)
+
+        private func applyBackground() {
             var ancestor = parent
             while let controller = ancestor {
-                controller.view.backgroundColor = UIColor(ZJTheme.background)
-                if controller is UITabBarController { break }
+                if let tab = controller as? UITabBarController {
+                    tab.view.backgroundColor = Self.paperColor
+                    tab.selectedViewController?.view.backgroundColor = Self.paperColor
+                    break
+                }
                 ancestor = controller.parent
             }
         }

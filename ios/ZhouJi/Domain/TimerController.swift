@@ -19,8 +19,12 @@ final class TimerController {
     @ObservationIgnored private var modelContext: ModelContext?
     @ObservationIgnored private var nowProvider: () -> Date
 
-    init(nowProvider: @escaping () -> Date = Date.init) {
+    @ObservationIgnored private let save: (ModelContext) throws -> Void
+
+    init(nowProvider: @escaping () -> Date = Date.init,
+         save: @escaping (ModelContext) throws -> Void = { try $0.save() }) {
         self.nowProvider = nowProvider
+        self.save = save
     }
 
     var activeTaskID: UUID? {
@@ -64,43 +68,51 @@ final class TimerController {
             return true
         }
 
-        do { try closeRunningInterval(for: session, at: nowProvider()) }
-        catch { errorMessage = error.localizedDescription; return false }
-        session.state = .paused
-        return saveContext()
+        return updateSession(session) {
+            try closeRunningInterval(for: session, at: nowProvider())
+            session.state = .paused
+        }
     }
 
     @discardableResult
     func resume() -> Bool {
-        guard let session = activeSession, session.state == .paused else {
-            return true
+        guard let session = activeSession, session.state == .paused else { return true }
+        return updateSession(session) {
+            _ = try session.activeIntervals
+            session.runningStartedAt = nowProvider()
+            session.state = .running
         }
-
-        do { _ = try session.activeIntervals }
-        catch { errorMessage = error.localizedDescription; return false }
-        session.runningStartedAt = nowProvider()
-        session.state = .running
-        return saveContext()
     }
 
     @discardableResult
     func finishActiveSession() -> Bool {
         guard let session = activeSession else { return true }
-
-        do { _ = try session.activeIntervals }
-        catch { errorMessage = error.localizedDescription; return false }
-        let now = nowProvider()
-        if session.state == .running {
-            do { try closeRunningInterval(for: session, at: now) }
-            catch { errorMessage = error.localizedDescription; return false }
-        }
-
-        session.state = .finished
-        session.endedAt = now
-        session.runningStartedAt = nil
-
-        guard saveContext() else { return false }
+        guard updateSession(session, changes: {
+            _ = try session.activeIntervals
+            let now = nowProvider()
+            if session.state == .running {
+                try closeRunningInterval(for: session, at: now)
+            }
+            session.state = .finished
+            session.endedAt = now
+            session.runningStartedAt = nil
+        }) else { return false }
         activeSession = nil
+        return true
+    }
+
+    private func updateSession(_ session: TimingSession, changes: () throws -> Void) -> Bool {
+        let previous = SessionState(session)
+        do { try changes() }
+        catch {
+            previous.restore(session)
+            errorMessage = error.localizedDescription
+            return false
+        }
+        guard saveContext() else {
+            previous.restore(session)
+            return false
+        }
         return true
     }
 
@@ -160,32 +172,38 @@ final class TimerController {
         guard let modelContext else { return }
 
         do {
+            let finished = TimingSessionState.finished.rawValue
             let descriptor = FetchDescriptor<TimingSession>(
+                predicate: #Predicate { $0.stateRawValue != finished },
                 sortBy: [SortDescriptor(\.startedAt, order: .reverse)]
             )
-            let sessions = try modelContext.fetch(descriptor)
-            for session in sessions { _ = try session.activeIntervals }
-            storageFailure = nil
-            errorMessage = nil
-            let unfinished = sessions.filter {
-                $0.state != .finished
-            }
-
-            activeSession = unfinished.first
+            let unfinished = try modelContext.fetch(descriptor)
+            for session in unfinished { _ = try session.activeIntervals }
 
             if unfinished.count > 1 {
-                let repairDate = nowProvider()
-                for duplicate in unfinished.dropFirst() {
-                    if duplicate.state == .running {
-                        try closeRunningInterval(for: duplicate, at: repairDate)
+                let duplicates = Array(unfinished.dropFirst())
+                let previous = duplicates.map(SessionState.init)
+                do {
+                    let repairDate = nowProvider()
+                    for duplicate in duplicates {
+                        if duplicate.state == .running {
+                            try closeRunningInterval(for: duplicate, at: repairDate)
+                        }
+                        duplicate.state = .finished
+                        duplicate.endedAt = repairDate
+                        duplicate.runningStartedAt = nil
                     }
-                    duplicate.state = .finished
-                    duplicate.endedAt = repairDate
-                    duplicate.runningStartedAt = nil
+                    try save(modelContext)
+                } catch {
+                    for (session, state) in zip(duplicates, previous) { state.restore(session) }
+                    throw error
                 }
-                try modelContext.save()
             }
+            activeSession = unfinished.first
+            storageFailure = nil
+            errorMessage = nil
         } catch {
+            activeSession = nil
             storageFailure = "未能恢复上次计时：\(error.localizedDescription)"
             errorMessage = storageFailure
         }
@@ -198,11 +216,35 @@ final class TimerController {
         }
 
         do {
-            try modelContext.save()
+            try save(modelContext)
             return true
         } catch {
             errorMessage = "未能保存计时：\(error.localizedDescription)"
             return false
         }
+    }
+}
+
+private struct SessionState {
+    let intervals: Data
+    let seconds: TimeInterval
+    let runningStart: Date?
+    let end: Date?
+    let state: String
+
+    init(_ session: TimingSession) {
+        intervals = session.activeIntervalsData
+        seconds = session.accumulatedSeconds
+        runningStart = session.runningStartedAt
+        end = session.endedAt
+        state = session.stateRawValue
+    }
+
+    func restore(_ session: TimingSession) {
+        session.activeIntervalsData = intervals
+        session.accumulatedSeconds = seconds
+        session.runningStartedAt = runningStart
+        session.endedAt = end
+        session.stateRawValue = state
     }
 }

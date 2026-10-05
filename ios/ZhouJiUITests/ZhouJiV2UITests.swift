@@ -951,6 +951,32 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testNewTaskDismissedKeyboardAndReturnKeepPaperAndNavigation() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launch()
+        app.buttons["today.firstTask"].tap()
+        let keyboard = app.keyboards.firstMatch
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 3))
+        let dragStart = app.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: app.frame.width * 0.5, dy: keyboard.frame.minY - app.frame.minY - 120))
+        dragStart.press(forDuration: 0.05,
+            thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.96)))
+        XCTAssertTrue(keyboard.waitForNonExistence(timeout: 3))
+        assertLightPaper(in: app)
+        assertLightPaper(in: app, sampleYFraction: 0.94)
+        saveScreenshot("new-task-keyboard-dismissed-paper", app: app)
+        app.buttons["返回今天"].tap()
+        XCTAssertTrue(app.buttons["tab.today"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["today.firstTask"].isHittable)
+        for tab in ["goals", "calendar", "profile", "today"] {
+            app.buttons["tab.\(tab)"].tap()
+            XCTAssertTrue(app.buttons["tab.\(tab)"].isSelected)
+            assertLightPaper(in: app)
+        }
+    }
+
+    @MainActor
     func testNewTaskLargeTextKeepsCreationReachable() throws {
         continueAfterFailure = false
         let app = makeApp()
@@ -1534,7 +1560,7 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    private func assertLightPaper(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+    private func assertLightPaper(in app: XCUIApplication, sampleYFraction: Double = 0.12, file: StaticString = #filePath, line: UInt = #line) {
         guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
             XCTFail("Screenshot unavailable", file: file, line: line)
             return
@@ -1552,7 +1578,7 @@ final class ZhouJiUITests: XCTestCase {
         // Bitmap row zero is the screenshot top. Do not flip and sample bottom artwork.
         // Use the median to ignore individual paper specks.
         let sampleX = Int(Double(width) * 0.015)
-        let sampleY = Int(Double(height) * 0.12)
+        let sampleY = Int(Double(height) * sampleYFraction)
         var channels = [[Int](), [Int](), [Int]()]
         for y in (sampleY - 3)...(sampleY + 3) {
             for x in (sampleX - 3)...(sampleX + 3) {
