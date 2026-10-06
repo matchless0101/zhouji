@@ -9,10 +9,26 @@ private actor AccountStub: AccountServing {
     var logoutCalls = 0
     var deleteCalls = 0
     var profile = AppAccount(id: "test-account", provider: "apple")
+    var delaysAccount = false
+    var delaysProfile = false
+    var pendingAccount: CheckedContinuation<AppAccount, Error>?
+    var pendingProfile: CheckedContinuation<AppAccount, Error>?
+    var isAccountWaiting: Bool { pendingAccount != nil }
+    var isProfileWaiting: Bool { pendingProfile != nil }
     let value = AccountSession(token: "test-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
                                account: AppAccount(id: "test-account", provider: "apple"))
     func setFailure(_ value: Bool) { fails = value }
     func setExpired() { expired = true }
+    func delayAccount() { delaysAccount = true }
+    func delayProfile() { delaysProfile = true }
+    func completeAccount(_ result: Result<AppAccount, AccountError>) {
+        pendingAccount?.resume(with: result.mapError { $0 as Error })
+        pendingAccount = nil
+    }
+    func completeProfile() {
+        pendingProfile?.resume(returning: profile)
+        pendingProfile = nil
+    }
     func challenge() async throws -> LoginChallenge {
         if fails { throw AccountError.unavailable }
         return LoginChallenge(challenge: "test-challenge", nonce: "test-nonce", expiresAt: Date.now.timeIntervalSince1970 + 300)
@@ -28,6 +44,7 @@ private actor AccountStub: AccountServing {
         return AccountSession(token: "wechat-token", expiresAt: Date.now.timeIntervalSince1970 + 3600, account: profile)
     }
     func account(token: String) async throws -> AppAccount {
+        if delaysAccount { return try await withCheckedThrowingContinuation { pendingAccount = $0 } }
         if expired { throw AccountError.expired }
         if fails { throw AccountError.unavailable }
         return profile
@@ -36,6 +53,7 @@ private actor AccountStub: AccountServing {
         if expired { throw AccountError.expired }
         if fails { throw AccountError.unavailable }
         profile = AppAccount(id: "test-account", provider: "apple", nickname: nickname, avatar: avatar)
+        if delaysProfile { return try await withCheckedThrowingContinuation { pendingProfile = $0 } }
         return profile
     }
     func logout(token: String) async throws {
@@ -52,6 +70,7 @@ private actor AccountStub: AccountServing {
     var value: AccountSession?
     var failsSave = false
     var failsRead = false
+    var failsClear = false
     func read() throws -> AccountSession? {
         if failsRead { throw AccountError.keychain }
         return value
@@ -60,10 +79,165 @@ private actor AccountStub: AccountServing {
         if failsSave { throw AccountError.keychain }
         value = session
     }
-    func clear() throws { value = nil }
+    func clear() throws {
+        if failsClear { throw AccountError.keychain }
+        value = nil
+    }
 }
 
 @MainActor struct AccountStoreTests {
+    private func waitUntil(_ condition: () async -> Bool) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now + .seconds(5)
+        while !(await condition()) {
+            try #require(clock.now < deadline, "The controlled account request did not start")
+            await Task.yield()
+        }
+    }
+
+    @Test func backgroundRefreshAllowsProfileSaveAndCannotOverwriteIt() async throws {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await api.delayAccount()
+        let refresh = Task { await store.restore() }
+        try await waitUntil { await api.isAccountWaiting }
+        let wasBusy = store.isBusy
+        let saved = await store.updateProfile(nickname: "新昵称", avatar: "leaf", accountID: "test-account")
+        await api.completeAccount(.success(AppAccount(id: "test-account", provider: "apple", nickname: "旧昵称")))
+        await refresh.value
+        #expect(!wasBusy)
+        #expect(saved)
+        #expect(store.account?.nickname == "新昵称")
+        #expect(storage.value?.account.nickname == "新昵称")
+    }
+
+    @Test func expiredOldRefreshCannotClearAProfileSavedLater() async throws {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await api.delayAccount()
+        let refresh = Task { await store.restore() }
+        try await waitUntil { await api.isAccountWaiting }
+        let saved = await store.updateProfile(nickname: "新昵称", avatar: "leaf", accountID: "test-account")
+        await api.completeAccount(.failure(.expired))
+        await refresh.value
+        #expect(saved)
+        #expect(store.account?.nickname == "新昵称")
+        #expect(storage.value?.account.nickname == "新昵称")
+    }
+
+    @Test func backgroundRefreshAllowsLogoutAndCannotRestoreItsSession() async throws {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await api.delayAccount()
+        let refresh = Task { await store.restore() }
+        try await waitUntil { await api.isAccountWaiting }
+        await store.logout()
+        await api.completeAccount(.success(AppAccount(id: "test-account", provider: "apple")))
+        await refresh.value
+        #expect(store.account == nil)
+        #expect(store.syncToken == nil)
+        #expect(storage.value == nil)
+    }
+
+    @Test func appleRevocationDuringRefreshCannotBeUndoneByItsResponse() async throws {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await api.delayAccount()
+        let refresh = Task { await store.restore() }
+        try await waitUntil { await api.isAccountWaiting }
+        await store.credentialRevoked()
+        let revokedImmediately = store.account == nil && store.syncToken == nil
+        await api.completeAccount(.success(AppAccount(id: "test-account", provider: "apple")))
+        await refresh.value
+        #expect(revokedImmediately)
+        #expect(store.account == nil)
+        #expect(storage.value == nil)
+    }
+
+    @Test func appleRevocationDuringProfileSaveCannotBeUndoneByItsResponse() async throws {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        await api.delayProfile()
+        let save = Task { await store.updateProfile(nickname: "新昵称", avatar: "leaf", accountID: "test-account") }
+        try await waitUntil { await api.isProfileWaiting }
+        await store.credentialRevoked()
+        let revokedImmediately = store.account == nil && store.syncToken == nil
+        await api.completeProfile()
+        let saved = await save.value
+        #expect(revokedImmediately)
+        #expect(!saved)
+        #expect(store.account == nil)
+        #expect(storage.value == nil)
+    }
+
+    @Test func revokedCredentialsCannotBeRestoredAfterKeychainClearFailure() async {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        storage.failsClear = true
+        await store.credentialRevoked()
+        #expect(store.account == nil && store.syncToken == nil)
+        #expect(store.message == AccountError.keychain.localizedDescription)
+        await store.restore()
+        #expect(store.account == nil && store.syncToken == nil)
+        storage.failsClear = false
+        await store.restore()
+        #expect(storage.value == nil)
+        #expect(store.account == nil)
+    }
+
+    @Test(arguments: ["小\n粥", "小\u{0}粥", "\u{202E}", "小\u{202E}粥", "\u{200D}", "\u{0301}", "\u{2028}",
+                     "\u{200B}小粥", "小粥\u{200B}", "\u{200B}小粥\u{200B}", String(repeating: "粥", count: 21)])
+    func invalidNicknameIsRejectedWithoutChangingTheProfile(_ name: String) async {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        #expect(await store.updateProfile(nickname: name, avatar: "leaf", accountID: "test-account") == false)
+        #expect(store.account?.nickname == nil)
+        #expect(storage.value?.account.nickname == nil)
+        #expect(store.message == AccountError.invalidProfile.localizedDescription)
+    }
+
+    @Test func nicknameIsTrimmedAndNormalizedBeforeSaving() async {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        #expect(await store.updateProfile(nickname: "  e\u{0301}粥  ", avatar: "leaf", accountID: "test-account"))
+        #expect(store.account?.nickname == "é粥")
+        #expect(storage.value?.account.nickname == "é粥")
+    }
+
+    @Test(arguments: ["\u{001C}小粥\u{001F}", "\u{0085}小粥\u{0085}", "\u{3000}小粥\u{3000}", "\t小粥\r\n"])
+    func nicknameWhitespaceMatchesServerNormalization(_ name: String) async {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        #expect(await store.updateProfile(nickname: name, avatar: "leaf", accountID: "test-account"))
+        #expect(store.account?.nickname == "小粥")
+        #expect(storage.value?.account.nickname == "小粥")
+    }
+
+    @Test(arguments: ["小粥", "👨‍👩‍👧‍👦", "می\u{200C}نا", String(repeating: "粥", count: 20)])
+    func visibleNamesAndEmojiRemainValid(_ name: String) async {
+        let api = AccountStub(), storage = MemorySession()
+        storage.value = api.value
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        #expect(await store.updateProfile(nickname: name, avatar: "leaf", accountID: "test-account"))
+        #expect(store.account?.nickname == name)
+        #expect(storage.value?.account.nickname == name)
+    }
+
     @Test func authenticatedLibrariesRespectLoginFailureExpiryAndLogout() async throws {
         let guest = try ModelContainer(for: Goal.self, TodoTask.self, TimingSession.self,
             configurations: ModelConfiguration(isStoredInMemoryOnly: true))

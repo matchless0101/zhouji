@@ -100,7 +100,10 @@ final class LocalLibraryStore {
     func prepareSwitch(to scope: String) throws -> LocalLibrary {
         if current.scope == scope { return current }
         let context = current.container.mainContext
-        if try context.fetch(FetchDescriptor<TimingSession>()).contains(where: { $0.state != .finished }) {
+        let finished = TimingSessionState.finished.rawValue
+        var unfinished = FetchDescriptor<TimingSession>(predicate: #Predicate { $0.stateRawValue != finished })
+        unfinished.fetchLimit = 1
+        if try !context.fetch(unfinished).isEmpty {
             throw LibraryError.activeTimer
         }
         try context.save()

@@ -61,11 +61,11 @@ struct ProfileEditor: View {
     }
 
     private var normalizedName: String {
-        nickname.trimmingCharacters(in: .whitespacesAndNewlines).precomposedStringWithCanonicalMapping
+        ProfileNickname.normalize(nickname)
     }
 
     private var nameIsValid: Bool {
-        (1...20).contains(normalizedName.unicodeScalars.count)
+        ProfileNickname.isValid(normalizedName)
     }
 
     var body: some View {
@@ -99,6 +99,13 @@ struct ProfileEditor: View {
                         Text("1–20 个字符")
                             .font(ZJTheme.handwriting(14, relativeTo: .footnote))
                             .foregroundStyle(ZJTheme.secondaryInk)
+                        if !nameIsValid {
+                            Text(AccountError.invalidProfile.localizedDescription)
+                                .font(.footnote)
+                                .foregroundStyle(ZJTheme.secondaryInk)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("profile.nicknameValidation")
+                        }
                     }
 
                     VStack(alignment: .leading, spacing: 12) {

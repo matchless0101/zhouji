@@ -3,6 +3,29 @@ import UIKit
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testProfileRejectsHiddenNicknameAndKeepsCancelAvailable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJIsolationSampleData", "-ZJInitialTab", "profile"]
+        app.launch()
+        let identity = app.buttons["profile.identity"]
+        XCTAssertTrue(identity.waitForExistence(timeout: 3))
+        identity.tap()
+        let nickname = app.textFields["profile.nickname"]
+        XCTAssertTrue(nickname.waitForExistence(timeout: 3))
+        nickname.tap()
+        nickname.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 2))
+        nickname.typeText("\u{200B}小粥\u{200B}")
+        XCTAssertFalse(app.buttons["profile.save"].isEnabled)
+        XCTAssertTrue(app.staticTexts["profile.nicknameValidation"].exists)
+        XCTAssertTrue(app.buttons["取消"].isHittable)
+        saveScreenshot("profile-invalid-hidden-nickname", app: app)
+        app.buttons["取消"].tap()
+        XCTAssertTrue(identity.waitForExistence(timeout: 3))
+        XCTAssertTrue(identity.label.contains("小粥"))
+    }
+
+    @MainActor
     func testTimerDesignKeepsGoalPauseAndFinishSemantics() throws {
         continueAfterFailure = false
         let app = makeApp()

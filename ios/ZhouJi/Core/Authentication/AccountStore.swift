@@ -19,6 +19,9 @@ final class AccountStore {
     private let api: any AccountServing
     private let storage: any AccountSessionStoring
     private let checksAppleCredential: Bool
+    @ObservationIgnored private var isRefreshing = false
+    @ObservationIgnored private var sessionRevision = 0
+    @ObservationIgnored private var revokedAppleToken: String?
 
     init(api: any AccountServing = AccountAPI(), storage: any AccountSessionStoring = AccountKeychain(),
          checksAppleCredential: Bool = true, weChat: any WeChatAuthorizing = WeChatLogin(),
@@ -31,11 +34,17 @@ final class AccountStore {
     }
 
     func restore() async {
-        guard !isBusy else { return }
-        isBusy = true
-        defer { isBusy = false }
+        guard !isBusy, !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
+        let revision = sessionRevision
         do {
-            guard let saved = try storage.read() else { return }
+            guard let saved = try session ?? storage.read() else { return }
+            if saved.token == revokedAppleToken {
+                try clearSession()
+                message = AccountError.expired.localizedDescription
+                return
+            }
             guard saved.expiresAt > Date.now.timeIntervalSince1970 else {
                 try clearSession()
                 message = AccountError.expired.localizedDescription
@@ -46,24 +55,28 @@ final class AccountStore {
             account = saved.account
             if checksAppleCredential, saved.account.provider == "apple", let user = saved.appleUser {
                 let state = try await ASAuthorizationAppleIDProvider().credentialState(forUserID: user)
+                guard revision == sessionRevision else { return }
                 if state == .revoked || state == .notFound || state == .transferred {
-                    try? await api.logout(token: saved.token)
-                    try clearSession()
-                    message = AccountError.expired.localizedDescription
+                    await credentialRevoked()
                     return
                 }
             }
             let refreshed = try await api.account(token: saved.token)
+            guard revision == sessionRevision else { return }
             try applyAccount(refreshed)
             message = nil
         } catch AccountError.expired {
+            guard revision == sessionRevision else { return }
             do { try clearSession() } catch { message = AccountError.keychain.localizedDescription; return }
             message = AccountError.expired.localizedDescription
         } catch let error as LibraryError {
+            guard revision == sessionRevision else { return }
             message = error.localizedDescription
         } catch AccountError.keychain {
+            guard revision == sessionRevision else { return }
             message = AccountError.keychain.localizedDescription
         } catch {
+            guard revision == sessionRevision else { return }
             // Offline use remains available. Cached account status never implies sync success.
             message = account == nil ? AccountError.keychain.localizedDescription
                 : "登录状态暂未验证，数据仍保存在本机。"
@@ -92,6 +105,7 @@ final class AccountStore {
             return
         }
         isBusy = true
+        sessionRevision += 1
         message = nil
         request.nonce = challenge.nonce
         request.state = challenge.challenge
@@ -121,19 +135,29 @@ final class AccountStore {
 
     // Kept separate from the system authorization object so failure paths can be tested.
     func finishLogin(challenge: String, code: String, identityToken: String, appleUser: String) async {
+        sessionRevision += 1
+        let revision = sessionRevision
         isChangingLibrary = true
         defer { isChangingLibrary = false }
         do {
             var result = try await api.login(challenge: challenge, code: code, identityToken: identityToken)
+            guard revision == sessionRevision else {
+                try? await api.logout(token: result.token)
+                return
+            }
             result.appleUser = appleUser
             try await persistLogin(result)
             message = nil
-        } catch { message = error.localizedDescription }
+        } catch {
+            if revision == sessionRevision { message = error.localizedDescription }
+        }
     }
 
     func loginWeChat() async {
         guard !isBusy, account == nil else { return }
         isBusy = true
+        sessionRevision += 1
+        let revision = sessionRevision
         message = nil
         defer { isBusy = false; isWaitingForWeChat = false; isChangingLibrary = false }
         do {
@@ -144,11 +168,17 @@ final class AccountStore {
             isWaitingForWeChat = false
             isChangingLibrary = true
             var result = try await api.loginWeChat(challenge: pending.challenge, code: code)
+            guard revision == sessionRevision else {
+                try? await api.logout(token: result.token)
+                return
+            }
             result.appleUser = nil
             guard result.account.provider == "wechat" else { throw AccountError.invalidResponse }
             try await persistLogin(result)
             challenge = nil
-        } catch { message = error.localizedDescription }
+        } catch {
+            if revision == sessionRevision { message = error.localizedDescription }
+        }
     }
 
     private func persistLogin(_ result: AccountSession) async throws {
@@ -174,25 +204,38 @@ final class AccountStore {
     func logout() async {
         guard !isBusy, let session else { return }
         isBusy = true
+        sessionRevision += 1
+        let revision = sessionRevision
         defer { isBusy = false }
         isChangingLibrary = true
         defer { isChangingLibrary = false }
         do {
             let prepared = try libraries?.prepareLogout()
             try await api.logout(token: session.token)
+            guard revision == sessionRevision else { return }
             try clearSession()
             if let prepared { libraries?.completeLogout(prepared: prepared) }
             message = nil
-        } catch { message = error.localizedDescription }
+        } catch {
+            if revision == sessionRevision { message = error.localizedDescription }
+        }
     }
 
     func updateProfile(nickname: String, avatar: String, accountID: String) async -> Bool {
         guard !isBusy, let session, session.account.id == accountID else { return false }
+        let nickname = ProfileNickname.normalize(nickname)
+        guard ProfileNickname.isValid(nickname) else {
+            message = AccountError.invalidProfile.localizedDescription
+            return false
+        }
         isBusy = true
+        sessionRevision += 1
+        let revision = sessionRevision
         message = nil
         defer { isBusy = false }
         do {
             let updated = try await api.updateProfile(token: session.token, nickname: nickname, avatar: avatar)
+            guard revision == sessionRevision else { return false }
             guard updated.id == session.account.id else { throw AccountError.invalidResponse }
             do { try applyAccount(updated) }
             catch {
@@ -201,10 +244,12 @@ final class AccountStore {
             }
             return true
         } catch AccountError.expired {
+            guard revision == sessionRevision else { return false }
             do { try clearSession() } catch { message = AccountError.keychain.localizedDescription; return false }
             message = AccountError.expired.localizedDescription
             return false
         } catch {
+            guard revision == sessionRevision else { return false }
             message = error.localizedDescription
             return false
         }
@@ -221,6 +266,8 @@ final class AccountStore {
     func deleteAccount() async {
         guard !isBusy, let session else { return }
         isBusy = true
+        sessionRevision += 1
+        let revision = sessionRevision
         defer { isBusy = false }
         isChangingLibrary = true
         defer { isChangingLibrary = false }
@@ -230,27 +277,41 @@ final class AccountStore {
             try await api.delete(token: session.token)
             // Retain the export even if clearing the Keychain subsequently fails.
             libraries?.retainDeletedBackup(backup)
+            guard revision == sessionRevision else { return }
             try clearSession()
             if let prepared { libraries?.completeLogout(prepared: prepared) }
             message = libraries == nil ? "账户已注销，本机任务与计时记录已保留。"
                 : "账户已注销，已返回游客记录。注销前内容副本保存在本机。"
         } catch AccountError.expired {
-            try? clearSession()
+            guard revision == sessionRevision else { return }
+            do { try clearSession() } catch { message = AccountError.keychain.localizedDescription; return }
             message = AccountError.expired.localizedDescription
-        } catch { message = error.localizedDescription }
+        } catch {
+            if revision == sessionRevision { message = error.localizedDescription }
+        }
     }
 
     func credentialRevoked() async {
-        guard !isBusy, session?.account.provider == "apple" else { return }
-        isBusy = true
-        defer { isBusy = false }
-        if let session { try? await api.logout(token: session.token) }
+        guard let revoked = session, revoked.account.provider == "apple" else { return }
+        sessionRevision += 1
+        // Never reload revoked credentials if the Keychain is temporarily locked.
+        revokedAppleToken = revoked.token
         do { try clearSession(); message = AccountError.expired.localizedDescription }
-        catch { message = AccountError.keychain.localizedDescription }
+        catch {
+            forgetSession()
+            message = AccountError.keychain.localizedDescription
+        }
+        // Local authorization ends immediately, even when the logout service is offline or slow.
+        try? await api.logout(token: revoked.token)
     }
 
     private func clearSession() throws {
         try storage.clear()
+        sessionRevision += 1
+        forgetSession()
+    }
+
+    private func forgetSession() {
         session = nil
         account = nil
         libraries?.authenticationExpired()

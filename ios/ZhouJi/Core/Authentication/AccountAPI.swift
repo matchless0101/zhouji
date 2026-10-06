@@ -44,6 +44,41 @@ enum AccountError: LocalizedError {
     }
 }
 
+/// The editor and save operation share the server's Unicode nickname rules.
+enum ProfileNickname {
+    // Python str.strip() retains zero-width spaces and trims these four C0 separators.
+    private static let whitespace = CharacterSet.whitespacesAndNewlines
+        .subtracting(CharacterSet(charactersIn: "\u{200B}"))
+        .union(CharacterSet(charactersIn: "\u{001C}\u{001D}\u{001E}\u{001F}"))
+
+    static func normalize(_ value: String) -> String {
+        value.trimmingCharacters(in: whitespace).precomposedStringWithCanonicalMapping
+    }
+
+    static func isValid(_ value: String) -> Bool {
+        guard (1...20).contains(value.unicodeScalars.count) else { return false }
+        var hasVisibleCharacter = false
+        for scalar in value.unicodeScalars {
+            switch scalar.properties.generalCategory {
+            case .control, .surrogate, .lineSeparator, .paragraphSeparator:
+                return false
+            case .format:
+                // Joiners are needed in real names and emoji, but cannot make a name on their own.
+                if scalar.value != 0x200C && scalar.value != 0x200D { return false }
+            case .uppercaseLetter, .lowercaseLetter, .titlecaseLetter, .modifierLetter, .otherLetter,
+                 .decimalNumber, .letterNumber, .otherNumber,
+                 .mathSymbol, .currencySymbol, .modifierSymbol, .otherSymbol,
+                 .connectorPunctuation, .dashPunctuation, .openPunctuation, .closePunctuation,
+                 .initialPunctuation, .finalPunctuation, .otherPunctuation:
+                hasVisibleCharacter = true
+            default:
+                break
+            }
+        }
+        return hasVisibleCharacter
+    }
+}
+
 protocol AccountServing: Sendable {
     func challenge() async throws -> LoginChallenge
     func weChatChallenge() async throws -> LoginChallenge

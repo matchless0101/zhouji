@@ -68,6 +68,43 @@ import Testing
         #expect(try store.current.container.mainContext.fetchCount(FetchDescriptor<TimingSession>()) == 1)
     }
 
+    @Test func switchWithFinishedHistoryStillFindsAnUnfinishedSession() throws {
+        let (store, directory, defaults) = try fixtures()
+        let guest = store.current.container
+        try login("A", store)
+        let context = store.current.container.mainContext
+        for index in 0..<100 {
+            let session = try TimingSession(taskID: UUID(), taskTitleSnapshot: "历史计时 \(index)",
+                                            startedAt: Date(timeIntervalSince1970: 0),
+                                            endedAt: Date(timeIntervalSince1970: 60),
+                                            accumulatedSeconds: 60, state: .finished)
+            context.insert(session)
+        }
+        let paused = try TimingSession(taskID: UUID(), taskTitleSnapshot: "尚未结束", startedAt: .now, state: .paused)
+        context.insert(paused)
+        try context.save()
+        #expect(throws: LibraryError.self) { try store.prepareLogout() }
+        paused.state = .finished
+        paused.endedAt = .now
+        try context.save()
+        let reopened = try LocalLibraryStore(guest: guest, directory: directory, defaults: defaults)
+        let prepared = try reopened.prepareLogout()
+        #expect(prepared.scope == LibraryScope.guest)
+        #expect(try reopened.current.container.mainContext.fetchCount(FetchDescriptor<TimingSession>()) == 101)
+    }
+
+    @Test func unknownTimingStateStillBlocksLibrarySwitch() throws {
+        let (store, _, _) = try fixtures()
+        try login("A", store)
+        let context = store.current.container.mainContext
+        let session = try TimingSession(taskID: UUID(), taskTitleSnapshot: "状态待修复", startedAt: .now, state: .paused)
+        session.stateRawValue = "unknown"
+        context.insert(session)
+        try context.save()
+        #expect(throws: LibraryError.self) { try store.prepareLogout() }
+        #expect(store.current.scope == LibraryScope.account("A"))
+    }
+
     @Test func accountBackupsAndProtectionCopiesCannotCrossScopes() throws {
         let (store, _, _) = try fixtures()
         let guest = store.current.container.mainContext
