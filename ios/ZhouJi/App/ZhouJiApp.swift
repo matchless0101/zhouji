@@ -9,9 +9,11 @@ struct ZhouJiApp: App {
     @State private var selectedTab = RootTabView.initialTab
     @State private var accountStore = AccountStore()
     @State private var contentSync = ContentSyncStore()
+    @State private var firstLaunch: FirstLaunchPresentation
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        _firstLaunch = State(initialValue: Self.makeFirstLaunch())
         do {
             let libraries = try Self.makeLibraries()
             _libraries = State(initialValue: libraries)
@@ -19,6 +21,19 @@ struct ZhouJiApp: App {
         } catch {
             _storageMessage = State(initialValue: LibraryError.unavailable.localizedDescription)
         }
+    }
+
+    private static func makeFirstLaunch() -> FirstLaunchPresentation {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains("-ZJInMemoryStore"),
+           let index = arguments.firstIndex(of: "-ZJOpeningDefaultsSuite"),
+           arguments.indices.contains(index + 1),
+           let defaults = UserDefaults(suiteName: arguments[index + 1]) {
+            return FirstLaunchPresentation(defaults: defaults)
+        }
+        #endif
+        return FirstLaunchPresentation()
     }
 
     private static func makeAccountStore(_ libraries: LocalLibraryStore) -> AccountStore {
@@ -75,34 +90,46 @@ struct ZhouJiApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if let libraries {
-                    RootTabView(selection: $selectedTab)
-                        .id(libraries.current.scope)
-                        .modelContainer(libraries.current.container)
-                        .environment(libraries.current.timer)
-                        .environment(libraries)
-                        .disabled(accountStore.isChangingLibrary)
-                        // Local data is immediately usable while login status refreshes in the background.
-                        .task { await accountStore.restore() }
-                } else {
-                    VStack(spacing: 16) {
-                        Text(storageMessage ?? LibraryError.unavailable.localizedDescription)
-                        Button("重试打开") {
-                            do {
-                                let loaded = try Self.makeLibraries()
-                                accountStore = Self.makeAccountStore(loaded)
-                                libraries = loaded
-                                storageMessage = nil
-                            } catch { storageMessage = LibraryError.unavailable.localizedDescription }
-                        }
-                    }.padding()
+            let showsOpening = libraries != nil && firstLaunch.isPresented
+            ZStack {
+                Group {
+                    if let libraries {
+                        RootTabView(selection: $selectedTab)
+                            .id(libraries.current.scope)
+                            .modelContainer(libraries.current.container)
+                            .environment(libraries.current.timer)
+                            .environment(libraries)
+                            .disabled(accountStore.isChangingLibrary)
+                            // Local data is immediately usable while login status refreshes in the background.
+                            .task { await accountStore.restore() }
+                    } else {
+                        VStack(spacing: 16) {
+                            Text(storageMessage ?? LibraryError.unavailable.localizedDescription)
+                            Button("重试打开") {
+                                do {
+                                    let loaded = try Self.makeLibraries()
+                                    accountStore = Self.makeAccountStore(loaded)
+                                    libraries = loaded
+                                    storageMessage = nil
+                                } catch { storageMessage = LibraryError.unavailable.localizedDescription }
+                            }
+                        }.padding()
+                    }
+                }
+                .allowsHitTesting(!showsOpening)
+                .accessibilityHidden(showsOpening)
+                if showsOpening {
+                    FirstLaunchView(onBegin: firstLaunch.begin, onFinish: firstLaunch.finish)
+                        .ignoresSafeArea()
+                        .zIndex(1)
                 }
             }
                 .environment(accountStore)
                 .environment(contentSync)
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .background { accountStore.weChatEnteredBackground() }
+                    if phase == .background {
+                        accountStore.weChatEnteredBackground()
+                    }
                     if phase == .active {
                         accountStore.weChatBecameActive()
                         Task { await accountStore.restore() }

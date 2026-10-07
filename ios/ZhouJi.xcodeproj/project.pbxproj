@@ -39,9 +39,11 @@
 		6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE35BC4F8E743F7330D793A /* ProfileView.swift */; };
 		719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */; };
 		7C9C2A21E5E8869E5A2B01CF /* TimingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E1DC75DF0AB63875968F45 /* TimingSession.swift */; };
+		824A1ED57DE7004E38B8C2C2 /* FirstLaunchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39580D8B20EBEC9EB4CE7459 /* FirstLaunchView.swift */; };
 		84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99D99CBCADD2F9116441ACEF /* StatisticsService.swift */; };
 		86C739E82800CD5980A742BE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC72B41BE1C6E9A27ED8B28E /* CoreGraphics.framework */; };
 		8BC6BBF9C67A9E4BF59FA4EA /* Goal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D74816771A9FD9CCE4D7B9 /* Goal.swift */; };
+		8D0C95418FE31BCBF14FD5C9 /* FirstLaunchPresentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AABC8A7DAE1DAF01557B59B /* FirstLaunchPresentation.swift */; };
 		9540C9F599C5554FEF58F457 /* LocalLibraryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71FACF4124070C02A3F302CF /* LocalLibraryCard.swift */; };
 		973DA768BCD323FDA88B5127 /* AccountStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */; };
 		9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B2295B64B5F7D07702E701 /* GoalDetailView.swift */; };
@@ -56,6 +58,7 @@
 		C42867AA3411C6BB6EAF0903 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */; };
 		C9E524A1889F5DA6060F2806 /* SyncJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8033D5698F8AA8FC76E2BA1C /* SyncJournal.swift */; };
 		CF0EE690F0E04950F5A47CEC /* SyncSettingsCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */; };
+		D11EAFA6ACC7463B123A23F0 /* FirstLaunchPresentationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AFB639CB53C23D15D339C25 /* FirstLaunchPresentationTests.swift */; };
 		D27670415C7369910700AB77 /* AccountControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = F435CF614869DD2BFB974BA9 /* AccountControls.swift */; };
 		D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9FE7B80BB92D300651E1455 /* ZJTheme.swift */; };
 		D342FF3A7D844027F62D25A7 /* ZhouJiV2UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */; };
@@ -104,6 +107,7 @@
 		2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundaries.swift; sourceTree = "<group>"; };
 		329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateBoundariesTests.swift; sourceTree = "<group>"; };
 		369CE7FB7FE549CAE6E29A1D /* AccountStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStoreTests.swift; sourceTree = "<group>"; };
+		39580D8B20EBEC9EB4CE7459 /* FirstLaunchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchView.swift; sourceTree = "<group>"; };
 		3DFAE2CD8AEFE11C5F6576FB /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		409B7EA59769107E561759AD /* ElapsedTimeText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElapsedTimeText.swift; sourceTree = "<group>"; };
 		41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupRecoveryTests.swift; sourceTree = "<group>"; };
@@ -112,6 +116,7 @@
 		4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSettingsCard.swift; sourceTree = "<group>"; };
 		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
 		55F858DE4A7393F4A6FDD03A /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
+		5AABC8A7DAE1DAF01557B59B /* FirstLaunchPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchPresentation.swift; sourceTree = "<group>"; };
 		5DBB5F5DE0B20629D81DD123 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		5E3602CC160CF15F9EE8A7EA /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
 		6168DF05F9358B91A840E301 /* GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalService.swift; sourceTree = "<group>"; };
@@ -131,6 +136,7 @@
 		977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryStore.swift; sourceTree = "<group>"; };
 		99D99CBCADD2F9116441ACEF /* StatisticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsService.swift; sourceTree = "<group>"; };
 		9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskUndoToast.swift; sourceTree = "<group>"; };
+		9AFB639CB53C23D15D339C25 /* FirstLaunchPresentationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchPresentationTests.swift; sourceTree = "<group>"; };
 		9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStoreTests.swift; sourceTree = "<group>"; };
 		A5FC5312C02A40C4E425D029 /* TaskRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRow.swift; sourceTree = "<group>"; };
 		A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
@@ -242,6 +248,8 @@
 		5407A086F29986A1274E57F3 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				5AABC8A7DAE1DAF01557B59B /* FirstLaunchPresentation.swift */,
+				39580D8B20EBEC9EB4CE7459 /* FirstLaunchView.swift */,
 				739BFA8892AE674A65737C96 /* RootTabView.swift */,
 				829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */,
 			);
@@ -257,6 +265,7 @@
 				E4ACFB20D669D14E2A2592B0 /* CalendarFactsTests.swift */,
 				ED60D27B4B9AC675A51EC389 /* ContentSyncStoreTests.swift */,
 				329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */,
+				9AFB639CB53C23D15D339C25 /* FirstLaunchPresentationTests.swift */,
 				B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */,
 				82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */,
 				937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */,
@@ -586,6 +595,8 @@
 				6A3E8687D26F71130AA90CE2 /* ContentSyncStore.swift in Sources */,
 				DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */,
 				07521ECD793FFD3612E2D2FA /* ElapsedTimeText.swift in Sources */,
+				8D0C95418FE31BCBF14FD5C9 /* FirstLaunchPresentation.swift in Sources */,
+				824A1ED57DE7004E38B8C2C2 /* FirstLaunchView.swift in Sources */,
 				8BC6BBF9C67A9E4BF59FA4EA /* Goal.swift in Sources */,
 				9C02F5696D841569D017788A /* GoalDetailView.swift in Sources */,
 				34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */,
@@ -626,6 +637,7 @@
 				3199BD765334BDE59B25A752 /* CalendarFactsTests.swift in Sources */,
 				0534628CA06F1B63C6D6A7D5 /* ContentSyncStoreTests.swift in Sources */,
 				35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */,
+				D11EAFA6ACC7463B123A23F0 /* FirstLaunchPresentationTests.swift in Sources */,
 				9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */,
 				682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */,
 				9EC6AD826D33E9FC49F7CD7D /* LocalLibraryTests.swift in Sources */,

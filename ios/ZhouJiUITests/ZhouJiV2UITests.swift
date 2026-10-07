@@ -3,6 +3,35 @@ import UIKit
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testFirstLaunchHandsOffToTodayAndKeepsRelaunchUsable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJOpeningDefaultsSuite", "opening-ui.\(UUID())"]
+        app.launch()
+        let firstTask = app.buttons["today.firstTask"]
+        XCTAssertTrue(firstTask.waitForExistence(timeout: 5))
+        XCTAssertTrue(firstTask.isHittable)
+        XCTAssertFalse(app.otherElements["launch.cover"].exists)
+        firstTask.tap()
+        let name = app.textFields["今天要做什么？"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        name.typeText("翻开今天的第一件事")
+        app.buttons["添加"].tap()
+        XCTAssertTrue(app.staticTexts["翻开今天的第一件事"].waitForExistence(timeout: 3))
+
+        app.terminate()
+        app.launch()
+        XCTAssertTrue(firstTask.waitForExistence(timeout: 3))
+        XCTAssertTrue(firstTask.isHittable)
+        XCTAssertFalse(app.otherElements["launch.cover"].exists)
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        let foregroundReady = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true"), object: firstTask)
+        XCTAssertEqual(XCTWaiter.wait(for: [foregroundReady], timeout: 3), .completed)
+        XCTAssertFalse(app.otherElements["launch.cover"].exists)
+    }
+
+    @MainActor
     func testProfileRejectsHiddenNicknameAndKeepsCancelAvailable() throws {
         continueAfterFailure = false
         let app = makeApp()
