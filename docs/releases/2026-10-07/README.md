@@ -1,6 +1,8 @@
 # App Store 1.0（构建 3）
 
-2026-10-07 将最新版上传到 App Store Connect，并关联到 iOS 版本 1.0 的审核草稿。后台已显示「可供审核」，草稿项目为 `1.0 (3)`；最终「提交以供审核」操作待用户确认。
+2026-10-07 将最新版上传到 App Store Connect，并关联到 iOS 版本 1.0。用户确认后，于北京时间 22:39 正式提交 `1.0 (3)`，后台已显示「已提交 1 个项目」及版本状态「正在等待审核」。
+
+审核提交：[App Store Connect 审核详情](https://appstoreconnect.apple.com/apps/6814795775/distribution/reviewsubmissions/details/5b1ca6a5-f3d3-4336-91a8-2a2aeb0fef51)。
 
 ## 安装包
 
