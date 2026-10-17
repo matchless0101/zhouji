@@ -24,7 +24,8 @@ test('association identifies the configured iOS app and limits links to the WeCh
 test('iOS entitlement and the HTTPS fallback use the same associated domain', () => {
   const entitlement = read('../../ios/ZhouJi/ZhouJi.entitlements');
   assert.match(entitlement, /<key>com.apple.developer.associated-domains<\/key>/);
-  const domains = [...entitlement.matchAll(/<string>([^<]+)<\/string>/g)].map(match => match[1]);
+  const associatedDomains = entitlement.match(/<key>com\.apple\.developer\.associated-domains<\/key>\s*<array>([\s\S]*?)<\/array>/)[1];
+  const domains = [...associatedDomains.matchAll(/<string>([^<]+)<\/string>/g)].map(match => match[1]);
   assert.deepEqual(domains, ['applinks:zhouji.xiangdangdang.top']);
   const fallback = new URL('../dist/wechat/index.html', import.meta.url);
   for (const [, asset] of readFileSync(fallback, 'utf8').matchAll(/(?:src|href)="([^"]+)"/g)) {

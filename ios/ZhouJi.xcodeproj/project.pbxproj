@@ -14,6 +14,7 @@
 		133C67A44B4E45991C1CB6EF /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DBB5F5DE0B20629D81DD123 /* Security.framework */; };
 		1393CDF839361BE8DBC5C7C6 /* WechatOpenSDK-NoPay.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = D2C168C99ADB089400590D2D /* WechatOpenSDK-NoPay.xcframework */; };
 		1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9044BEDD04665F95B062D30A /* AccountStore.swift */; };
+		1F9705FDCF864D7A51811747 /* PasswordLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90C3693D7692B91B748FF78 /* PasswordLoginView.swift */; };
 		23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739BFA8892AE674A65737C96 /* RootTabView.swift */; };
 		23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763FEDE98326909204980EF0 /* TodoTask.swift */; };
 		2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */; };
@@ -21,6 +22,7 @@
 		3199BD765334BDE59B25A752 /* CalendarFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4ACFB20D669D14E2A2592B0 /* CalendarFactsTests.swift */; };
 		333BCCF1F7F99F2A6D3373F1 /* CalendarFactsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB63D14AFCD7240544E32093 /* CalendarFactsService.swift */; };
 		34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6168DF05F9358B91A840E301 /* GoalService.swift */; };
+		35193913CC1562321231D33B /* PasswordRegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D66887E0F0BBAB7084C6F8D1 /* PasswordRegistrationView.swift */; };
 		35EB71F8739F6DD0963B5914 /* DateBoundariesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 329A50D7C9B79EF5E280B8B1 /* DateBoundariesTests.swift */; };
 		392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */; };
 		39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */; };
@@ -30,12 +32,15 @@
 		46BB3D5F0F1865ED5B109AD5 /* BackupRecoveryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AAF28AFB0C5942FCDBE5AE /* BackupRecoveryTests.swift */; };
 		46EB6E15F04DADEB14FA1AF8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E01969A83CD9F462B172766C /* PrivacyInfo.xcprivacy */; };
 		49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 247A04FBA5BEED1351742A62 /* ProfileEditor.swift */; };
+		4A1B3064094F784577006B1E /* PasswordAuthenticationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17EE827B1AC29EC6FECDE3F /* PasswordAuthenticationTests.swift */; };
 		4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */; };
+		4C49D54E113B95836F75D6E0 /* PasswordAuthenticationPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B34C82A0843C31E66F659E /* PasswordAuthenticationPreview.swift */; };
 		52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760666CB6E383348C6C86675 /* WeChatLogin.swift */; };
 		682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */; };
 		69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */; };
 		6A3E8687D26F71130AA90CE2 /* ContentSyncStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FA8146CFAC8BBA402513027 /* ContentSyncStore.swift */; };
 		6B2770874242107D94E7C98D /* ContentSyncAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E9A8C51A4A3FF60CC926D1 /* ContentSyncAPI.swift */; };
+		6DEF53520258420920A51B21 /* AccountSecurityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6462FB563CD837DC8A887280 /* AccountSecurityView.swift */; };
 		6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE35BC4F8E743F7330D793A /* ProfileView.swift */; };
 		719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */; };
 		7C9C2A21E5E8869E5A2B01CF /* TimingSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1E1DC75DF0AB63875968F45 /* TimingSession.swift */; };
@@ -50,6 +55,7 @@
 		9C032EB942FFBFE5639CD65D /* TimerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8200A7EA922F71B190159019 /* TimerSheet.swift */; };
 		9E1FC832759639C0074D460E /* GoalAndStatisticsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */; };
 		9EC6AD826D33E9FC49F7CD7D /* LocalLibraryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */; };
+		A45F05A66DF66FD5E54D8A8C /* RecoveryCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14231BA43D9D2F14C2729943 /* RecoveryCodeView.swift */; };
 		AB2404F9D508EBD1AF51DF52 /* TimerMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18CD865EF12BEF475370DF2B /* TimerMath.swift */; };
 		ADA28107FF35013263AF2C85 /* TaskRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5FC5312C02A40C4E425D029 /* TaskRow.swift */; };
 		AF6738630FD3D445014B99DE /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF369424D165E148281CB11E /* TodayView.swift */; };
@@ -65,6 +71,7 @@
 		D7C09B928C9EB8DB529FFE54 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */; };
 		DD55AAB6910B1E32EA9855C5 /* DateBoundaries.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7CCA0CF9E8DF75EB83E6E2 /* DateBoundaries.swift */; };
 		DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4339224F869B244AD0294B9F /* BackupStore.swift */; };
+		E0D4A4DD84707E388A89F05B /* PasswordRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 711217334065A710DCC9E429 /* PasswordRecoveryView.swift */; };
 		EA35CF9D0CC26F90523EF2F2 /* Xiaolai-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB6042E3A682FD5F4D24F12F /* Xiaolai-Regular.ttf */; };
 		EE46F99F31CB6B2A9803C164 /* TaskService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3602CC160CF15F9EE8A7EA /* TaskService.swift */; };
 		F16ECC25C431FC829086CEFB /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2699FF4AB95E602B07219343 /* libc++.tbd */; };
@@ -74,6 +81,8 @@
 		F89479371ED70C8ECFEB12BA /* ZJPrintedControls.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D032AC673934E36E5478F72 /* ZJPrintedControls.swift */; };
 		F8C6377B6C6222B95E0393D5 /* ZJIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */; };
 		FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */; };
+		FC6658D33F1F6BE015B8E3A0 /* PasswordCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E56FF2F74CD5235A7FC624 /* PasswordCredentials.swift */; };
+		FE28DCD971FF32BDE4C8D643 /* AuthenticationPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552E26BA125451C1E7A58BF1 /* AuthenticationPage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,6 +108,7 @@
 		0D032AC673934E36E5478F72 /* ZJPrintedControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJPrintedControls.swift; sourceTree = "<group>"; };
 		0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = V3StatisticsTests.swift; sourceTree = "<group>"; };
 		0FA8146CFAC8BBA402513027 /* ContentSyncStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSyncStore.swift; sourceTree = "<group>"; };
+		14231BA43D9D2F14C2729943 /* RecoveryCodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryCodeView.swift; sourceTree = "<group>"; };
 		180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskServiceTests.swift; sourceTree = "<group>"; };
 		18CD865EF12BEF475370DF2B /* TimerMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMath.swift; sourceTree = "<group>"; };
 		247A04FBA5BEED1351742A62 /* ProfileEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditor.swift; sourceTree = "<group>"; };
@@ -115,17 +125,21 @@
 		49B0CE29A0DF122A284A6F1D /* AccountKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountKeychain.swift; sourceTree = "<group>"; };
 		4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncSettingsCard.swift; sourceTree = "<group>"; };
 		53B2295B64B5F7D07702E701 /* GoalDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalDetailView.swift; sourceTree = "<group>"; };
+		552E26BA125451C1E7A58BF1 /* AuthenticationPage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationPage.swift; sourceTree = "<group>"; };
 		55F858DE4A7393F4A6FDD03A /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		5AABC8A7DAE1DAF01557B59B /* FirstLaunchPresentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstLaunchPresentation.swift; sourceTree = "<group>"; };
 		5DBB5F5DE0B20629D81DD123 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		5E3602CC160CF15F9EE8A7EA /* TaskService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskService.swift; sourceTree = "<group>"; };
 		6168DF05F9358B91A840E301 /* GoalService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalService.swift; sourceTree = "<group>"; };
+		6462FB563CD837DC8A887280 /* AccountSecurityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountSecurityView.swift; sourceTree = "<group>"; };
 		6AD198BF41F57BCC38DF3E7C /* ZhouJiUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ZhouJiUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		709622E12C4C4BAB9D0C062B /* ZhouJi.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ZhouJi.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		711217334065A710DCC9E429 /* PasswordRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordRecoveryView.swift; sourceTree = "<group>"; };
 		71FACF4124070C02A3F302CF /* LocalLibraryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryCard.swift; sourceTree = "<group>"; };
 		739BFA8892AE674A65737C96 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
 		760666CB6E383348C6C86675 /* WeChatLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLogin.swift; sourceTree = "<group>"; };
 		763FEDE98326909204980EF0 /* TodoTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTask.swift; sourceTree = "<group>"; };
+		77E56FF2F74CD5235A7FC624 /* PasswordCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordCredentials.swift; sourceTree = "<group>"; };
 		8033D5698F8AA8FC76E2BA1C /* SyncJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncJournal.swift; sourceTree = "<group>"; };
 		8200A7EA922F71B190159019 /* TimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSheet.swift; sourceTree = "<group>"; };
 		829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiApp.swift; sourceTree = "<group>"; };
@@ -140,7 +154,9 @@
 		9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupStoreTests.swift; sourceTree = "<group>"; };
 		A5FC5312C02A40C4E425D029 /* TaskRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRow.swift; sourceTree = "<group>"; };
 		A6EFDD8677A61D6D01D9E098 /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
+		B1B34C82A0843C31E66F659E /* PasswordAuthenticationPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordAuthenticationPreview.swift; sourceTree = "<group>"; };
 		B4ADDECFB9D3E9E14162AAB5 /* GoalAndStatisticsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalAndStatisticsTests.swift; sourceTree = "<group>"; };
+		B90C3693D7692B91B748FF78 /* PasswordLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordLoginView.swift; sourceTree = "<group>"; };
 		BD4B87165654A2AA2783DF61 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C607725C41AC3A40809F71B5 /* AccountAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPI.swift; sourceTree = "<group>"; };
 		C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJIllustration.swift; sourceTree = "<group>"; };
@@ -148,6 +164,7 @@
 		CE38239592F10514065F5284 /* MigrationRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationRegressionTests.swift; sourceTree = "<group>"; };
 		D2C168C99ADB089400590D2D /* WechatOpenSDK-NoPay.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "WechatOpenSDK-NoPay.xcframework"; path = "Vendor/WechatOpenSDK-NoPay.xcframework"; sourceTree = "<group>"; };
 		D4D74816771A9FD9CCE4D7B9 /* Goal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Goal.swift; sourceTree = "<group>"; };
+		D66887E0F0BBAB7084C6F8D1 /* PasswordRegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordRegistrationView.swift; sourceTree = "<group>"; };
 		D71FED3C84F8CB947DD0E91E /* ZhouJiV2UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiV2UITests.swift; sourceTree = "<group>"; };
 		D89BE23FED71960E40A8F4E9 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
 		DB6042E3A682FD5F4D24F12F /* Xiaolai-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Xiaolai-Regular.ttf"; sourceTree = "<group>"; };
@@ -162,6 +179,7 @@
 		ED60D27B4B9AC675A51EC389 /* ContentSyncStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentSyncStoreTests.swift; sourceTree = "<group>"; };
 		EDA7E4FA5CFA1261AE4F4F72 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLoginTests.swift; sourceTree = "<group>"; };
+		F17EE827B1AC29EC6FECDE3F /* PasswordAuthenticationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordAuthenticationTests.swift; sourceTree = "<group>"; };
 		F435CF614869DD2BFB974BA9 /* AccountControls.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountControls.swift; sourceTree = "<group>"; };
 		F603C0EA9CC9519AB6D49B6E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F9FE7B80BB92D300651E1455 /* ZJTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJTheme.swift; sourceTree = "<group>"; };
@@ -185,6 +203,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		050AAB98AEB5FD2EAFBAD8FE /* Authentication */ = {
+			isa = PBXGroup;
+			children = (
+				6462FB563CD837DC8A887280 /* AccountSecurityView.swift */,
+				552E26BA125451C1E7A58BF1 /* AuthenticationPage.swift */,
+				B90C3693D7692B91B748FF78 /* PasswordLoginView.swift */,
+				711217334065A710DCC9E429 /* PasswordRecoveryView.swift */,
+				D66887E0F0BBAB7084C6F8D1 /* PasswordRegistrationView.swift */,
+				14231BA43D9D2F14C2729943 /* RecoveryCodeView.swift */,
+			);
+			path = Authentication;
+			sourceTree = "<group>";
+		};
 		20E4D179AF395F4E09108692 /* Data */ = {
 			isa = PBXGroup;
 			children = (
@@ -250,6 +281,7 @@
 			children = (
 				5AABC8A7DAE1DAF01557B59B /* FirstLaunchPresentation.swift */,
 				39580D8B20EBEC9EB4CE7459 /* FirstLaunchView.swift */,
+				B1B34C82A0843C31E66F659E /* PasswordAuthenticationPreview.swift */,
 				739BFA8892AE674A65737C96 /* RootTabView.swift */,
 				829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */,
 			);
@@ -270,6 +302,7 @@
 				82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */,
 				937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */,
 				CE38239592F10514065F5284 /* MigrationRegressionTests.swift */,
+				F17EE827B1AC29EC6FECDE3F /* PasswordAuthenticationTests.swift */,
 				180F4B4FB67C17FA413F7E98 /* TaskServiceTests.swift */,
 				8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */,
 				CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */,
@@ -335,6 +368,7 @@
 				C607725C41AC3A40809F71B5 /* AccountAPI.swift */,
 				49B0CE29A0DF122A284A6F1D /* AccountKeychain.swift */,
 				9044BEDD04665F95B062D30A /* AccountStore.swift */,
+				77E56FF2F74CD5235A7FC624 /* PasswordCredentials.swift */,
 				760666CB6E383348C6C86675 /* WeChatLogin.swift */,
 			);
 			path = Authentication;
@@ -426,6 +460,7 @@
 				247A04FBA5BEED1351742A62 /* ProfileEditor.swift */,
 				2AE35BC4F8E743F7330D793A /* ProfileView.swift */,
 				4C737646F0BEC89995257C45 /* SyncSettingsCard.swift */,
+				050AAB98AEB5FD2EAFBAD8FE /* Authentication */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -586,7 +621,9 @@
 				3AF2DF62E7A5B95E8CB10FC9 /* AccountAPI.swift in Sources */,
 				D27670415C7369910700AB77 /* AccountControls.swift in Sources */,
 				067375DB8F4E47FFA01BCC14 /* AccountKeychain.swift in Sources */,
+				6DEF53520258420920A51B21 /* AccountSecurityView.swift in Sources */,
 				1AF62F8737E2924850BE3469 /* AccountStore.swift in Sources */,
+				FE28DCD971FF32BDE4C8D643 /* AuthenticationPage.swift in Sources */,
 				2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */,
 				DF245DEF2BB675B3E9765895 /* BackupStore.swift in Sources */,
 				333BCCF1F7F99F2A6D3373F1 /* CalendarFactsService.swift in Sources */,
@@ -604,8 +641,14 @@
 				9540C9F599C5554FEF58F457 /* LocalLibraryCard.swift in Sources */,
 				FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */,
 				F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */,
+				4C49D54E113B95836F75D6E0 /* PasswordAuthenticationPreview.swift in Sources */,
+				FC6658D33F1F6BE015B8E3A0 /* PasswordCredentials.swift in Sources */,
+				1F9705FDCF864D7A51811747 /* PasswordLoginView.swift in Sources */,
+				E0D4A4DD84707E388A89F05B /* PasswordRecoveryView.swift in Sources */,
+				35193913CC1562321231D33B /* PasswordRegistrationView.swift in Sources */,
 				49B13B4252E2135EF75E64DC /* ProfileEditor.swift in Sources */,
 				6EFEB536B6B4ED4ED01158BA /* ProfileView.swift in Sources */,
+				A45F05A66DF66FD5E54D8A8C /* RecoveryCodeView.swift in Sources */,
 				23802D35A8C84FD8E995B69C /* RootTabView.swift in Sources */,
 				84C1BEE276A3694673B86EAC /* StatisticsService.swift in Sources */,
 				C9E524A1889F5DA6060F2806 /* SyncJournal.swift in Sources */,
@@ -642,6 +685,7 @@
 				682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */,
 				9EC6AD826D33E9FC49F7CD7D /* LocalLibraryTests.swift in Sources */,
 				C2C59084A547B8E13E19FC5F /* MigrationRegressionTests.swift in Sources */,
+				4A1B3064094F784577006B1E /* PasswordAuthenticationTests.swift in Sources */,
 				392C4DCA0BEE8FD889FB72C5 /* TaskServiceTests.swift in Sources */,
 				39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */,
 				447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */,

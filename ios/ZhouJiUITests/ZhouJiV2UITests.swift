@@ -3,6 +3,230 @@ import UIKit
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testSlowPasswordLoginCannotDismissInteractivelyAndExplicitCancelRejectsLateResult() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJPasswordSlowFixture", "-ZJInitialTab", "profile"]
+        app.launch()
+        openPreferences(in: app)
+        let open = app.buttons["account.password.open"]
+        if !open.isHittable { app.swipeUp() }; open.tap()
+        let name = app.textFields["account.password.login.username"]
+        name.tap(); name.typeText("sample_user")
+        let password = app.secureTextFields["account.password.login.password"]
+        password.tap(); password.typeText("ui-test-long-password")
+        app.buttons["account.password.login.submit"].tap()
+        let top = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+        top.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
+        let back = app.buttons["account.auth.back"]
+        XCTAssertTrue(back.waitForExistence(timeout: 2))
+        back.tap()
+        XCTAssertTrue(open.waitForExistence(timeout: 3))
+        let lateLogin = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true"), object: app.buttons["account.logout"])
+        lateLogin.isInverted = true
+        XCTAssertEqual(XCTWaiter.wait(for: [lateLogin], timeout: 12), .completed)
+        XCTAssertTrue(open.exists)
+    }
+
+    @MainActor
+    func testBoundPasswordAccountWithoutWeChatCanUnbind() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJBoundPasswordFixture", "-ZJInitialTab", "profile"]
+        app.launch()
+        openPreferences(in: app)
+        let security = app.buttons["account.security.open"]
+        XCTAssertTrue(security.waitForExistence(timeout: 5))
+        if !security.isHittable { app.swipeUp() }; security.tap()
+        XCTAssertTrue(app.buttons["account.security.changePassword"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["account.security.rotateRecovery"].exists)
+        app.buttons["account.security.unbind"].tap()
+        let password = app.secureTextFields["account.security.password"]
+        password.tap(); password.typeText("ui-test-long-password")
+        app.buttons["account.security.submit"].tap()
+        app.buttons["确认解绑"].tap()
+        let bind = app.buttons["account.security.bind"]
+        XCTAssertTrue(bind.waitForExistence(timeout: 5))
+        XCTAssertFalse(bind.isEnabled)
+        XCTAssertTrue(app.staticTexts["当前设备未安装微信，暂时无法绑定；账号密码登录不受影响。"].exists)
+        app.buttons["account.security.rotateRecovery"].tap()
+        password.tap(); password.typeText("ui-test-long-password")
+        app.buttons["account.security.submit"].tap()
+        app.buttons["替换恢复码"].tap()
+        XCTAssertTrue(app.buttons["account.recovery.saved"].waitForExistence(timeout: 5), app.debugDescription)
+        saveScreenshot("account-bound-without-wechat", app: app)
+    }
+
+    @MainActor
+    func testPasswordRegistrationWithLargeTextKeepsRecoverySaveReachable() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJInitialTab", "profile",
+                                "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        openPreferences(in: app)
+        let open = app.buttons["account.password.open"]
+        for _ in 0..<6 where !open.isHittable { app.swipeUp() }; open.tap()
+        let register = app.buttons["account.password.registerOpen"]
+        for _ in 0..<6 where !register.isHittable { app.swipeUp() }; register.tap()
+        let name = app.textFields["account.password.register.username"]
+        name.tap(); name.typeText("sample_user")
+        for identifier in ["account.password.register.password", "account.password.register.confirmation"] {
+            let field = app.secureTextFields[identifier]
+            for _ in 0..<6 where !field.isHittable { app.swipeUp() }
+            field.tap(); field.typeText("ui-test-long-password")
+        }
+        let submit = app.buttons["account.password.register.submit"]
+        for _ in 0..<6 where !submit.isHittable { app.swipeUp() }; submit.tap()
+        let saved = app.buttons["account.recovery.saved"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        for _ in 0..<6 where !saved.isHittable { app.swipeUp() }
+        XCTAssertTrue(saved.isHittable)
+        saveScreenshot("account-recovery-large-text", app: app)
+        saved.tap()
+    }
+
+    @MainActor
+    func testAccountSecurityBindingChangePasswordAndUnbinding() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJWeChatAvailable", "-ZJInitialTab", "profile"]
+        app.launch()
+        openPreferences(in: app)
+        let open = app.buttons["account.password.open"]
+        XCTAssertTrue(open.waitForExistence(timeout: 3))
+        if !open.isHittable { app.swipeUp() }
+        open.tap()
+        app.buttons["account.password.registerOpen"].tap()
+        let name = app.textFields["account.password.register.username"]
+        name.tap(); name.typeText("sample_user")
+        let password = app.secureTextFields["account.password.register.password"]
+        password.tap(); password.typeText("ui-test-long-password")
+        let confirmation = app.secureTextFields["account.password.register.confirmation"]
+        confirmation.tap(); confirmation.typeText("ui-test-long-password")
+        app.buttons["account.password.register.submit"].tap()
+        let saved = app.buttons["account.recovery.saved"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5)); saved.tap()
+        openPreferences(in: app)
+        let security = app.buttons["account.security.open"]
+        XCTAssertTrue(security.waitForExistence(timeout: 5))
+        if !security.isHittable { app.swipeUp() }
+        security.tap()
+        let bind = app.buttons["account.security.bind"]
+        XCTAssertTrue(bind.waitForExistence(timeout: 3)); bind.tap()
+        let current = app.secureTextFields["account.security.password"]
+        current.tap(); current.typeText("ui-test-long-password")
+        app.buttons["account.security.submit"].tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: current)], timeout: 5), .completed)
+        let unbind = app.buttons["account.security.unbind"]
+        XCTAssertTrue(unbind.waitForExistence(timeout: 5))
+        app.buttons["account.security.changePassword"].tap()
+        current.tap(); current.typeText("ui-test-long-password")
+        let newPassword = app.secureTextFields["account.security.newPassword"]
+        newPassword.tap(); newPassword.typeText("ui-test-updated-password")
+        let newConfirmation = app.secureTextFields["account.security.confirmation"]
+        newConfirmation.tap(); newConfirmation.typeText("ui-test-updated-password")
+        app.buttons["account.security.submit"].tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: current)], timeout: 5), .completed)
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true AND isEnabled == true"), object: unbind)], timeout: 5), .completed)
+        unbind.tap()
+        XCTAssertTrue(app.staticTexts["解绑后仍可用账号密码登录，不会删除任务与计时记录。"].waitForExistence(timeout: 3))
+        current.tap(); current.typeText("ui-test-updated-password")
+        XCTAssertTrue(app.buttons["account.security.submit"].isEnabled)
+        app.buttons["account.security.submit"].tap()
+        let confirmUnbind = app.buttons["确认解绑"]
+        XCTAssertTrue(confirmUnbind.waitForExistence(timeout: 5)); confirmUnbind.tap()
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: current)], timeout: 5), .completed)
+        XCTAssertTrue(bind.waitForExistence(timeout: 5))
+        app.buttons["account.security.rotateRecovery"].tap()
+        current.tap(); current.typeText("ui-test-updated-password")
+        app.buttons["account.security.submit"].tap()
+        let confirmRotation = app.buttons["替换恢复码"]
+        XCTAssertTrue(confirmRotation.waitForExistence(timeout: 5)); confirmRotation.tap()
+        XCTAssertTrue(saved.waitForExistence(timeout: 5), app.debugDescription); saved.tap()
+        XCTAssertTrue(bind.waitForExistence(timeout: 5))
+        saveScreenshot("account-security-password-and-wechat", app: app)
+    }
+
+    @MainActor
+    func testPasswordRegistrationLoginAndRecoveryFlow() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJInitialTab", "profile"]
+        app.launch()
+        openPreferences(in: app)
+        let open = app.buttons["account.password.open"]
+        XCTAssertTrue(open.waitForExistence(timeout: 3))
+        if !open.isHittable { app.swipeUp() }
+        open.tap()
+        app.buttons["account.password.registerOpen"].tap()
+        let username = app.textFields["account.password.register.username"]
+        XCTAssertTrue(username.waitForExistence(timeout: 3))
+        username.tap(); username.typeText("sample_user")
+        let password = app.secureTextFields["account.password.register.password"]
+        password.tap(); password.typeText("ui-test-long-password")
+        let confirmation = app.secureTextFields["account.password.register.confirmation"]
+        confirmation.tap(); confirmation.typeText("ui-test-long-password")
+        app.buttons["account.password.register.submit"].tap()
+        let saved = app.buttons["account.recovery.saved"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        saved.tap()
+        openPreferences(in: app)
+        let logout = app.buttons["account.logout"]
+        XCTAssertTrue(logout.waitForExistence(timeout: 5))
+        for _ in 0..<5 where !logout.isHittable { app.swipeUp() }
+        logout.tap()
+        app.sheets.buttons["退出登录"].tap()
+        openPreferences(in: app)
+        XCTAssertTrue(open.waitForExistence(timeout: 5))
+        if !open.isHittable { app.swipeDown() }
+        open.tap()
+        app.buttons["account.password.recoverOpen"].tap()
+        let recoveryUsername = app.textFields["account.password.recover.username"]
+        recoveryUsername.tap(); recoveryUsername.typeText("sample_user")
+        let code = app.textFields["account.password.recover.code"]
+        code.tap(); code.typeText("ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ23-4567")
+        let newPassword = app.secureTextFields["account.password.recover.password"]
+        newPassword.tap(); newPassword.typeText("ui-test-new-password")
+        let newConfirmation = app.secureTextFields["account.password.recover.confirmation"]
+        if !newConfirmation.isHittable { app.swipeUp() }
+        newConfirmation.tap(); newConfirmation.typeText("ui-test-new-password")
+        app.buttons["account.password.recover.submit"].tap()
+        XCTAssertTrue(saved.waitForExistence(timeout: 5))
+        saved.tap()
+        let loginUsername = app.textFields["account.password.login.username"]
+        XCTAssertTrue(loginUsername.waitForExistence(timeout: 5))
+        loginUsername.tap(); loginUsername.typeText("sample_user")
+        let loginPassword = app.secureTextFields["account.password.login.password"]
+        loginPassword.tap(); loginPassword.typeText("ui-test-new-password")
+        app.buttons["account.password.login.submit"].tap()
+        openPreferences(in: app)
+        XCTAssertTrue(logout.waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testPasswordEntryWithoutWeChatRemainsUsableWithKeyboard() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJInitialTab", "profile"]
+        app.launch()
+        openPreferences(in: app)
+        XCTAssertTrue(app.staticTexts["account.wechatAvailability"].waitForExistence(timeout: 3))
+        XCTAssertFalse(app.buttons["account.wechatLogin"].exists)
+        let open = app.buttons["account.password.open"]
+        if !open.isHittable { app.swipeUp() }
+        open.tap()
+        let field = app.textFields["account.password.login.username"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        let originalHeight = field.frame.height
+        field.tap(); field.typeText("sample_user")
+        XCTAssertEqual(field.frame.height, originalHeight, accuracy: 1)
+        XCTAssertTrue(app.buttons["account.password.registerOpen"].exists)
+        XCTAssertTrue(app.buttons["account.password.recoverOpen"].exists)
+        saveScreenshot("account-password-login-keyboard", app: app)
+    }
+
+    @MainActor
     func testFirstLaunchHandsOffToTodayAndKeepsRelaunchUsable() throws {
         continueAfterFailure = false
         let app = makeApp()

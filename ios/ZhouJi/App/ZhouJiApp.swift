@@ -40,6 +40,17 @@ struct ZhouJiApp: App {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("-ZJInMemoryStore") {
             let storage = LibraryPreviewSession()
+            if ProcessInfo.processInfo.arguments.contains("-ZJPasswordAuthFixture") {
+                let bound = ProcessInfo.processInfo.arguments.contains("-ZJBoundPasswordFixture")
+                let slow = ProcessInfo.processInfo.arguments.contains("-ZJPasswordSlowFixture")
+                if bound {
+                    storage.value = AccountSession(token: "preview-bound-session", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+                        account: AppAccount(id: "preview-password-sample_user", provider: "wechat", hasPassword: true,
+                                            weChatBound: true, username: "sample_user"))
+                }
+                return AccountStore(api: PasswordAuthenticationPreview(seedBoundAccount: bound || slow, delaysLogin: slow), storage: storage, checksAppleCredential: false,
+                    weChat: PasswordPreviewWeChat(available: ProcessInfo.processInfo.arguments.contains("-ZJWeChatAvailable")), libraries: libraries)
+            }
             if ProcessInfo.processInfo.arguments.contains("-ZJIsolationSampleData") {
                 let profile = AppAccount(id: "preview-account", provider: "apple", nickname: "小粥", avatar: "leaf")
                 storage.value = AccountSession(token: "preview-only", expiresAt: Date.now.timeIntervalSince1970 + 3600,
@@ -116,12 +127,16 @@ struct ZhouJiApp: App {
                         }.padding()
                     }
                 }
-                .allowsHitTesting(!showsOpening)
-                .accessibilityHidden(showsOpening)
+                .allowsHitTesting(!showsOpening && accountStore.registrationRecovery == nil)
+                .accessibilityHidden(showsOpening || accountStore.registrationRecovery != nil)
                 if showsOpening {
                     FirstLaunchView(onBegin: firstLaunch.begin, onFinish: firstLaunch.finish)
                         .ignoresSafeArea()
                         .zIndex(1)
+                }
+                if let recovery = accountStore.registrationRecovery {
+                    RecoveryCodeView(material: recovery) { accountStore.finishSavingRegistrationRecovery() }
+                        .zIndex(2)
                 }
             }
                 .environment(accountStore)
@@ -201,6 +216,15 @@ struct ZhouJiApp: App {
 private actor LibraryPreviewAPI: AccountServing {
     private var profile: AppAccount
     init(profile: AppAccount) { self.profile = profile }
+
+    func registerPassword(username: String, password: String) async throws -> PasswordRegistration { throw AccountError.unavailable }
+    func loginPassword(username: String, password: String) async throws -> AccountSession { throw AccountError.unavailable }
+    func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial { throw AccountError.unavailable }
+    func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession { throw AccountError.unavailable }
+    func rotateRecoveryCode(token: String, password: String) async throws -> RecoveryRotation { throw AccountError.unavailable }
+    func weChatBindingChallenge(token: String, password: String) async throws -> LoginChallenge { throw AccountError.unavailable }
+    func bindWeChat(token: String, challenge: String, code: String) async throws -> AppAccount { throw AccountError.unavailable }
+    func unbindWeChat(token: String, password: String) async throws -> BindingResult { throw AccountError.unavailable }
     func challenge() async throws -> LoginChallenge { throw AccountError.unavailable }
     func weChatChallenge() async throws -> LoginChallenge { throw AccountError.unavailable }
     func loginWeChat(challenge: String, code: String) async throws -> AccountSession { throw AccountError.unavailable }

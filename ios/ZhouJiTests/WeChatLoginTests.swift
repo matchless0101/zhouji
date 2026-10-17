@@ -4,12 +4,14 @@ import Testing
 
 @MainActor private final class SDKStub: WeChatSDKDriving {
     var onResponse: (@MainActor (Int32, String?, String?) -> Void)?
-    var isInstalledAndSupported = true
+    var isInstalled = true
+    var isSupported = true
+    var registrations = 0
     var state: String?
     var sent: (@MainActor (Bool) -> Void)?
     var universalCallbacks: [URL] = []
     var schemeCallbacks: [URL] = []
-    func register(appID: String, universalLink: String) -> Bool { true }
+    func register(appID: String, universalLink: String) -> Bool { registrations += 1; return true }
     func send(state: String, completion: @escaping @MainActor (Bool) -> Void) {
         self.state = state
         sent = completion
@@ -22,6 +24,22 @@ import Testing
 
 @MainActor struct WeChatLoginTests {
     private let fakeAppID = "wx" + String(repeating: "0", count: 16)
+
+    @Test func availabilityDoesNotRegisterOrHandoffAndRechecksInstallation() async {
+        let sdk = SDKStub()
+        let login = WeChatLogin(sdk: sdk, appID: fakeAppID)
+        #expect(login.availability == .available)
+        #expect(sdk.registrations == 0 && sdk.state == nil)
+        sdk.isInstalled = false
+        #expect(login.availability == .notInstalled)
+        do { _ = try await login.authorize(state: "not-installed"); Issue.record("Missing app authorized") }
+        catch { #expect((error as? WeChatLoginError) == .notInstalled) }
+        #expect(sdk.registrations == 0 && sdk.state == nil)
+        sdk.isInstalled = true
+        sdk.isSupported = false
+        #expect(login.availability == .unsupported)
+        #expect(WeChatLogin(sdk: sdk, appID: "").availability == .notConfigured)
+    }
 
     private func start(_ login: WeChatLogin, sdk: SDKStub, state: String = "request-one") async -> Task<Result<String, Error>, Never> {
         sdk.state = nil

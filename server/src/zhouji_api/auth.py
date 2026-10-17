@@ -15,6 +15,10 @@ from sqlalchemy.exc import IntegrityError
 from .apple import InvalidIdentity, ProviderUnavailable
 from .models import accounts, challenges, sessions, sync_entities, sync_tombstones
 from .sync import sync_router
+from .account_sessions import AccountSessions
+from .auth_limits import AuthLimits
+from .password_auth import password_router
+from .wechat_binding import wechat_binding_router
 
 
 def digest(value):
@@ -54,11 +58,6 @@ class ProfileUpdate(BaseModel):
         return value
 
 
-def public_account(account):
-    return {'id': account['id'], 'provider': account['provider'],
-            'nickname': account['nickname'], 'avatar': account['avatar']}
-
-
 class RateLimiter:
     """One-process deployment; bounded memory. Nginx is also the body-size boundary."""
     def __init__(self):
@@ -84,6 +83,8 @@ class RateLimiter:
 def auth_router(database, apple_provider, wechat_provider=None):
     router = APIRouter(prefix='/api/v1')
     limiter = RateLimiter()
+    session_service = AccountSessions(database)
+    auth_limits = AuthLimits(database)
 
     providers = {'apple': apple_provider, 'wechat': wechat_provider}
 
@@ -94,19 +95,7 @@ def auth_router(database, apple_provider, wechat_provider=None):
         return provider
 
     def authenticate(authorization):
-        if not authorization or not authorization.startswith('Bearer ') or len(authorization) > 256:
-            raise HTTPException(401, '请重新登录')
-        token_hash = digest(authorization[7:])
-        with database.connect() as conn:
-            session = conn.execute(select(sessions).where(sessions.c.token_hash == token_hash,
-                                                          sessions.c.expires_at > int(time.time()))).mappings().first()
-            if session:
-                account = conn.execute(select(accounts).where(accounts.c.id == session['account_id'])).mappings().first()
-            else:
-                account = None
-        if not account:
-            raise HTTPException(401, '请重新登录')
-        return session, account
+        return session_service.authenticate(authorization)
 
     def new_challenge(request, name):
         available(name)
@@ -122,7 +111,8 @@ def auth_router(database, apple_provider, wechat_provider=None):
     def consume_challenge(body, request, name):
         limiter.check(request.client.host if request.client else 'unknown')
         with database.begin() as conn:
-            match = (challenges.c.id_hash == digest(body.challenge)) & (challenges.c.provider == name)
+            match = ((challenges.c.id_hash == digest(body.challenge)) & (challenges.c.provider == name)
+                     & (challenges.c.purpose == 'login'))
             row = conn.execute(select(challenges).where(match, challenges.c.expires_at > int(time.time()))).mappings().first()
             consumed = conn.execute(delete(challenges).where(match))
             if not row or consumed.rowcount != 1:
@@ -131,8 +121,6 @@ def auth_router(database, apple_provider, wechat_provider=None):
 
     def issue_session(name, subject, encrypted):
         now = int(time.time())
-        token = secrets.token_urlsafe(32)
-        expires = now + 30 * 86400
         subject_column = accounts.c[name + '_subject']
         credentials = {name + '_subject': subject, name + '_refresh_encrypted': encrypted}
         # A provider identity never merges into a different provider's account implicitly.
@@ -146,14 +134,12 @@ def auth_router(database, apple_provider, wechat_provider=None):
                     else:
                         conn.execute(insert(accounts).values(id=account_id, provider=name, **credentials,
                                                               created_at=now, verified_at=now))
-                    conn.execute(insert(sessions).values(token_hash=digest(token), account_id=account_id,
-                                                         created_at=now, expires_at=expires))
-                    result_account = conn.execute(select(accounts).where(accounts.c.id == account_id)).mappings().one()
+                    result = session_service.issue_locked(conn, account_id, name)
                 break
             except IntegrityError:
                 if attempt:
                     raise
-        return {'token': token, 'expires_at': expires, 'account': public_account(result_account)}
+        return result
 
     @router.post('/auth/apple/challenge')
     def apple_challenge(request: Request):
@@ -190,21 +176,33 @@ def auth_router(database, apple_provider, wechat_provider=None):
     @router.get('/account')
     def me(authorization: str | None = Header(default=None)):
         session, account = authenticate(authorization)
-        name = account['provider']
-        provider = available(name)
+        name = session['auth_method']
+        provider = available(name) if name != 'password' else None
         now = int(time.time())
-        if account['verified_at'] <= now - 86400:
+        if provider is not None and account['verified_at'] <= now - 86400:
+            invalid = False
             try:
                 provider.validate_refresh(account[name + '_refresh_encrypted'], account[name + '_subject'])
             except InvalidIdentity:
-                with database.begin() as conn:
-                    conn.execute(delete(sessions).where(sessions.c.account_id == account['id']))
-                raise HTTPException(401, '登录授权已失效，请重新登录') from None
+                invalid = True
             except ProviderUnavailable:
                 raise HTTPException(503, '暂时无法验证登录，请稍后重试') from None
             with database.begin() as conn:
-                conn.execute(update(accounts).where(accounts.c.id == account['id']).values(verified_at=now))
-        return public_account(account)
+                latest = conn.execute(select(accounts).where(accounts.c.id == account['id']).with_for_update()).mappings().first()
+                same_grant = (latest is not None
+                    and latest[name + '_subject'] == account[name + '_subject']
+                    and latest[name + '_refresh_encrypted'] == account[name + '_refresh_encrypted'])
+                if same_grant:
+                    if invalid:
+                        conn.execute(delete(sessions).where(sessions.c.account_id == account['id'],
+                            sessions.c.auth_method.in_((name, 'legacy'))))
+                    else:
+                        conn.execute(update(accounts).where(accounts.c.id == account['id']).values(verified_at=now))
+            if invalid and same_grant:
+                raise HTTPException(401, '登录授权已失效，请重新登录')
+        session, account = authenticate(authorization)
+        with database.connect() as conn:
+            return session_service.public_account(conn, account, session['auth_method'])
 
     @router.patch('/account/profile')
     def edit_profile(body: ProfileUpdate, authorization: str | None = Header(default=None)):
@@ -216,7 +214,7 @@ def auth_router(database, apple_provider, wechat_provider=None):
             if result.rowcount != 1:
                 raise HTTPException(401, '请重新登录')
             account = conn.execute(select(accounts).where(accounts.c.id == current['id'])).mappings().one()
-        return public_account(account)
+            return session_service.public_account(conn, account, current['provider'])
 
     @router.post('/auth/logout', status_code=204)
     def logout(authorization: str | None = Header(default=None)):
@@ -230,18 +228,19 @@ def auth_router(database, apple_provider, wechat_provider=None):
     def remove(authorization: str | None = Header(default=None)):
         session, account = authenticate(authorization)
         name = account['provider']
-        provider = available(name)
         if session['created_at'] < int(time.time()) - 600:
             raise HTTPException(403, '为保护账户，请退出后重新登录，再注销账户')
         try:
             if name == 'apple':
-                provider.revoke(account['apple_refresh_encrypted'])
+                available('apple').revoke(account['apple_refresh_encrypted'])
             # WeChat documents no equivalent revocation endpoint. Delete our account
             # and encrypted grant, and explain manual WeChat permission removal in the UI.
         except ProviderUnavailable:
             raise HTTPException(503, 'Apple 授权撤销未完成，请稍后重试') from None
         with database.begin() as conn:
-            conn.execute(select(accounts.c.id).where(accounts.c.id == account['id']).with_for_update())
+            session, account = session_service.authenticate(authorization, conn, lock=True)
+            if session['created_at'] < int(time.time()) - 600:
+                raise HTTPException(403, '为保护账户，请退出后重新登录，再注销账户')
             conn.execute(delete(sync_tombstones).where(sync_tombstones.c.account_id == account['id']))
             conn.execute(delete(sync_entities).where(sync_entities.c.account_id == account['id']))
             conn.execute(delete(sessions).where(sessions.c.account_id == account['id']))
@@ -250,5 +249,7 @@ def auth_router(database, apple_provider, wechat_provider=None):
 
     # Content sync is implemented but remains behind the product release checklist.
     router.include_router(sync_router(database, authenticate))
+    router.include_router(password_router(database, session_service, auth_limits))
+    router.include_router(wechat_binding_router(database, session_service, wechat_provider, auth_limits))
 
     return router

@@ -11,6 +11,8 @@ final class AccountStore {
     private let libraries: LocalLibraryStore?
     private(set) var isPreparing = false
     private(set) var isWaitingForWeChat = false
+    private(set) var weChatAvailability: WeChatAvailability
+    private(set) var registrationRecovery: RecoveryMaterial?
     private let weChat: any WeChatAuthorizing
     var message: String?
     private var session: AccountSession?
@@ -21,13 +23,14 @@ final class AccountStore {
     private let checksAppleCredential: Bool
     @ObservationIgnored private var isRefreshing = false
     @ObservationIgnored private var sessionRevision = 0
-    @ObservationIgnored private var revokedAppleToken: String?
+    @ObservationIgnored private var invalidatedSessionToken: String?
 
     init(api: any AccountServing = AccountAPI(), storage: any AccountSessionStoring = AccountKeychain(),
          checksAppleCredential: Bool = true, weChat: any WeChatAuthorizing = WeChatLogin(),
          libraries: LocalLibraryStore? = nil) {
         self.libraries = libraries
         self.weChat = weChat
+        self.weChatAvailability = weChat.availability
         self.api = api
         self.storage = storage
         self.checksAppleCredential = checksAppleCredential
@@ -40,7 +43,7 @@ final class AccountStore {
         let revision = sessionRevision
         do {
             guard let saved = try session ?? storage.read() else { return }
-            if saved.token == revokedAppleToken {
+            if saved.token == invalidatedSessionToken {
                 try clearSession()
                 message = AccountError.expired.localizedDescription
                 return
@@ -155,6 +158,8 @@ final class AccountStore {
 
     func loginWeChat() async {
         guard !isBusy, account == nil else { return }
+        refreshWeChatAvailability()
+        guard weChatAvailability == .available else { message = weChatAvailability.loginMessage; return }
         isBusy = true
         sessionRevision += 1
         let revision = sessionRevision
@@ -196,7 +201,8 @@ final class AccountStore {
     }
 
     func weChatEnteredBackground() { weChat.applicationDidEnterBackground() }
-    func weChatBecameActive() { weChat.applicationDidBecomeActive() }
+    func refreshWeChatAvailability() { weChatAvailability = weChat.availability }
+    func weChatBecameActive() { refreshWeChatAvailability(); weChat.applicationDidBecomeActive() }
     func cancelWeChat() { if isWaitingForWeChat { weChat.cancel() } }
     func handleWeChat(url: URL) { weChat.handle(url: url) }
     func handleWeChat(activity: NSUserActivity) { weChat.handle(activity: activity) }
@@ -295,7 +301,7 @@ final class AccountStore {
         guard let revoked = session, revoked.account.provider == "apple" else { return }
         sessionRevision += 1
         // Never reload revoked credentials if the Keychain is temporarily locked.
-        revokedAppleToken = revoked.token
+        invalidatedSessionToken = revoked.token
         do { try clearSession(); message = AccountError.expired.localizedDescription }
         catch {
             forgetSession()
@@ -316,5 +322,245 @@ final class AccountStore {
         account = nil
         libraries?.authenticationExpired()
         challenge = nil
+        registrationRecovery = nil
+    }
+}
+
+// Same-file extensions retain private credential access without exposing tokens to views.
+extension AccountStore {
+    func finishSavingRegistrationRecovery() { registrationRecovery = nil }
+    private func beginCredentialOperation() -> Int? {
+        guard !isBusy else { return nil }
+        isBusy = true
+        sessionRevision += 1
+        message = nil
+        return sessionRevision
+    }
+
+    private func endCredentialOperation(_ revision: Int) {
+        guard sessionRevision == revision else { return }
+        isBusy = false
+        isWaitingForWeChat = false
+        isChangingLibrary = false
+    }
+
+    func cancelCredentialOperation() {
+        sessionRevision += 1
+        weChat.cancel()
+        isBusy = false
+        isWaitingForWeChat = false
+        isChangingLibrary = false
+    }
+
+    private func credentialOperationFailed(_ error: Error, revision: Int) {
+        guard sessionRevision == revision else { return }
+        if (error as? AccountError) == .expired {
+            invalidatedSessionToken = session?.token
+            try? clearSession()
+            forgetSession()
+            isBusy = false
+            isWaitingForWeChat = false
+            isChangingLibrary = false
+        }
+        message = error.localizedDescription
+    }
+
+    func loginPassword(username: String, password: String) async -> Bool {
+        guard account == nil, PasswordCredentials.isValidUsername(username),
+              PasswordCredentials.isValidPassword(password) else { message = AccountError.invalidInput.localizedDescription; return false }
+        guard let revision = beginCredentialOperation() else { return false }
+        defer { endCredentialOperation(revision) }
+        do {
+            var result = try await api.loginPassword(username: PasswordCredentials.normalizedUsername(username), password: password)
+            guard revision == sessionRevision else { try? await api.logout(token: result.token); return false }
+            guard result.account.provider == "password", result.account.hasPassword else { throw AccountError.invalidResponse }
+            result.appleUser = nil
+            isChangingLibrary = true
+            try await persistLogin(result)
+            challenge = nil
+            return true
+        } catch {
+            credentialOperationFailed(error, revision: revision)
+            return false
+        }
+    }
+
+    func registerPassword(username: String, password: String) async -> RecoveryMaterial? {
+        guard account == nil, PasswordCredentials.isValidUsername(username),
+              PasswordCredentials.isValidPassword(password) else { message = AccountError.invalidInput.localizedDescription; return nil }
+        guard let revision = beginCredentialOperation() else { return nil }
+        defer { endCredentialOperation(revision) }
+        var created = false
+        do {
+            var result = try await api.registerPassword(username: PasswordCredentials.normalizedUsername(username), password: password)
+            created = true
+            guard revision == sessionRevision else { try? await api.logout(token: result.session.token); return nil }
+            guard result.session.account.provider == "password", result.session.account.hasPassword,
+                  let username = result.session.account.username,
+                  PasswordCredentials.isValidRecoveryCode(result.recoveryCode) else { throw AccountError.invalidResponse }
+            result.session.appleUser = nil
+            isChangingLibrary = true
+            try await persistLogin(result.session)
+            challenge = nil
+            let material = RecoveryMaterial(username: username, code: result.recoveryCode)
+            registrationRecovery = material
+            return material
+        } catch {
+            guard revision == sessionRevision else { return nil }
+            if created || (error as? AccountError) == .unavailable {
+                message = "账户可能已创建。请尝试用刚设置的用户名密码登录，登录后可重新生成恢复码。\n" + error.localizedDescription
+            } else {
+                message = error.localizedDescription
+            }
+            return nil
+        }
+    }
+
+    func recoverPassword(username: String, recoveryCode: String, newPassword: String) async -> RecoveryMaterial? {
+        guard account == nil, PasswordCredentials.isValidUsername(username),
+              PasswordCredentials.isValidRecoveryCode(recoveryCode), PasswordCredentials.isValidPassword(newPassword)
+        else { message = AccountError.invalidInput.localizedDescription; return nil }
+        guard let revision = beginCredentialOperation() else { return nil }
+        defer { endCredentialOperation(revision) }
+        do {
+            let result = try await api.recoverPassword(username: PasswordCredentials.normalizedUsername(username),
+                recoveryCode: recoveryCode, newPassword: newPassword)
+            guard revision == sessionRevision else { return nil }
+            guard PasswordCredentials.isValidRecoveryCode(result.code) else { throw AccountError.invalidResponse }
+            return result
+        } catch {
+            guard revision == sessionRevision else { return nil }
+            message = (error as? AccountError) == .unavailable
+                ? "未能确认重置结果。请尝试用新密码登录，登录后可重新生成恢复码。"
+                : error.localizedDescription
+            return nil
+        }
+    }
+
+    private func replaceCredentialSession(_ result: AccountSession) async throws {
+        guard let previous = session, result.account.id == previous.account.id else { throw AccountError.invalidResponse }
+        do {
+            try storage.save(result)
+        } catch {
+            invalidatedSessionToken = previous.token
+            try? storage.clear()
+            sessionRevision += 1
+            forgetSession()
+            isBusy = false
+            isWaitingForWeChat = false
+            try? await api.logout(token: result.token)
+            message = "账户凭据已更新，需重新登录。" + AccountError.keychain.localizedDescription
+            throw AccountError.keychain
+        }
+        session = result
+        account = result.account
+    }
+
+    func changePassword(password: String, newPassword: String) async -> Bool {
+        guard let current = session, current.account.hasPassword,
+              PasswordCredentials.isValidPassword(password), PasswordCredentials.isValidPassword(newPassword)
+        else { message = AccountError.invalidInput.localizedDescription; return false }
+        guard let revision = beginCredentialOperation() else { return false }
+        defer { endCredentialOperation(revision) }
+        do {
+            let result = try await api.changePassword(token: current.token, password: password, newPassword: newPassword)
+            guard revision == sessionRevision else { try? await api.logout(token: result.token); return false }
+            try await replaceCredentialSession(result)
+            message = "密码已修改，其他设备需重新登录。"
+            return true
+        } catch { credentialOperationFailed(error, revision: revision); return false }
+    }
+
+    func rotateRecoveryCode(password: String) async -> RecoveryMaterial? {
+        guard let current = session, current.account.hasPassword, PasswordCredentials.isValidPassword(password)
+        else { message = AccountError.invalidInput.localizedDescription; return nil }
+        guard let revision = beginCredentialOperation() else { return nil }
+        defer { endCredentialOperation(revision) }
+        do {
+            let result = try await api.rotateRecoveryCode(token: current.token, password: password)
+            guard revision == sessionRevision else { try? await api.logout(token: result.session.token); return nil }
+            guard let username = result.session.account.username,
+                  PasswordCredentials.isValidRecoveryCode(result.recoveryCode) else { throw AccountError.invalidResponse }
+            try await replaceCredentialSession(result.session)
+            return RecoveryMaterial(username: username, code: result.recoveryCode)
+        } catch { credentialOperationFailed(error, revision: revision); return nil }
+    }
+
+    func bindWeChat(password: String) async -> Bool {
+        guard let current = session, current.account.hasPassword, PasswordCredentials.isValidPassword(password)
+        else { message = AccountError.invalidInput.localizedDescription; return false }
+        refreshWeChatAvailability()
+        guard weChatAvailability == .available else {
+            message = weChatAvailability == .notInstalled
+                ? "当前设备未安装微信，暂时无法绑定；账号密码登录不受影响。"
+                : weChatAvailability.loginMessage
+            return false
+        }
+        guard let revision = beginCredentialOperation() else { return false }
+        defer { endCredentialOperation(revision) }
+        do {
+            let pending = try await api.weChatBindingChallenge(token: current.token, password: password)
+            guard revision == sessionRevision else { return false }
+            guard pending.expiresAt > Date.now.timeIntervalSince1970 else { throw AccountError.bindingExpired }
+            isWaitingForWeChat = true
+            let code = try await weChat.authorize(state: pending.challenge)
+            guard revision == sessionRevision else { return false }
+            isWaitingForWeChat = false
+            let updated = try await api.bindWeChat(token: current.token, challenge: pending.challenge, code: code)
+            guard revision == sessionRevision else { return false }
+            guard updated.id == current.account.id else { throw AccountError.invalidResponse }
+            try applyAccount(updated)
+            message = "微信已绑定，可使用微信或用户名密码登录此账户。"
+            return true
+        } catch {
+            return await reconcileWeChatIfUncertain(error, expectedBound: true, token: current.token, revision: revision)
+        }
+    }
+
+    func unbindWeChat(password: String) async -> Bool {
+        guard let current = session, current.account.hasPassword, PasswordCredentials.isValidPassword(password)
+        else { message = AccountError.invalidInput.localizedDescription; return false }
+        guard let revision = beginCredentialOperation() else { return false }
+        defer { endCredentialOperation(revision) }
+        do {
+            let result = try await api.unbindWeChat(token: current.token, password: password)
+            guard revision == sessionRevision else {
+                if let replacement = result.session { try? await api.logout(token: replacement.token) }
+                return false
+            }
+            guard result.account.id == current.account.id else { throw AccountError.invalidResponse }
+            if let replacement = result.session { try await replaceCredentialSession(replacement) }
+            else { try applyAccount(result.account) }
+            message = "微信已解绑，任务记录保留。微信中的应用授权可在微信设置中管理。"
+            return true
+        } catch {
+            return await reconcileWeChatIfUncertain(error, expectedBound: false, token: current.token, revision: revision)
+        }
+    }
+
+    private func reconcileWeChatIfUncertain(_ error: Error, expectedBound: Bool, token: String, revision: Int) async -> Bool {
+        guard revision == sessionRevision else { return false }
+        guard (error as? AccountError) == .unavailable || (error as? AccountError) == .invalidResponse || error is URLError else {
+            credentialOperationFailed(error, revision: revision)
+            return false
+        }
+        do {
+            let updated = try await api.account(token: token)
+            guard revision == sessionRevision else { return false }
+            try applyAccount(updated)
+            if updated.weChatBound == expectedBound {
+                message = expectedBound ? "已核实微信绑定成功。" : "已核实微信已解绑，任务记录保留。"
+                return true
+            }
+            message = "未能完成微信授权变更，已核实当前绑定状态，请重试。"
+        } catch {
+            credentialOperationFailed(error, revision: revision)
+            if revision == sessionRevision {
+                message = account == nil
+                    ? "登录凭据已更新，请使用账号密码重新登录，核实微信绑定状态。"
+                    : "暂时无法核实微信绑定状态，请联网后重试。"
+            }
+        }
+        return false
     }
 }

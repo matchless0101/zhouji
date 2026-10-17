@@ -19,36 +19,6 @@ from zhouji_api.app import create_app
 from zhouji_api.sync import purge_soft_deleted
 
 
-@pytest.fixture
-def isolated_mysql():
-    config_path = os.environ.get('ZHOUJI_TEST_MYSQL_CONFIG')
-    if not config_path:
-        pytest.skip('requires explicit MySQL admin configuration; isolated database only')
-    config = configparser.ConfigParser(interpolation=None)
-    config.read(config_path)
-    values = config['client']
-    url = URL.create('mysql+pymysql', username=values.get('user'), password=values.get('password'),
-                     host=values.get('host', 'localhost'), query={'charset': 'utf8mb4'})
-    admin = create_engine(url, hide_parameters=True)
-    name = 'zhouji_verify_' + uuid.uuid4().hex
-    engine = create_engine(url.set(database=name), hide_parameters=True)
-    try:
-        with admin.begin() as conn:
-            conn.execute(text(f'CREATE DATABASE `{name}` CHARACTER SET utf8mb4'))
-        with engine.begin() as conn:
-            for migration in sorted((Path(__file__).parents[1] / 'migrations').glob('*.sql')):
-                sql = '\n'.join(line for line in migration.read_text().splitlines()
-                                if not line.lstrip().startswith('--'))
-                for statement in sql.split(';'):
-                    if statement.strip():
-                        conn.execute(text(statement))
-        yield engine
-    finally:
-        engine.dispose()
-        with admin.begin() as conn:
-            conn.execute(text(f'DROP DATABASE IF EXISTS `{name}`'))
-        admin.dispose()
-
 
 def test_mysql_simultaneous_first_push_and_purge_cursor(isolated_mysql):
     provider = Mock()

@@ -11,9 +11,47 @@ struct AppAccount: Codable, Equatable, Sendable {
     let provider: String
     var nickname: String? = nil
     var avatar: String? = nil
+    var hasPassword = false
+    var weChatBound = false
+    var username: String? = nil
 
-    var providerName: String { provider == "wechat" ? "微信登录" : "Apple 登录" }
-    var providerIcon: String { provider == "wechat" ? "message.fill" : "apple.logo" }
+    init(id: String, provider: String, nickname: String? = nil, avatar: String? = nil,
+         hasPassword: Bool = false, weChatBound: Bool = false, username: String? = nil) {
+        self.id = id; self.provider = provider; self.nickname = nickname; self.avatar = avatar
+        self.hasPassword = hasPassword; self.weChatBound = weChatBound; self.username = username
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, provider, nickname, avatar, hasPassword, username
+        case weChatBound = "wechatBound"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        provider = try values.decode(String.self, forKey: .provider)
+        nickname = try values.decodeIfPresent(String.self, forKey: .nickname)
+        avatar = try values.decodeIfPresent(String.self, forKey: .avatar)
+        hasPassword = try values.decodeIfPresent(Bool.self, forKey: .hasPassword) ?? false
+        weChatBound = try values.decodeIfPresent(Bool.self, forKey: .weChatBound) ?? false
+        username = try values.decodeIfPresent(String.self, forKey: .username)
+    }
+
+    var providerName: String {
+        switch provider {
+        case "wechat": "微信登录"
+        case "apple": "Apple 登录"
+        case "password": "账号登录"
+        default: "账户登录"
+        }
+    }
+    var providerIcon: String {
+        switch provider {
+        case "wechat": "message.fill"
+        case "apple": "apple.logo"
+        default: "person.crop.circle"
+        }
+    }
 
     var displayName: String {
         guard let nickname, !nickname.isEmpty else { return "粥记用户" }
@@ -28,8 +66,10 @@ struct AccountSession: Codable, Sendable {
     var appleUser: String?
 }
 
-enum AccountError: LocalizedError {
+enum AccountError: LocalizedError, Equatable {
     case expired, unavailable, invalidResponse, keychain, reauthenticate, invalidAuthorization, invalidProfile
+    case invalidCredentials, invalidRecovery, invalidInput, usernameTaken, rateLimited
+    case credentialsChanged, weChatInUse, weChatAlreadyBound, bindingExpired, passwordUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -40,6 +80,16 @@ enum AccountError: LocalizedError {
         case .reauthenticate: "为保护账户，请退出后重新登录，再注销账户。"
         case .invalidAuthorization: "Apple 授权未完成，请重新尝试。"
         case .invalidProfile: "昵称需为 1–20 个字符，不能包含换行或隐藏字符。"
+        case .invalidCredentials: "用户名或密码不正确，请检查后重试。"
+        case .invalidRecovery: "用户名或恢复码不正确，请检查后重试。"
+        case .invalidInput: "请检查用户名、密码或恢复码是否符合要求。"
+        case .usernameTaken: "此用户名已被使用，请换一个。"
+        case .rateLimited: "尝试过于频繁，请稍后重试。"
+        case .credentialsChanged: "账户凭据已更新，请重新尝试。"
+        case .weChatInUse: "此微信已关联其他粥记账户，暂不支持合并。"
+        case .weChatAlreadyBound: "请先解绑当前微信，再绑定其他微信。"
+        case .bindingExpired: "绑定请求已失效，请重新操作。"
+        case .passwordUnavailable: "此账户未设置用户名密码。"
         }
     }
 }
@@ -88,6 +138,14 @@ protocol AccountServing: Sendable {
     func updateProfile(token: String, nickname: String, avatar: String) async throws -> AppAccount
     func logout(token: String) async throws
     func delete(token: String) async throws
+    func registerPassword(username: String, password: String) async throws -> PasswordRegistration
+    func loginPassword(username: String, password: String) async throws -> AccountSession
+    func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial
+    func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession
+    func rotateRecoveryCode(token: String, password: String) async throws -> RecoveryRotation
+    func weChatBindingChallenge(token: String, password: String) async throws -> LoginChallenge
+    func bindWeChat(token: String, challenge: String, code: String) async throws -> AppAccount
+    func unbindWeChat(token: String, password: String) async throws -> BindingResult
 }
 
 struct AccountAPI: AccountServing {
@@ -137,6 +195,45 @@ struct AccountAPI: AccountServing {
         _ = try await request("account", method: "DELETE", token: token)
     }
 
+    func registerPassword(username: String, password: String) async throws -> PasswordRegistration {
+        try await decode("auth/password/register", method: "POST", body: json(["username": username, "password": password]))
+    }
+
+    func loginPassword(username: String, password: String) async throws -> AccountSession {
+        try await decode("auth/password/login", method: "POST", body: json(["username": username, "password": password]))
+    }
+
+    func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial {
+        let result: RecoveryResponse = try await decode("auth/password/recover", method: "POST",
+            body: json(["username": username, "recovery_code": recoveryCode, "new_password": newPassword]))
+        return RecoveryMaterial(username: result.username, code: result.recoveryCode)
+    }
+
+    func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession {
+        try await decode("account/password/change", method: "POST", token: token,
+            body: json(["password": password, "new_password": newPassword]))
+    }
+
+    func rotateRecoveryCode(token: String, password: String) async throws -> RecoveryRotation {
+        try await decode("account/password/recovery-code", method: "POST", token: token, body: json(["password": password]))
+    }
+
+    func weChatBindingChallenge(token: String, password: String) async throws -> LoginChallenge {
+        try await decode("account/wechat/binding/challenge", method: "POST", token: token, body: json(["password": password]))
+    }
+
+    func bindWeChat(token: String, challenge: String, code: String) async throws -> AppAccount {
+        let result: BindingResult = try await decode("account/wechat/binding", method: "POST", token: token,
+            body: json(["challenge": challenge, "code": code]))
+        return result.account
+    }
+
+    func unbindWeChat(token: String, password: String) async throws -> BindingResult {
+        try await decode("account/wechat/binding", method: "DELETE", token: token, body: json(["password": password]))
+    }
+
+    private func json(_ values: [String: String]) throws -> Data { try JSONSerialization.data(withJSONObject: values) }
+
     private func decode<T: Decodable>(_ path: String, method: String = "GET",
                                      token: String? = nil, body: Data? = nil) async throws -> T {
         let data = try await request(path, method: method, token: token, body: body)
@@ -162,10 +259,31 @@ struct AccountAPI: AccountServing {
         guard let http = response as? HTTPURLResponse else { throw AccountError.invalidResponse }
         switch http.statusCode {
         case 200..<300: return data
-        case 401: throw AccountError.expired
-        case 403: throw AccountError.reauthenticate
-        case 422 where path == "account/profile": throw AccountError.invalidProfile
-        default: throw AccountError.unavailable
+        default: throw Self.responseError(status: http.statusCode, path: path, data: data)
+        }
+    }
+
+    static func responseError(status: Int, path: String, data: Data) -> AccountError {
+        if let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let detail = root["detail"] as? [String: Any], let code = detail["code"] as? String {
+            switch code {
+            case "invalid_credentials": return .invalidCredentials
+            case "invalid_recovery": return .invalidRecovery
+            case "username_taken": return .usernameTaken
+            case "credentials_changed": return .credentialsChanged
+            case "wechat_in_use": return .weChatInUse
+            case "wechat_already_bound": return .weChatAlreadyBound
+            case "binding_expired", "invalid_wechat": return .bindingExpired
+            case "password_unavailable": return .passwordUnavailable
+            default: break
+            }
+        }
+        switch status {
+        case 401: return .expired
+        case 403: return .reauthenticate
+        case 422: return path == "account/profile" ? .invalidProfile : .invalidInput
+        case 429: return .rateLimited
+        default: return .unavailable
         }
     }
 }

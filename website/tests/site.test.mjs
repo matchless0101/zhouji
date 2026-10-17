@@ -112,3 +112,11 @@ test('local explanations open, provide readable text and close', () => {
   page.buttons[1].fire('click');
   assert.equal(page.nodes['dialog-title'].textContent, '简单开始使用粥记');
 });
+
+test('privacy discloses password credentials, recovery rotation and optional WeChat binding', () => {
+  const privacy = readFileSync(join(root, 'privacy/index.html'), 'utf8');
+  for (const disclosure of ['用户名密码', 'scrypt', '恢复码', '解绑', '不收集注册邮箱或手机号']) {
+    assert.ok(privacy.includes(disclosure), disclosure);
+  }
+  assert.ok(privacy.includes('登录不会开启云同步'));
+});

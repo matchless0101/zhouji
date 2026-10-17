@@ -63,9 +63,8 @@ def create_app(settings: Settings | None = None, *, engine: Engine | None = None
         try:
             with database.connect() as connection:
                 connection.execute(text("SELECT 1"))
-                if apple_provider is not None or wechat_provider is not None:
-                    for table in metadata.sorted_tables:
-                        connection.execute(table.select().limit(0))
+                for table in metadata.sorted_tables:
+                    connection.execute(table.select().limit(0))
         except SQLAlchemyError:
             # Driver errors may include addresses, usernames or supplied values.
             logger.warning("database readiness check failed")

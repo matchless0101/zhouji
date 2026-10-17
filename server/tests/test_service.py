@@ -4,10 +4,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
+from sqlalchemy.pool import StaticPool
 
 from zhouji_api.app import create_app
 from zhouji_api.database import make_engine
 from zhouji_api.settings import ConfigurationError, Settings
+from zhouji_api.models import metadata
 
 
 def configuration(**changes):
@@ -44,7 +46,8 @@ def test_invalid_port_does_not_echo_configuration(port):
 
 def test_health_http_contract_with_working_sql_connection():
     # Only validates the HTTP/SQL connection contract; this is not a MySQL integration test.
-    engine = create_engine("sqlite://")
+    engine = create_engine("sqlite://", connect_args={'check_same_thread': False}, poolclass=StaticPool)
+    metadata.create_all(engine)
     with TestClient(create_app(engine=engine)) as client:
         for endpoint in ["live", "ready"]:
             response = client.get(f"/api/v1/health/{endpoint}")

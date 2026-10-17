@@ -122,3 +122,27 @@ python3.12 -m venv .venv
 回退首次部署：先恢复粥记站点配置备份，移除本次专用限流配置 `/etc/nginx/conf.d/zhouji-api-limit.conf`，`nginx -t` 成功后 reload，再停止 `zhouji-api`。保留数据库与密钥备份，不因服务回退删除账户数据。
 
 接口实现依据：[Apple 用户验证](https://developer.apple.com/documentation/signinwithapple/verifying-a-user)、[Apple 账户注销与令牌撤销](https://developer.apple.com/documentation/technotes/tn3194-handling-account-deletions-and-revoking-tokens-for-sign-in-with-apple)、[PyJWT](https://pyjwt.readthedocs.io/en/stable/)。
+
+## 用户名密码与微信绑定增量（2026-10-17）
+
+迁移与上线范围以 `../docs/releases/2026-10-17/username-auth-validation.md` 为准；本节说明实现，不代表生产已部署。
+
+| 接口 | 行为 |
+| --- | --- |
+| `POST /api/v1/auth/password/register` | username/password 注册，返回嵌套 session 和一次性 recovery_code |
+| `POST /api/v1/auth/password/login` | 返回普通 session；未知用户名与密码错误使用同一提示和 scrypt 工作量 |
+| `POST /api/v1/auth/password/recover` | username/recovery_code/new_password 重置，原子轮换恢复码并撤销全部会话；不自动登录 |
+| `POST /api/v1/account/password/change` | Bearer + password/new_password；撤销旧会话，返回当前设备替换会话，恢复码不变 |
+| `POST /api/v1/account/password/recovery-code` | Bearer + password；撤销旧会话，返回嵌套新 session 和恢复码 |
+| `POST /api/v1/account/wechat/binding/challenge` | Bearer + password；五分钟、绑定当前账户与会话的专用 challenge |
+| `POST /api/v1/account/wechat/binding` | Bearer + challenge/code；绑定已有用户名账户，冲突返回 409，不合并账户 |
+| `DELETE /api/v1/account/wechat/binding` | Bearer + password；移除微信凭据并撤销微信会话；当前微信会话可替换为密码会话 |
+
+- 先核对 001–005 完整，再对专用库执行一次 `migrations/006_password_auth.sql`。MySQL DDL 不保证事务回滚，部分执行时必须停下逐项核对，不可整份重复执行。
+- 创建类型 `accounts.provider` 稳定；本次登录方式在 `sessions.auth_method`。响应的 provider 表示当前方式，has_password/wechat_bound/username 表示账户能力，不能混用。旧写入方未指定 auth_method 时使用 legacy：原 Apple／微信账户按创建类型解释；密码创建账户只能由旧微信入口签发，因此按微信解释，解绑或授权失效时一并撤销。
+- 密码 15–128 Unicode 标量，scrypt N=131072/r=8/p=1、16 字节随机盐、32 字节输出。每进程最多两个并发哈希，满载返回 503 + Retry-After，不排队无限占内存；单次约 128 MiB，部署须留够至少 256 MiB 哈希预算及应用余量。
+- 恢复码 160 位随机、Base32 32 字符，保存用途隔离的 SHA-256 摘要。密码及恢复码不写明文日志、数据库或发布文档；测试仅用合成资料。
+- 持久限流表仅保存用途和用户名／来源摘要：密码/恢复码连续五次失败冻结 15 分钟；登录/恢复/安全每来源每分钟 20 次；注册每小时 5 次、每日 20 次。成功不重置来源配额，冻结请求不延长窗口。过期索引每次最多清理 100 条。
+- 绑定 challenge 与会话外键级联；改密、重置、解绑和注销后迟到回调不得恢复绑定。MySQL 行锁、唯一键与凭据二次比较保护并发登录和身份唯一。
+- ready 无论第三方配置如何都检查密码与会话所需完整结构。密码会话不需要调用 Apple/微信验证；第三方授权失效只撤销对应认证方式的会话，保留密码登录能力。
+- 不新增邮件／短信服务或依赖。公网仍须维持 HTTPS、可信反向代理覆盖来源地址、32KB 请求体限制及禁止凭据访问日志。

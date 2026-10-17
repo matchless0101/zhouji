@@ -29,6 +29,15 @@ private actor AccountStub: AccountServing {
         pendingProfile?.resume(returning: profile)
         pendingProfile = nil
     }
+
+    func registerPassword(username: String, password: String) async throws -> PasswordRegistration { throw AccountError.unavailable }
+    func loginPassword(username: String, password: String) async throws -> AccountSession { throw AccountError.unavailable }
+    func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial { throw AccountError.unavailable }
+    func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession { throw AccountError.unavailable }
+    func rotateRecoveryCode(token: String, password: String) async throws -> RecoveryRotation { throw AccountError.unavailable }
+    func weChatBindingChallenge(token: String, password: String) async throws -> LoginChallenge { throw AccountError.unavailable }
+    func bindWeChat(token: String, challenge: String, code: String) async throws -> AppAccount { throw AccountError.unavailable }
+    func unbindWeChat(token: String, password: String) async throws -> BindingResult { throw AccountError.unavailable }
     func challenge() async throws -> LoginChallenge {
         if fails { throw AccountError.unavailable }
         return LoginChallenge(challenge: "test-challenge", nonce: "test-nonce", expiresAt: Date.now.timeIntervalSince1970 + 300)
@@ -434,6 +443,7 @@ private actor AccountStub: AccountServing {
 }
 
 @MainActor private final class WeChatStub: WeChatAuthorizing {
+    var availability: WeChatAvailability = .available
     var failure: WeChatLoginError?
     var receivedState: String?
     var waits = false

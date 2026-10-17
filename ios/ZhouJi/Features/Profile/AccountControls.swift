@@ -5,6 +5,9 @@ import SwiftUI
 struct AccountControls: View {
     @Environment(AccountStore.self) private var account
     @Environment(ContentSyncStore.self) private var contentSync
+    @State private var showsPasswordLogin = false
+    @State private var showsSecurity = false
+    @State private var securityFlow = AccountSecurityFlow()
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -14,6 +17,10 @@ struct AccountControls: View {
                      : "登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。")
                     .font(.footnote)
                     .foregroundStyle(ZJTheme.secondaryInk)
+                Button("账号登录") { showsPasswordLogin = true }
+                    .buttonStyle(ZJPrintedButtonStyle())
+                    .disabled(account.isBusy)
+                    .accessibilityIdentifier("account.password.open")
                 if let challenge = account.challenge {
                     TimelineView(.periodic(from: .now, by: 1)) { context in
                         SignInWithAppleButton(.signIn) { request in
@@ -39,7 +46,8 @@ struct AccountControls: View {
                         .buttonStyle(.bordered)
                         .accessibilityIdentifier("account.retry")
                 }
-                Button { Task { await account.loginWeChat() } } label: {
+                if account.weChatAvailability == .available {
+                    Button { Task { await account.loginWeChat() } } label: {
                     Label("微信登录", systemImage: "message.fill")
                         .font(.body.weight(.medium))
                         .frame(maxWidth: .infinity, minHeight: 50)
@@ -48,7 +56,13 @@ struct AccountControls: View {
                 .background(Color(red: 0.03, green: 0.65, blue: 0.28), in: RoundedRectangle(cornerRadius: 8))
                 .disabled(account.isBusy)
                 .accessibilityIdentifier("account.wechatLogin")
-                Text("微信与 Apple 登录分别对应独立账户。")
+                } else if let message = account.weChatAvailability.loginMessage {
+                    Text(message)
+                        .font(.footnote)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .accessibilityIdentifier("account.wechatAvailability")
+                }
+                Text("Apple 登录为独立账户；微信可在账号内主动绑定。")
                     .font(.caption)
                     .foregroundStyle(ZJTheme.secondaryInk)
             } else {
@@ -64,12 +78,20 @@ struct AccountControls: View {
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                 }
+                if account.account?.hasPassword == true {
+                    Button("账户安全") { securityFlow = AccountSecurityFlow(); showsSecurity = true }
+                        .buttonStyle(ZJPaperButtonStyle())
+                        .disabled(account.isBusy)
+                        .accessibilityIdentifier("account.security.open")
+                }
             }
             AccountStatusRow()
         }
         .padding(16)
         .zjPaperCard()
-        .task { await account.prepare() }
+        .sheet(isPresented: $showsPasswordLogin) { PasswordLoginView() }
+        .sheet(isPresented: $showsSecurity) { AccountSecurityView(flow: securityFlow) }
+        .task { account.refreshWeChatAvailability(); await account.prepare() }
     }
 }
 
@@ -102,7 +124,11 @@ struct AccountSessionActions: View {
                 .confirmationDialog("永久注销粥记账户？", isPresented: $showsDeletion, titleVisibility: .visible) {
                     Button("注销账户", role: .destructive) { Task { await account.deleteAccount() } }
                 } message: {
-                    Text(account.account?.provider == "wechat"
+                    Text(account.account?.hasPassword == true
+                         ? (account.account?.weChatBound == true
+                            ? "将永久删除粥记账户、密码、恢复码及微信登录凭据，无法撤销。本机内容会先保存为副本，再返回游客记录。微信中的应用授权请在微信设置中管理。"
+                            : "将永久删除粥记账户、密码和恢复码，无法撤销。本机内容会先保存为副本，再返回游客记录。")
+                         : account.account?.provider == "wechat"
                          ? "将永久删除粥记服务端账户及保存的授权凭据，本机内容会先保存为副本，再返回游客记录。微信中的应用授权请在微信设置中管理。"
                          : "将撤销 Apple 授权并删除粥记服务端账户，无法撤销。本机内容会先保存为副本，再返回游客记录。")
                 }
