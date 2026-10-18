@@ -3,6 +3,48 @@ import UIKit
 
 final class ZhouJiUITests: XCTestCase {
     @MainActor
+    func testIndependentWeChatCanSetPasswordAndLoginWithoutWeChat() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPasswordAuthFixture", "-ZJIndependentWeChatFixture", "-ZJInitialTab", "profile"]
+        app.launch()
+        openPreferences(in: app)
+        let security = app.buttons["account.security.open"]
+        XCTAssertTrue(security.waitForExistence(timeout: 5))
+        if !security.isHittable { app.swipeUp() }; security.tap()
+        app.buttons["account.security.setupPassword"].tap()
+        let name = app.textFields["account.password.setup.username"]
+        XCTAssertTrue(name.waitForExistence(timeout: 3))
+        name.tap(); name.typeText("same_wechat_user")
+        let password = app.secureTextFields["account.password.setup.password"]
+        password.tap(); password.typeText("ui-test-long-password")
+        let confirmation = app.secureTextFields["account.password.setup.confirmation"]
+        if !confirmation.isHittable { app.swipeUp() }
+        confirmation.tap(); confirmation.typeText("ui-test-long-password")
+        let submit = app.buttons["account.password.setup.submit"]
+        if !submit.isHittable { app.swipeUp() }; submit.tap()
+        let saved = app.buttons["account.recovery.saved"]
+        XCTAssertTrue(saved.waitForExistence(timeout: 5), app.debugDescription)
+        XCTAssertEqual(app.buttons.matching(identifier: "account.recovery.saved").count, 1)
+        saved.tap()
+        let back = app.buttons["account.auth.back"]
+        XCTAssertTrue(back.waitForExistence(timeout: 3)); back.tap()
+        let logout = app.buttons["account.logout"]
+        if !logout.isHittable { app.swipeUp() }; logout.tap()
+        app.buttons.matching(identifier: "退出登录").firstMatch.tap()
+        openPreferences(in: app)
+        let open = app.buttons["account.password.open"]
+        if !open.isHittable { app.swipeUp() }; open.tap()
+        let loginName = app.textFields["account.password.login.username"]
+        loginName.tap(); loginName.typeText("same_wechat_user")
+        let loginPassword = app.secureTextFields["account.password.login.password"]
+        loginPassword.tap(); loginPassword.typeText("ui-test-long-password")
+        app.buttons["account.password.login.submit"].tap()
+        XCTAssertTrue(app.buttons["profile.identity"].waitForExistence(timeout: 5))
+        saveScreenshot("independent-wechat-password-login", app: app)
+    }
+
+    @MainActor
     func testSlowPasswordLoginCannotDismissInteractivelyAndExplicitCancelRejectsLateResult() throws {
         continueAfterFailure = false
         let app = makeApp()

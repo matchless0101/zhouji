@@ -437,7 +437,7 @@ extension AccountStore {
         }
     }
 
-    private func replaceCredentialSession(_ result: AccountSession) async throws {
+    private func replaceCredentialSession(_ result: AccountSession, recoveryOnSaveFailure: RecoveryMaterial? = nil) async throws {
         guard let previous = session, result.account.id == previous.account.id else { throw AccountError.invalidResponse }
         do {
             try storage.save(result)
@@ -446,6 +446,8 @@ extension AccountStore {
             try? storage.clear()
             sessionRevision += 1
             forgetSession()
+            // The server already issued this code. Keep it visible even without a saved session.
+            registrationRecovery = recoveryOnSaveFailure
             isBusy = false
             isWaitingForWeChat = false
             try? await api.logout(token: result.token)
@@ -469,6 +471,44 @@ extension AccountStore {
             message = "密码已修改，其他设备需重新登录。"
             return true
         } catch { credentialOperationFailed(error, revision: revision); return false }
+    }
+
+    func setupPassword(username: String, password: String) async -> RecoveryMaterial? {
+        guard let current = session, current.account.canSetUpPassword,
+              PasswordCredentials.isValidUsername(username), PasswordCredentials.isValidPassword(password)
+        else { message = AccountError.invalidInput.localizedDescription; return nil }
+        guard let revision = beginCredentialOperation() else { return nil }
+        defer { endCredentialOperation(revision) }
+        let normalized = PasswordCredentials.normalizedUsername(username)
+        do {
+            let result = try await api.setupPassword(token: current.token, username: normalized, password: password)
+            guard revision == sessionRevision else { try? await api.logout(token: result.session.token); return nil }
+            guard result.session.account.id == current.account.id, result.session.account.hasPassword,
+                  result.session.account.provider == "wechat", result.session.account.weChatBound,
+                  result.session.account.username == normalized,
+                  PasswordCredentials.isValidRecoveryCode(result.recoveryCode) else { throw AccountError.invalidResponse }
+            // Updating credentials keeps the existing account library and timer instance.
+            let material = RecoveryMaterial(username: normalized, code: result.recoveryCode)
+            try await replaceCredentialSession(result.session, recoveryOnSaveFailure: material)
+            // The stable security sheet owns successful setup presentation; the root is a save-failure fallback.
+            return material
+        } catch {
+            guard revision == sessionRevision else { return nil }
+            if (error as? AccountError) == .unavailable || (error as? AccountError) == .invalidResponse {
+                do {
+                    let refreshed = try await api.account(token: current.token)
+                    guard revision == sessionRevision else { return nil }
+                    try applyAccount(refreshed)
+                } catch {
+                    guard revision == sessionRevision else { return nil }
+                    if (error as? AccountError) == .expired { credentialOperationFailed(error, revision: revision) }
+                }
+                message = "未能确认设置结果。请重新登录原微信账户查看；若已设置成功，也可用刚设置的用户名密码登录，再更新恢复码。"
+            } else {
+                credentialOperationFailed(error, revision: revision)
+            }
+            return nil
+        }
     }
 
     func rotateRecoveryCode(password: String) async -> RecoveryMaterial? {

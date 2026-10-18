@@ -4,6 +4,44 @@ import Testing
 @testable import ZhouJi
 
 @MainActor struct PasswordAuthenticationTests {
+    @Test func weChatPasswordSetupKeepsSameLibraryAndRecoveryOnlyInMemory() async throws {
+        let guest = try ModelContainer(for: Goal.self, TodoTask.self, TimingSession.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+        let libraries = try LocalLibraryStore(guest: guest, inMemory: true)
+        let api = PasswordAccountStub(), storage = PasswordMemorySession()
+        await api.seedIndependentWeChat()
+        storage.value = AccountSession(token: "original-wx-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+            account: AppAccount(id: "legacy-wx-account", provider: "wechat", nickname: "原昵称", weChatBound: true))
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false, libraries: libraries)
+        await store.restore()
+        let original = libraries.current.container
+        _ = try TaskService.create(title: "原来的任务", in: original.mainContext)
+        let result = await store.setupPassword(username: " Alice ", password: "a safe initial password")
+        #expect(result?.username == "alice")
+        #expect(store.account?.id == "legacy-wx-account" && store.account?.nickname == "原昵称")
+        #expect(store.account?.hasPassword == true && store.account?.weChatBound == true)
+        #expect(libraries.current.container === original)
+        #expect(try original.mainContext.fetch(FetchDescriptor<TodoTask>()).map(\.title) == ["原来的任务"])
+        #expect(result != nil && store.registrationRecovery == nil)
+        let encoded = String(decoding: try JSONEncoder().encode(#require(storage.value)), as: UTF8.self)
+        #expect(!encoded.contains("ABCD-EFGH") && !encoded.contains("a safe initial password"))
+    }
+
+    @Test func rejectedWeChatPasswordSetupKeepsIdentityAndCanRetry() async {
+        let api = PasswordAccountStub(), storage = PasswordMemorySession()
+        await api.seedIndependentWeChat()
+        storage.value = AccountSession(token: "original-wx-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+            account: AppAccount(id: "legacy-wx-account", provider: "wechat", weChatBound: true))
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        await api.setSetupFailure(.usernameTaken)
+        #expect(await store.setupPassword(username: "alice", password: "a safe initial password") == nil)
+        #expect(store.account?.id == "legacy-wx-account" && store.account?.hasPassword == false)
+        #expect(storage.value?.token == "original-wx-token" && !store.isBusy)
+        await api.setSetupFailure(nil)
+        #expect(await store.setupPassword(username: "bravo", password: "a safe initial password") != nil)
+    }
+
     @Test func oldKeychainDecodesNewCapabilities() throws {
         let value = try JSONDecoder().decode(AppAccount.self, from: Data(#"{"id":"old","provider":"apple"}"#.utf8))
         #expect(!value.hasPassword)
@@ -14,6 +52,44 @@ import Testing
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let bound = try decoder.decode(AppAccount.self, from: Data(#"{"id":"bound","provider":"wechat","has_password":true,"wechat_bound":true,"username":"alice"}"#.utf8))
         #expect(bound.hasPassword && bound.weChatBound && bound.username == "alice")
+    }
+
+    @Test func setupRecentAuthorizationErrorDoesNotBecomeAccountDeletionMessage() {
+        let body = Data(#"{"detail":{"code":"recent_wechat_login_required"}}"#.utf8)
+        #expect(AccountAPI.responseError(status: 403, path: "account/password/setup", data: body) == .recentWeChatLoginRequired)
+        #expect(AppAccount(id: "wx", provider: "wechat").canSetUpPassword)
+        #expect(!AppAccount(id: "apple", provider: "apple").canSetUpPassword)
+        #expect(!AppAccount(id: "wx", provider: "wechat", hasPassword: true).canSetUpPassword)
+    }
+
+    @Test func setupSaveFailureCannotReloadRevokedOriginalSession() async {
+        let api = PasswordAccountStub(), storage = PasswordMemorySession()
+        await api.seedIndependentWeChat()
+        storage.value = AccountSession(token: "original-wx-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+            account: AppAccount(id: "legacy-wx-account", provider: "wechat", weChatBound: true))
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        storage.failsSave = true; storage.failsClear = true
+        #expect(await store.setupPassword(username: "alice", password: "a safe initial password") == nil)
+        #expect(store.account == nil)
+        #expect(store.registrationRecovery?.username == "alice")
+        #expect(store.registrationRecovery?.code == "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ23-4567")
+        await store.restore()
+        #expect(store.account == nil)
+    }
+
+    @Test func lostSetupResponseClearsRevokedSessionAndExplainsRecovery() async {
+        let api = PasswordAccountStub(), storage = PasswordMemorySession()
+        await api.seedIndependentWeChat()
+        storage.value = AccountSession(token: "original-wx-token", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+            account: AppAccount(id: "legacy-wx-account", provider: "wechat", weChatBound: true))
+        let store = AccountStore(api: api, storage: storage, checksAppleCredential: false)
+        await store.restore()
+        await api.setDropsSetupResponse()
+        #expect(await store.setupPassword(username: "alice", password: "a safe initial password") == nil)
+        #expect(store.account == nil && storage.value == nil && !store.isBusy)
+        #expect(store.message?.contains("未能确认设置结果") == true)
+        #expect(store.registrationRecovery == nil)
     }
 
     @Test func credentialBoundariesMatchServer() {
@@ -193,6 +269,22 @@ import Testing
 }
 
 private actor PasswordAccountStub: AccountServing {
+    private var setupFailure: AccountError?
+    private var dropsSetupResponse = false
+    func setDropsSetupResponse() { dropsSetupResponse = true }
+    func setSetupFailure(_ value: AccountError?) { setupFailure = value }
+    func seedIndependentWeChat() {
+        profile = AppAccount(id: "legacy-wx-account", provider: "wechat", nickname: "原昵称", weChatBound: true)
+    }
+    func setupPassword(token: String, username: String, password: String) async throws -> PasswordRegistration {
+        if let setupFailure { throw setupFailure }
+        profile.hasPassword = true; profile.username = username
+        if dropsSetupResponse {
+            expiredTokens.insert(token)
+            throw AccountError.unavailable
+        }
+        return PasswordRegistration(session: value(), recoveryCode: "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ23-4567")
+    }
     var revokedTokens: [String] = []
     var bindingRequests = 0
     private var bindingFailure: AccountError?

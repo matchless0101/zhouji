@@ -57,6 +57,8 @@ struct AppAccount: Codable, Equatable, Sendable {
         guard let nickname, !nickname.isEmpty else { return "粥记用户" }
         return nickname
     }
+
+    var canSetUpPassword: Bool { provider == "wechat" && !hasPassword }
 }
 
 struct AccountSession: Codable, Sendable {
@@ -70,6 +72,7 @@ enum AccountError: LocalizedError, Equatable {
     case expired, unavailable, invalidResponse, keychain, reauthenticate, invalidAuthorization, invalidProfile
     case invalidCredentials, invalidRecovery, invalidInput, usernameTaken, rateLimited
     case credentialsChanged, weChatInUse, weChatAlreadyBound, bindingExpired, passwordUnavailable
+    case recentWeChatLoginRequired, passwordAlreadySet, weChatSetupUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -90,6 +93,9 @@ enum AccountError: LocalizedError, Equatable {
         case .weChatAlreadyBound: "请先解绑当前微信，再绑定其他微信。"
         case .bindingExpired: "绑定请求已失效，请重新操作。"
         case .passwordUnavailable: "此账户未设置用户名密码。"
+        case .recentWeChatLoginRequired: "为保护账户，请退出后重新微信登录，再设置用户名密码。"
+        case .passwordAlreadySet: "此账户已设置用户名密码，请使用修改密码。"
+        case .weChatSetupUnavailable: "请使用原微信账户登录后设置用户名密码。"
         }
     }
 }
@@ -139,6 +145,7 @@ protocol AccountServing: Sendable {
     func logout(token: String) async throws
     func delete(token: String) async throws
     func registerPassword(username: String, password: String) async throws -> PasswordRegistration
+    func setupPassword(token: String, username: String, password: String) async throws -> PasswordRegistration
     func loginPassword(username: String, password: String) async throws -> AccountSession
     func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial
     func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession
@@ -197,6 +204,11 @@ struct AccountAPI: AccountServing {
 
     func registerPassword(username: String, password: String) async throws -> PasswordRegistration {
         try await decode("auth/password/register", method: "POST", body: json(["username": username, "password": password]))
+    }
+
+    func setupPassword(token: String, username: String, password: String) async throws -> PasswordRegistration {
+        try await decode("account/password/setup", method: "POST", token: token,
+            body: json(["username": username, "password": password]))
     }
 
     func loginPassword(username: String, password: String) async throws -> AccountSession {
@@ -275,6 +287,9 @@ struct AccountAPI: AccountServing {
             case "wechat_already_bound": return .weChatAlreadyBound
             case "binding_expired", "invalid_wechat": return .bindingExpired
             case "password_unavailable": return .passwordUnavailable
+            case "recent_wechat_login_required": return .recentWeChatLoginRequired
+            case "password_already_set": return .passwordAlreadySet
+            case "wechat_setup_unavailable": return .weChatSetupUnavailable
             default: break
             }
         }

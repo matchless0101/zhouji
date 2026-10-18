@@ -78,7 +78,7 @@ struct AccountControls: View {
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if account.account?.hasPassword == true {
+                if account.account?.hasPassword == true || account.account?.canSetUpPassword == true {
                     Button("账户安全") { securityFlow = AccountSecurityFlow(); showsSecurity = true }
                         .buttonStyle(ZJPaperButtonStyle())
                         .disabled(account.isBusy)

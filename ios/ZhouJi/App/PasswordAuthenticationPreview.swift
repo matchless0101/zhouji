@@ -9,6 +9,8 @@ actor PasswordAuthenticationPreview: AccountServing {
         var nickname = "粥记用户"
         var avatar = "sunrise"
         var bound = false
+        var hasPassword = true
+        var accountID: String?
     }
     private var users: [String: User] = [:]
     private var sessions: [String: (username: String, method: String)] = [:]
@@ -16,18 +18,24 @@ actor PasswordAuthenticationPreview: AccountServing {
     private let initialCode = "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ23-4567"
     private let delaysLogin: Bool
 
-    init(seedBoundAccount: Bool = false, delaysLogin: Bool = false) {
+    init(seedBoundAccount: Bool = false, delaysLogin: Bool = false, seedIndependentWeChat: Bool = false) {
         self.delaysLogin = delaysLogin
         if seedBoundAccount {
             users["sample_user"] = User(password: "ui-test-long-password", recoveryCode: initialCode, bound: true)
             sessions["preview-bound-session"] = (username: "sample_user", method: "wechat")
         }
+        if seedIndependentWeChat {
+            users["legacy_wechat"] = User(password: "", recoveryCode: "", bound: true, hasPassword: false,
+                accountID: "preview-independent-wechat")
+            sessions["preview-independent-session"] = (username: "legacy_wechat", method: "wechat")
+        }
     }
 
     private func profile(_ username: String, method: String) throws -> AppAccount {
         guard let user = users[username] else { throw AccountError.expired }
-        return AppAccount(id: "preview-password-\(username)", provider: method, nickname: user.nickname,
-            avatar: user.avatar, hasPassword: true, weChatBound: user.bound, username: username)
+        return AppAccount(id: user.accountID ?? "preview-password-\(username)", provider: method, nickname: user.nickname,
+            avatar: user.avatar, hasPassword: user.hasPassword, weChatBound: user.bound,
+            username: user.hasPassword ? username : nil)
     }
     private func issue(_ username: String, method: String = "password") throws -> AccountSession {
         let token = UUID().uuidString
@@ -73,6 +81,15 @@ actor PasswordAuthenticationPreview: AccountServing {
         guard users[username] == nil else { throw AccountError.usernameTaken }
         users[username] = User(password: password, recoveryCode: initialCode)
         return PasswordRegistration(session: try issue(username), recoveryCode: initialCode)
+    }
+    func setupPassword(token: String, username: String, password: String) async throws -> PasswordRegistration {
+        guard let current = sessions[token], var user = users[current.username],
+              current.method == "wechat", !user.hasPassword else { throw AccountError.passwordAlreadySet }
+        guard users[username] == nil else { throw AccountError.usernameTaken }
+        user.password = password; user.recoveryCode = initialCode; user.hasPassword = true
+        user.accountID = user.accountID ?? "preview-password-\(current.username)"
+        revoke(current.username); users[current.username] = nil; users[username] = user
+        return PasswordRegistration(session: try issue(username, method: "wechat"), recoveryCode: initialCode)
     }
     func loginPassword(username: String, password: String) async throws -> AccountSession {
         if delaysLogin { try await Task.sleep(for: .seconds(10)) }

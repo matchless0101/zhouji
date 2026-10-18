@@ -31,6 +31,7 @@ private actor AccountStub: AccountServing {
     }
 
     func registerPassword(username: String, password: String) async throws -> PasswordRegistration { throw AccountError.unavailable }
+    func setupPassword(token: String, username: String, password: String) async throws -> PasswordRegistration { throw AccountError.unavailable }
     func loginPassword(username: String, password: String) async throws -> AccountSession { throw AccountError.unavailable }
     func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial { throw AccountError.unavailable }
     func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession { throw AccountError.unavailable }

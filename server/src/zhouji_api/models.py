@@ -16,7 +16,7 @@ accounts = Table('auth_accounts', metadata,
     Column('verified_at', BigInteger, nullable=False),
     Column('nickname', String(20), nullable=False, server_default='粥记用户'),
     Column('avatar', String(16), nullable=False, server_default='sunrise'),
-    CheckConstraint("(provider = 'apple' AND apple_subject IS NOT NULL AND apple_refresh_encrypted IS NOT NULL AND wechat_subject IS NULL AND wechat_refresh_encrypted IS NULL) OR (provider = 'wechat' AND wechat_subject IS NOT NULL AND wechat_refresh_encrypted IS NOT NULL AND apple_subject IS NULL AND apple_refresh_encrypted IS NULL) OR (provider = 'password' AND apple_subject IS NULL AND apple_refresh_encrypted IS NULL AND ((wechat_subject IS NULL AND wechat_refresh_encrypted IS NULL) OR (wechat_subject IS NOT NULL AND wechat_refresh_encrypted IS NOT NULL)))", name='auth_account_one_provider'),
+    CheckConstraint("(provider = 'apple' AND apple_subject IS NOT NULL AND apple_refresh_encrypted IS NOT NULL AND wechat_subject IS NULL AND wechat_refresh_encrypted IS NULL) OR (provider IN ('wechat', 'password') AND apple_subject IS NULL AND apple_refresh_encrypted IS NULL AND ((wechat_subject IS NULL AND wechat_refresh_encrypted IS NULL) OR (wechat_subject IS NOT NULL AND wechat_refresh_encrypted IS NOT NULL)))", name='auth_account_one_provider'),
 )
 sessions = Table('auth_sessions', metadata,
     Column('token_hash', identifier(64), primary_key=True),

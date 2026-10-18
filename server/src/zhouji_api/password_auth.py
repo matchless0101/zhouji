@@ -101,6 +101,37 @@ def lock_credential(conn, account_id, snapshot, *, field='password_hash'):
 def password_router(database, session_service, limits):
     router = APIRouter()
 
+    def require_recent_wechat(session, account):
+        if account['provider'] != 'wechat' or session['auth_method'] != 'wechat' or account['wechat_subject'] is None:
+            raise auth_failure(409, 'wechat_setup_unavailable', '请使用原微信账户登录后设置用户名密码')
+        if session['created_at'] < int(time.time()) - 600:
+            raise auth_failure(403, 'recent_wechat_login_required', '为保护账户，请退出后重新微信登录，再设置用户名密码')
+
+    @router.post('/account/password/setup')
+    def setup(body: LoginBody, request: Request, authorization: str | None = Header(default=None)):
+        limits.check('security_ip', request_source(request))
+        session, account = session_service.authenticate(authorization)
+        require_recent_wechat(session, account)
+        if read_password(database, account_id=account['id']):
+            raise auth_failure(409, 'password_already_set', '此账户已设置用户名密码，请使用修改密码')
+        hashed, code = passwords.hash_password(body.password), passwords.new_recovery_code()
+        try:
+            with database.begin() as conn:
+                session, account = session_service.authenticate(authorization, conn, lock=True)
+                require_recent_wechat(session, account)
+                if conn.execute(select(password_credentials.c.account_id).where(
+                        password_credentials.c.account_id == account['id'])).first():
+                    raise auth_failure(409, 'password_already_set', '此账户已设置用户名密码，请使用修改密码')
+                conn.execute(insert(password_credentials).values(account_id=account['id'], username=body.username,
+                    password_hash=hashed, recovery_hash=passwords.recovery_digest(code), updated_at=int(time.time())))
+                conn.execute(delete(sessions).where(sessions.c.account_id == account['id']))
+                result = session_service.issue_locked(conn, account['id'], 'wechat')
+        except IntegrityError:
+            if read_password(database, username=body.username):
+                raise auth_failure(409, 'username_taken', '此用户名已被使用') from None
+            raise
+        return {'session': result, 'recovery_code': code}
+
     @router.post('/auth/password/register')
     def register(body: LoginBody, request: Request):
         source = request_source(request)

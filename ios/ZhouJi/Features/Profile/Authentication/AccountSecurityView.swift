@@ -2,10 +2,11 @@ import Observation
 import SwiftUI
 
 enum AccountSecurityAction: String, Hashable {
-    case changePassword, rotateRecovery, bindWeChat, unbindWeChat
+    case setupPassword, changePassword, rotateRecovery, bindWeChat, unbindWeChat
 
     var title: String {
         switch self {
+        case .setupPassword: "设置用户名和密码"
         case .changePassword: "修改密码"
         case .rotateRecovery: "更新恢复码"
         case .bindWeChat: "绑定微信"
@@ -28,14 +29,18 @@ struct AccountSecurityView: View {
     var body: some View {
         Group {
             if let material = flow.recovery {
-                RecoveryCodeView(material: material) { flow.recovery = nil; flow.path = [] }
+                RecoveryCodeView(material: material) {
+                    if account.registrationRecovery == material { account.finishSavingRegistrationRecovery() }
+                    flow.recovery = nil; flow.path = []
+                    if account.account == nil { dismiss() }
+                }
             } else {
                 navigation
             }
         }
         .interactiveDismissDisabled()
         .onChange(of: account.account == nil) { _, signedOut in
-            if signedOut { flow.recovery = nil; flow.path = []; dismiss() }
+            if signedOut && flow.recovery == nil { flow.path = []; dismiss() }
         }
         .onAppear { account.refreshWeChatAvailability(); account.message = nil }
     }
@@ -64,11 +69,21 @@ struct AccountSecurityView: View {
                     }
                     Text("绑定和解绑不会移动或删除任务与计时记录。")
                         .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
+                } else if account.account?.canSetUpPassword == true {
+                    Text("为原微信账户设置用户名和密码，以后不安装微信也能登录同一个账户。")
+                        .font(.body).foregroundStyle(ZJTheme.ink)
+                    action(.setupPassword, identifier: "setupPassword")
+                    Text("自愿设置，不会新建账户，也不会移动或合并本机记录。首次设置需要近期微信登录，请保存完成后显示的恢复码。")
+                        .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
                 }
             }
             .navigationDestination(for: AccountSecurityAction.self) { action in
-                SecurityActionView(action: action, onDone: { flow.path = [] }, flow: flow)
-                    .id(action)
+                if action == .setupPassword {
+                    PasswordSetupView(flow: flow)
+                } else {
+                    SecurityActionView(action: action, onDone: { flow.path = [] }, flow: flow)
+                        .id(action)
+                }
             }
         }
     }
@@ -147,6 +162,7 @@ private struct SecurityActionView: View {
         Task {
             let succeeded: Bool
             switch action {
+            case .setupPassword: succeeded = false // Routed to its own first-time setup form.
             case .changePassword: succeeded = await account.changePassword(password: password, newPassword: newPassword)
             case .rotateRecovery:
                 if let material = await account.rotateRecoveryCode(password: password) {
@@ -158,5 +174,44 @@ private struct SecurityActionView: View {
             }
             if succeeded { password = ""; newPassword = ""; confirmation = ""; onDone() }
         }
+    }
+}
+
+private struct PasswordSetupView: View {
+    @Environment(AccountStore.self) private var account
+    let flow: AccountSecurityFlow
+    @State private var username = ""
+    @State private var password = ""
+    @State private var confirmation = ""
+
+    var body: some View {
+        AuthenticationPage(title: "设置用户名和密码", subtitle: "还是原来的账户，多一种登录方式。") {
+            PrintedUsernameField(text: $username, identifier: "account.password.setup.username")
+            PrintedPasswordField(title: "密码", text: $password, identifier: "account.password.setup.password", isNew: true)
+            PrintedPasswordField(title: "确认密码", text: $confirmation, identifier: "account.password.setup.confirmation", isNew: true)
+            Text("用户名为 4–32 位英文字母、数字或下划线，设置后暂不支持修改；密码为 15–128 个字符。")
+                .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
+            if !confirmation.isEmpty && confirmation != password {
+                Text("两次输入的密码不一致。")
+                    .font(.footnote).foregroundStyle(ZJTheme.accent)
+            }
+            Text("设置后将保留原账户和本机记录，微信仍可登录。其他设备需重新登录，请保存接下来显示的恢复码。")
+                .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
+            AuthenticationStatus()
+            Button("设置并保存恢复码") {
+                Task {
+                    if let material = await account.setupPassword(username: username, password: password) {
+                        password = ""; confirmation = ""
+                        flow.recovery = material
+                    }
+                }
+            }
+            .buttonStyle(ZJPrintedButtonStyle())
+            .disabled(account.isBusy || !PasswordCredentials.isValidUsername(username)
+                || !PasswordCredentials.isValidPassword(password) || password != confirmation)
+            .accessibilityIdentifier("account.password.setup.submit")
+        }
+        .interactiveDismissDisabled(account.isBusy)
+        .onDisappear { password = ""; confirmation = "" }
     }
 }

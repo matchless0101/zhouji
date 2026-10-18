@@ -43,12 +43,18 @@ struct ZhouJiApp: App {
             if ProcessInfo.processInfo.arguments.contains("-ZJPasswordAuthFixture") {
                 let bound = ProcessInfo.processInfo.arguments.contains("-ZJBoundPasswordFixture")
                 let slow = ProcessInfo.processInfo.arguments.contains("-ZJPasswordSlowFixture")
+                let independent = ProcessInfo.processInfo.arguments.contains("-ZJIndependentWeChatFixture")
                 if bound {
                     storage.value = AccountSession(token: "preview-bound-session", expiresAt: Date.now.timeIntervalSince1970 + 3600,
                         account: AppAccount(id: "preview-password-sample_user", provider: "wechat", hasPassword: true,
                                             weChatBound: true, username: "sample_user"))
                 }
-                return AccountStore(api: PasswordAuthenticationPreview(seedBoundAccount: bound || slow, delaysLogin: slow), storage: storage, checksAppleCredential: false,
+                if independent {
+                    storage.value = AccountSession(token: "preview-independent-session", expiresAt: Date.now.timeIntervalSince1970 + 3600,
+                        account: AppAccount(id: "preview-independent-wechat", provider: "wechat", weChatBound: true))
+                }
+                return AccountStore(api: PasswordAuthenticationPreview(seedBoundAccount: bound || slow, delaysLogin: slow,
+                    seedIndependentWeChat: independent), storage: storage, checksAppleCredential: false,
                     weChat: PasswordPreviewWeChat(available: ProcessInfo.processInfo.arguments.contains("-ZJWeChatAvailable")), libraries: libraries)
             }
             if ProcessInfo.processInfo.arguments.contains("-ZJIsolationSampleData") {
@@ -218,6 +224,7 @@ private actor LibraryPreviewAPI: AccountServing {
     init(profile: AppAccount) { self.profile = profile }
 
     func registerPassword(username: String, password: String) async throws -> PasswordRegistration { throw AccountError.unavailable }
+    func setupPassword(token: String, username: String, password: String) async throws -> PasswordRegistration { throw AccountError.unavailable }
     func loginPassword(username: String, password: String) async throws -> AccountSession { throw AccountError.unavailable }
     func recoverPassword(username: String, recoveryCode: String, newPassword: String) async throws -> RecoveryMaterial { throw AccountError.unavailable }
     func changePassword(token: String, password: String, newPassword: String) async throws -> AccountSession { throw AccountError.unavailable }

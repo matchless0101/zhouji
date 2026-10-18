@@ -123,6 +123,12 @@ python3.12 -m venv .venv
 
 接口实现依据：[Apple 用户验证](https://developer.apple.com/documentation/signinwithapple/verifying-a-user)、[Apple 账户注销与令牌撤销](https://developer.apple.com/documentation/technotes/tn3194-handling-account-deletions-and-revoking-tokens-for-sign-in-with-apple)、[PyJWT](https://pyjwt.readthedocs.io/en/stable/)。
 
+## 原微信账户补设用户名密码（2026-10-18，待部署）
+
+新增 `POST /api/v1/account/password/setup`：Bearer 微信会话加 `username/password`，仅允许尚无密码的原微信账户首次设置，且微信登录须在最近 10 分钟内。返回原账户的替换会话和一次性恢复码；账户 ID、资料与记录库不变，原微信登录保留，其他会话撤销。用户名占用、重复设置或会话失效不会覆盖凭据。用户自愿设置，不自动合并独立账户。
+
+发布前须备份并执行一次 `migrations/007_wechat_password_setup.sql`，再发布本次后端。007 只调整账户身份约束，使原微信账户补设密码后可按现有密码验证规则解绑微信，不改写已有账户。隔离 MySQL 已验证从 006 升级、账户保持及并发设置；生产仍为下述 006 版本，不能把本地代码完成视为部署完成。
+
 ## 用户名密码与微信绑定增量（2026-10-17）
 
 生产已部署 `username-auth-20261017-01`（代码 `7f6e1fd`），迁移 006 已执行；正式服务器隔离测试 102 项、正式 HTTPS 检查 35 项通过，临时账户已注销。迁移、备份、回退和实际验证范围见 [交付验证记录](../docs/releases/2026-10-17/username-auth-validation.md)。真实第三方授权与新版 App 真机流程仍需分别验收。
