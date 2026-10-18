@@ -11,6 +11,8 @@
 | 服务 | Ubuntu 24.04 / 系统 Nginx，纯静态文件 |
 | 发布根目录 | `/var/www/zhouji-site` |
 | 当前目录 | `/var/www/zhouji-site/current`，软链接到发布版本 |
+| 当前发布版本 | `/var/www/zhouji-site/releases/20261017-username-auth`，用户名登录隐私说明 |
+| 前一发布版本 | `/var/www/zhouji-site/releases/20261003-privacy-build2` |
 | 首次发布版本 | `/var/www/zhouji-site/releases/7cc1dcc` |
 | Universal Links 发布版本 | `/var/www/zhouji-site/releases/20260910-universal-links` |
 | Nginx 配置 | `/etc/nginx/sites-available/zhouji-site`，软链接启用于 `sites-enabled` |
@@ -20,6 +22,8 @@
 | 日志 | `/var/log/nginx/zhouji-site.access.log`、`zhouji-site.error.log` |
 
 `nginx.conf`、`reload-nginx.sh` 与服务器安装内容一致。只新增粥记站点，复用已有 Nginx 和 Certbot，不需要应用进程、数据库或容器。HTTP 跳转到 HTTPS；ACME 校验路径保持可访问。静态内容要求浏览器重新验证缓存，避免更新后仍显示旧布局。
+
+2026-10-17 经用户授权更新隐私页：复制前一线上版本，仅覆盖 `privacy/index.html`，其余 8 个文件摘要不变；官网、`/wechat/`、隐私页和两个 AASA 地址均经正式 HTTPS 验证。未修改 Nginx、证书或关联域名配置。备份、摘要与后端同步发布记录见 [用户名账户交付与验证](../../docs/releases/2026-10-17/username-auth-validation.md)。
 
 ## 后续更新
 
