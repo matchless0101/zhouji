@@ -132,7 +132,7 @@ private struct TimerDial: View {
                     }
                 VStack(spacing: 8) {
                     Text(elapsedText)
-                        .font(.system(size: timerFontSize, weight: .semibold, design: .rounded))
+                        .font(.system(size: timerFontSize, weight: .semibold, design: ZJTheme.numberDesign))
                         .monospacedDigit()
                         .minimumScaleFactor(0.25)
                         .lineLimit(1)

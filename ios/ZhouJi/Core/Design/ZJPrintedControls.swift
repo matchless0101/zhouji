@@ -6,6 +6,11 @@ struct ZJInkGrain: View {
     var color = ZJTheme.onAccent.opacity(0.30)
 
     var body: some View {
+        // Ink gaps belong to the printed style only; tech controls stay flat.
+        if ZJTheme.style == .printed { grain }
+    }
+
+    private var grain: some View {
         Canvas { context, size in
             var seed: UInt64 = 0x5A17
             for index in 0..<count {
@@ -68,6 +73,7 @@ struct ZJPaperHeader: View {
                 Image(decorative: illustration)
                     .resizable()
                     .scaledToFit()
+                    .zjIllustrationTone()
                     .containerRelativeFrame(.horizontal) { width, _ in
                         max(0, width - ZJTheme.pagePadding * 2) * 0.49
                     }

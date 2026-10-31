@@ -133,6 +133,7 @@ struct ProfileView: View {
             Image("LiuliPostcard")
                 .resizable()
                 .scaledToFit()
+                .zjIllustrationTone()
             Text("MORE\nGOOD\nDAYS.")
                 .font(ZJTheme.handwriting(15, relativeTo: .body))
                 .tracking(1)
@@ -174,6 +175,7 @@ struct ProfileView: View {
                             Image(decorative: "LiuliOverview")
                                 .resizable()
                                 .scaledToFit()
+                                .zjIllustrationTone()
                                 .allowsHitTesting(false)
                         }
                     }
@@ -319,6 +321,10 @@ private struct ProfilePreferencesView: View {
 
     private var settingsCard: some View {
         VStack(spacing: 0) {
+            VisualStyleSwitch()
+
+            settingDivider
+
             ProfileSettingRow(
                 title: "数据与存储",
                 detail: "本机存储 · \(tasks.count) 项任务",
@@ -390,7 +396,7 @@ private struct ProfileMetricRow: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             Text(value)
-                .font(.system(.title, design: .rounded, weight: .semibold))
+                .font(.system(.title, design: ZJTheme.numberDesign, weight: .semibold))
                 .monospacedDigit()
                 .minimumScaleFactor(0.65)
                 .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
@@ -445,6 +451,56 @@ struct ProfileSettingRow: View {
     }
 }
 
+/// Switches between the printed paper look and the monochrome tech look; the choice stays on this device.
+private struct VisualStyleSwitch: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        let current = ZJTheme.style
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "circle.lefthalf.filled")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(ZJTheme.success)
+                    .frame(width: 32, height: 36)
+                    .accessibilityHidden(true)
+                Text("视觉风格")
+                    .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
+                    .foregroundStyle(ZJTheme.ink)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            let layout = dynamicTypeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(spacing: 8))
+                : AnyLayout(HStackLayout(spacing: 8))
+            layout {
+                ForEach(ZJVisualStyle.allCases) { style in
+                    let isSelected = style == current
+                    Button {
+                        ZJAppearance.shared.select(style)
+                    } label: {
+                        Text(style.title)
+                            .font(ZJTheme.handwriting(18, relativeTo: .subheadline).weight(.bold))
+                            .foregroundStyle(isSelected ? ZJTheme.onAccent : ZJTheme.ink)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .background(isSelected ? ZJTheme.accent : ZJTheme.surface.opacity(0.65),
+                                        in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
+                                    .stroke(isSelected ? ZJTheme.accent : ZJTheme.divider, lineWidth: 1)
+                            }
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(isSelected ? .isSelected : [])
+                    .accessibilityIdentifier("profile.visualStyle.\(style.rawValue)")
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 16)
+    }
+}
+
 enum ZJAppVersion {
     static var display: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
@@ -466,6 +522,7 @@ private struct AboutZhouJiView: View {
                         Image(decorative: "LiuliAbout")
                             .resizable()
                             .scaledToFit()
+                            .zjIllustrationTone()
                             .frame(maxWidth: 300)
                             .allowsHitTesting(false)
                     }
@@ -475,7 +532,7 @@ private struct AboutZhouJiView: View {
                         Text("一粥又一周")
                             .font(ZJTheme.handwriting(30, relativeTo: .title).weight(.bold))
                             .overlay(alignment: .bottom) {
-                                Capsule().fill(Color(red: 0.86, green: 0.65, blue: 0.29))
+                                Capsule().fill(ZJTheme.style == .tech ? ZJTheme.secondaryInk : Color(red: 0.86, green: 0.65, blue: 0.29))
                                     .overlay { ZJInkGrain(count: 250).clipShape(Capsule()) }
                                     .frame(height: 4)
                                     .rotationEffect(.degrees(-3))

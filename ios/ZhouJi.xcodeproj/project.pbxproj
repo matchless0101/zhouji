@@ -19,6 +19,8 @@
 		23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763FEDE98326909204980EF0 /* TodoTask.swift */; };
 		2524B1DD4C673F8045AFDE16 /* BackupSafetyStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05119D1B6E9E9B45459F856F /* BackupSafetyStore.swift */; };
 		28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */; };
+		2A78F62FFC4A4306BCB80199 /* VisualStyleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A4C013EB7372A35B3BA975E /* VisualStyleTests.swift */; };
+		2CBE03B91D845E03A0E0CA2B /* ZJAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F5A148C2C470F08588761E0 /* ZJAppearance.swift */; };
 		3199BD765334BDE59B25A752 /* CalendarFactsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4ACFB20D669D14E2A2592B0 /* CalendarFactsTests.swift */; };
 		333BCCF1F7F99F2A6D3373F1 /* CalendarFactsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB63D14AFCD7240544E32093 /* CalendarFactsService.swift */; };
 		34CD4676D9BFEB56071F8432 /* GoalService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6168DF05F9358B91A840E301 /* GoalService.swift */; };
@@ -140,10 +142,12 @@
 		760666CB6E383348C6C86675 /* WeChatLogin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatLogin.swift; sourceTree = "<group>"; };
 		763FEDE98326909204980EF0 /* TodoTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoTask.swift; sourceTree = "<group>"; };
 		77E56FF2F74CD5235A7FC624 /* PasswordCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordCredentials.swift; sourceTree = "<group>"; };
+		7F5A148C2C470F08588761E0 /* ZJAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJAppearance.swift; sourceTree = "<group>"; };
 		8033D5698F8AA8FC76E2BA1C /* SyncJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncJournal.swift; sourceTree = "<group>"; };
 		8200A7EA922F71B190159019 /* TimerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSheet.swift; sourceTree = "<group>"; };
 		829799941FF4C1F500C5CD01 /* ZhouJiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZhouJiApp.swift; sourceTree = "<group>"; };
 		82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyDataFixtures.swift; sourceTree = "<group>"; };
+		8A4C013EB7372A35B3BA975E /* VisualStyleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisualStyleTests.swift; sourceTree = "<group>"; };
 		8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerControllerTests.swift; sourceTree = "<group>"; };
 		9044BEDD04665F95B062D30A /* AccountStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountStore.swift; sourceTree = "<group>"; };
 		937DAF8D291A12BC3EC69B76 /* LocalLibraryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalLibraryTests.swift; sourceTree = "<group>"; };
@@ -269,6 +273,7 @@
 		4C1DCDD978533A27FD116B74 /* Design */ = {
 			isa = PBXGroup;
 			children = (
+				7F5A148C2C470F08588761E0 /* ZJAppearance.swift */,
 				C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */,
 				0D032AC673934E36E5478F72 /* ZJPrintedControls.swift */,
 				F9FE7B80BB92D300651E1455 /* ZJTheme.swift */,
@@ -307,6 +312,7 @@
 				8F165D8A0E99F1AD7069278D /* TimerControllerTests.swift */,
 				CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */,
 				0F083E4A7C5DDBEB06F73306 /* V3StatisticsTests.swift */,
+				8A4C013EB7372A35B3BA975E /* VisualStyleTests.swift */,
 				EF7C4426D672D8A7D492D5D2 /* WeChatLoginTests.swift */,
 			);
 			path = ZhouJiTests;
@@ -663,6 +669,7 @@
 				AF6738630FD3D445014B99DE /* TodayView.swift in Sources */,
 				23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */,
 				52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */,
+				2CBE03B91D845E03A0E0CA2B /* ZJAppearance.swift in Sources */,
 				F8C6377B6C6222B95E0393D5 /* ZJIllustration.swift in Sources */,
 				F89479371ED70C8ECFEB12BA /* ZJPrintedControls.swift in Sources */,
 				D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */,
@@ -690,6 +697,7 @@
 				39C5632CE59B486E478823A2 /* TimerControllerTests.swift in Sources */,
 				447C4DC8E04A507B5FF9E197 /* TimerMathTests.swift in Sources */,
 				719FB48A97E87EA6F7E18E0E /* V3StatisticsTests.swift in Sources */,
+				2A78F62FFC4A4306BCB80199 /* VisualStyleTests.swift in Sources */,
 				461E587FC99FA97A74AEBE8B /* WeChatLoginTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

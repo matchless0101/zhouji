@@ -1,38 +1,50 @@
 import SwiftUI
 
 enum ZJTheme {
+    static var style: ZJVisualStyle { ZJAppearance.shared.style }
+
+    private static var palette: ZJPalette { style == .tech ? .tech : .printed }
+
     static func handwriting(_ size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
-        .custom("Xiaolai", size: size, relativeTo: style)
+        // The tech style trades the hand-lettered face for the system Chinese face at an optically matched size.
+        self.style == .tech
+            ? .custom("PingFangSC-Medium", size: (size * 0.84).rounded(), relativeTo: style)
+            : .custom("Xiaolai", size: size, relativeTo: style)
     }
 
-    static let background = Color(red: 0.972, green: 0.941, blue: 0.877, opacity: 1)
+    /// Readouts use rounded digits on paper and fixed-width digits in the tech style.
+    static var numberDesign: Font.Design { style == .tech ? .monospaced : .rounded }
 
-    static let surface = Color(red: 0.994, green: 0.967, blue: 0.91, opacity: 1)
+    static var colorScheme: ColorScheme { style == .tech ? .dark : .light }
 
-    static let mutedSurface = Color(red: 0.917, green: 0.873, blue: 0.788, opacity: 1)
+    static var background: Color { palette.background }
 
-    static let ink = Color(red: 0.2, green: 0.224, blue: 0.176, opacity: 1)
+    static var surface: Color { palette.surface }
 
-    static let secondaryInk = Color(red: 0.42, green: 0.425, blue: 0.35, opacity: 1)
+    static var mutedSurface: Color { palette.mutedSurface }
 
-    static let divider = Color(red: 0.855, green: 0.806, blue: 0.712, opacity: 1)
+    static var ink: Color { palette.ink }
 
-    static let accent = Color(red: 0.753, green: 0.361, blue: 0.239, opacity: 1)
+    static var secondaryInk: Color { palette.secondaryInk }
 
-    static let accentSoft = Color(red: 0.951, green: 0.849, blue: 0.738, opacity: 1)
+    static var divider: Color { palette.divider }
 
-    static let onAccent = Color(red: 0.997, green: 0.974, blue: 0.922, opacity: 1)
+    static var accent: Color { palette.accent }
 
-    static let success = Color(red: 0.386, green: 0.463, blue: 0.322, opacity: 1)
+    static var accentSoft: Color { palette.accentSoft }
 
-    static let timerAccent = accent
+    static var onAccent: Color { palette.onAccent }
 
-    static let timerSoft = accentSoft
+    static var success: Color { palette.success }
+
+    static var timerAccent: Color { accent }
+
+    static var timerSoft: Color { accentSoft }
 
     static let pagePadding: CGFloat = 18
     static let controlHeight: CGFloat = 48
-    static let cornerRadius: CGFloat = 22
-    static let compactCornerRadius: CGFloat = 14
+    static var cornerRadius: CGFloat { style == .tech ? 10 : 22 }
+    static var compactCornerRadius: CGFloat { style == .tech ? 6 : 14 }
 
     static var pageBackground: ZJPaperBackground { ZJPaperBackground() }
 
@@ -138,4 +150,46 @@ extension View {
     func zjCard() -> some View {
         modifier(ZJCardModifier())
     }
+}
+
+/// Shared color tokens; every page reads them through `ZJTheme` instead of branching on the style.
+struct ZJPalette {
+    let background: Color
+    let surface: Color
+    let mutedSurface: Color
+    let ink: Color
+    let secondaryInk: Color
+    let divider: Color
+    let accent: Color
+    let accentSoft: Color
+    let onAccent: Color
+    let success: Color
+
+    /// Cream paper, moss green and terracotta from the Liuli printed redesign.
+    static let printed = ZJPalette(
+        background: Color(red: 0.972, green: 0.941, blue: 0.877),
+        surface: Color(red: 0.994, green: 0.967, blue: 0.91),
+        mutedSurface: Color(red: 0.917, green: 0.873, blue: 0.788),
+        ink: Color(red: 0.2, green: 0.224, blue: 0.176),
+        secondaryInk: Color(red: 0.42, green: 0.425, blue: 0.35),
+        divider: Color(red: 0.855, green: 0.806, blue: 0.712),
+        accent: Color(red: 0.753, green: 0.361, blue: 0.239),
+        accentSoft: Color(red: 0.951, green: 0.849, blue: 0.738),
+        onAccent: Color(red: 0.997, green: 0.974, blue: 0.922),
+        success: Color(red: 0.386, green: 0.463, blue: 0.322)
+    )
+
+    /// Graphite surfaces with white primary actions; secondary text stays above 7:1 on the page.
+    static let tech = ZJPalette(
+        background: Color(red: 0.051, green: 0.055, blue: 0.063),
+        surface: Color(red: 0.090, green: 0.098, blue: 0.110),
+        mutedSurface: Color(red: 0.165, green: 0.176, blue: 0.192),
+        ink: Color(red: 0.925, green: 0.933, blue: 0.941),
+        secondaryInk: Color(red: 0.616, green: 0.639, blue: 0.667),
+        divider: Color(red: 0.204, green: 0.220, blue: 0.243),
+        accent: Color(red: 0.949, green: 0.953, blue: 0.961),
+        accentSoft: Color(red: 0.149, green: 0.161, blue: 0.180),
+        onAccent: Color(red: 0.051, green: 0.055, blue: 0.063),
+        success: Color(red: 0.769, green: 0.788, blue: 0.812)
+    )
 }

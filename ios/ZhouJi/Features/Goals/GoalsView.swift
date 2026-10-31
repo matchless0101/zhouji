@@ -116,6 +116,7 @@ struct GoalsView: View {
                             .frame(width: proxy.size.width * 1.4, height: proxy.size.width * 1.4 / 1.5)
                             .frame(width: proxy.size.width, height: 255, alignment: .bottom)
                             .clipped()
+                            .zjIllustrationTone()
                     }
                     .frame(height: 255)
                     .allowsHitTesting(false)

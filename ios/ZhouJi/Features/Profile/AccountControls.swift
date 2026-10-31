@@ -31,7 +31,7 @@ struct AccountControls: View {
                                 if account.account == nil { await account.prepare() }
                             }
                         }
-                        .signInWithAppleButtonStyle(.black)
+                        .signInWithAppleButtonStyle(ZJTheme.style == .tech ? .white : .black)
                         .frame(height: 50)
                         .disabled(account.isBusy || challenge.expiresAt <= context.date.timeIntervalSince1970)
                         .accessibilityIdentifier("account.appleLogin")

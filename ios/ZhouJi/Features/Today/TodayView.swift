@@ -341,7 +341,7 @@ struct TodayView: View {
 
                 TimelineView(.periodic(from: .now, by: 1)) { context in
                     Text(TimerMath.formattedDuration(timer.elapsed(at: context.date)))
-                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                        .font(.system(.subheadline, design: ZJTheme.numberDesign, weight: .semibold))
                         .monospacedDigit()
                         .foregroundStyle(ZJTheme.ink)
                 }
@@ -453,6 +453,7 @@ private struct TodayHeader: View {
                     // Bleed the asset's transparent rim beyond the viewport without changing layout.
                     .scaleEffect(1.02)
                     .clipped()
+                    .zjIllustrationTone()
                     .accessibilityHidden(true)
                     .allowsHitTesting(false)
                     .overlay(alignment: .topLeading) {

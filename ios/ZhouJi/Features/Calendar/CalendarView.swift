@@ -50,6 +50,7 @@ struct CalendarView: View {
                             Image(decorative: "LiuliCalendarReference")
                                 .resizable()
                                 .scaledToFit()
+                                .zjIllustrationTone()
                                 .frame(maxWidth: .infinity)
                                 .accessibilityHidden(true)
                                 .allowsHitTesting(false)
@@ -146,7 +147,7 @@ struct CalendarView: View {
         let dayNumber = Calendar.current.component(.day, from: date)
         return Button { selectedDate = date } label: {
             Text("\(dayNumber)")
-                .font(.system(.callout, design: .rounded, weight: selected || today ? .semibold : .regular))
+                .font(.system(.callout, design: ZJTheme.numberDesign, weight: selected || today ? .semibold : .regular))
                 .foregroundStyle(selected ? ZJTheme.onAccent : ZJTheme.ink)
                 .frame(width: 36, height: 36)
                 .background(selected ? ZJTheme.accent : .clear, in: Circle())

@@ -550,14 +550,14 @@ private struct GoalProgressHeader: View {
                     Text("已完成")
                         .font(ZJTheme.handwriting(16, relativeTo: .subheadline))
                     Text("\(progress.completed)/\(progress.total)")
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
+                        .font(.system(.title2, design: ZJTheme.numberDesign, weight: .semibold))
                         .monospacedDigit()
                 }
 
                 Spacer(minLength: 12)
 
                 Text("\(progress.percentage)%")
-                    .font(.system(.title, design: .rounded, weight: .semibold))
+                    .font(.system(.title, design: ZJTheme.numberDesign, weight: .semibold))
                     .monospacedDigit()
             }
             .foregroundStyle(ZJTheme.ink)
@@ -624,6 +624,7 @@ private struct GoalPageHeader: View {
                     Image(decorative: illustration)
                         .resizable()
                         .scaledToFit()
+                        .zjIllustrationTone()
                         .containerRelativeFrame(.horizontal) { width, _ in
                             min(isCompact ? 124 : illustrationWidth, max(0, width - ZJTheme.pagePadding * 2) * 0.5)
                         }

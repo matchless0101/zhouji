@@ -10,6 +10,7 @@ struct ZJIllustration: View {
             .scaledToFit()
             .frame(maxWidth: .infinity)
             .frame(height: height)
+            .zjIllustrationTone()
             .accessibilityHidden(true)
             .allowsHitTesting(false)
     }
@@ -18,15 +19,32 @@ struct ZJIllustration: View {
 struct ZJPaperBackground: View {
 
     var body: some View {
+        let ink = ZJTheme.ink
+        let isTech = ZJTheme.style == .tech
         ZJTheme.background.overlay {
             Canvas { context, size in
+                if isTech {
+                    // A faint measuring grid replaces paper fibres in the tech style.
+                    let step: CGFloat = 24
+                    var grid = Path()
+                    for x in stride(from: step, to: size.width, by: step) {
+                        grid.move(to: CGPoint(x: x, y: 0))
+                        grid.addLine(to: CGPoint(x: x, y: size.height))
+                    }
+                    for y in stride(from: step, to: size.height, by: step) {
+                        grid.move(to: CGPoint(x: 0, y: y))
+                        grid.addLine(to: CGPoint(x: size.width, y: y))
+                    }
+                    context.stroke(grid, with: .color(ink.opacity(0.035)), lineWidth: 0.5)
+                    return
+                }
                 // Fixed positions keep the paper still while the surrounding views update.
                 for index in 0..<1_600 {
                     let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
                     let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
                     let side = index.isMultiple(of: 5) ? 1.2 : 0.6
                     context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
-                                 with: .color(ZJTheme.ink.opacity(0.045)))
+                                 with: .color(ink.opacity(0.045)))
                 }
             }
         }
@@ -62,14 +80,16 @@ struct ZJIcon: View {
 
     var body: some View {
         Group {
-            if let name = assetName {
+            // The tech style draws line symbols instead of the printed artwork.
+            if let name = assetName, ZJTheme.style == .printed {
                 Image(name)
                     .renderingMode(tint == nil ? .original : .template)
                     .resizable()
                     .scaledToFit()
             } else {
                 Image(systemName: systemName)
-                    .font(.system(size: size * 0.7, weight: .regular))
+                    .font(.system(size: size * (ZJTheme.style == .tech ? 0.56 : 0.7),
+                                  weight: ZJTheme.style == .tech ? .light : .regular))
             }
         }
         .foregroundStyle(tint ?? ZJTheme.success)

@@ -95,6 +95,7 @@ struct NewTaskView: View {
                     Image(decorative: "LiuliWriting")
                         .resizable()
                         .scaledToFit()
+                        .zjIllustrationTone()
                         .frame(width: min(isCompact ? 132 : 180, width * 0.43))
                         .padding(.top, isCompact ? 6 : 12)
                         .allowsHitTesting(false)
@@ -304,7 +305,8 @@ struct NewTaskView: View {
 struct TaskNavigationBackground: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> PaperController { PaperController() }
     func updateUIViewController(_ controller: PaperController, context: Context) {
-        // The paper theme is fixed; text edits must not rewrite native backgrounds.
+        // Only a visual style switch rewrites native backgrounds; text edits leave them alone.
+        controller.style = ZJTheme.style
     }
 
     final class PaperController: UIViewController {
@@ -314,19 +316,22 @@ struct TaskNavigationBackground: UIViewControllerRepresentable {
             view.isUserInteractionEnabled = false
         }
 
+        var style = ZJTheme.style {
+            didSet { if style != oldValue { applyBackground() } }
+        }
+
         override func didMove(toParent parent: UIViewController?) {
             super.didMove(toParent: parent)
             applyBackground()
         }
 
-        private static let paperColor = UIColor(ZJTheme.background)
-
         private func applyBackground() {
+            let paperColor = UIColor(ZJTheme.background)
             var ancestor = parent
             while let controller = ancestor {
                 if let tab = controller as? UITabBarController {
-                    tab.view.backgroundColor = Self.paperColor
-                    tab.selectedViewController?.view.backgroundColor = Self.paperColor
+                    tab.view.backgroundColor = paperColor
+                    tab.selectedViewController?.view.backgroundColor = paperColor
                     break
                 }
                 ancestor = controller.parent
