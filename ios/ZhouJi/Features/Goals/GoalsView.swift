@@ -63,6 +63,11 @@ struct GoalsView: View {
                         .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 6, bottom: 6, trailing: ZJTheme.pagePadding + 6))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                    } else if ZJTheme.style == .mono {
+                        goalGrid
+                            .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 2, bottom: 6, trailing: ZJTheme.pagePadding + 2))
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                     } else {
                         ForEach(filteredGoals) { goal in
                             Button {
@@ -218,6 +223,29 @@ struct GoalsView: View {
         }
     }
 
+    /// Mono lays goals out as two-column cards; deletion moves from swipe to the long-press menu.
+    private var goalGrid: some View {
+        let columnCount = dynamicTypeSize.isAccessibilitySize ? 1 : 2
+        return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnCount), spacing: 12) {
+            ForEach(filteredGoals) { goal in
+                Button {
+                    navigationPath.append(.tasks(goal))
+                } label: {
+                    GoalCard(goal: goal)
+                }
+                .buttonStyle(.plain)
+                .contextMenu {
+                    Button(role: .destructive) {
+                        pendingDeletion = goal
+                    } label: {
+                        Label("删除目标", systemImage: "trash")
+                    }
+                }
+                .accessibilityAction(named: "删除") { pendingDeletion = goal }
+            }
+        }
+    }
+
     private var addGoalControls: some View {
         VStack(spacing: 8) {
             HStack(spacing: 10) {
@@ -322,6 +350,41 @@ private struct GoalRow: View {
         .frame(minHeight: 78)
         .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
         .accessibilityElement(children: .combine)
+        .accessibilityValue("完成 \(progress.completed) 个，共 \(progress.total) 个任务，进度百分之 \(progress.percentage)")
+    }
+}
+
+private struct GoalCard: View {
+    let goal: Goal
+    private var progress: GoalProgress { GoalService.progress(for: goal) }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .top) {
+                ZJIcon(systemName: goal.displayIconName, size: 44, tint: ZJTheme.onAccent)
+                    .background(ZJTheme.accent, in: Circle())
+                Spacer(minLength: 8)
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(ZJTheme.ink)
+                    .frame(width: 32, height: 32)
+                    .background(ZJTheme.mutedSurface, in: Circle())
+                    .accessibilityHidden(true)
+            }
+            Spacer(minLength: 18)
+            Text(goal.name)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .lineLimit(2)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+        .zjCard()
+        .contentShape(RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(goal.name)
         .accessibilityValue("完成 \(progress.completed) 个，共 \(progress.total) 个任务，进度百分之 \(progress.percentage)")
     }
 }

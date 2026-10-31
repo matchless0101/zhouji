@@ -123,16 +123,22 @@ private struct TimerDial: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             let elapsedText = TimerMath.formattedDuration(timer.elapsed(at: context.date))
+            let isMono = ZJTheme.style == .mono
             ZStack {
-                // A complete decorative ring, not a countdown or a fabricated progress value.
-                Circle().strokeBorder(ZJTheme.success, lineWidth: 13)
-                    .overlay {
-                        ZJInkGrain(count: 2_000)
-                            .mask(Circle().strokeBorder(lineWidth: 13))
-                    }
+                if isMono {
+                    MonoDialFace(diameter: diameter)
+                } else {
+                    // A complete decorative ring, not a countdown or a fabricated progress value.
+                    Circle().strokeBorder(ZJTheme.success, lineWidth: 13)
+                        .overlay {
+                            ZJInkGrain(count: 2_000)
+                                .mask(Circle().strokeBorder(lineWidth: 13))
+                        }
+                }
                 VStack(spacing: 8) {
                     Text(elapsedText)
-                        .font(.system(size: timerFontSize, weight: .semibold, design: ZJTheme.numberDesign))
+                        .font(.system(size: isMono ? timerFontSize * 1.1 : timerFontSize,
+                                      weight: isMono ? .light : .semibold, design: ZJTheme.numberDesign))
                         .monospacedDigit()
                         .minimumScaleFactor(0.25)
                         .lineLimit(1)
@@ -143,7 +149,7 @@ private struct TimerDial: View {
                         .minimumScaleFactor(0.35)
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
-                .padding(24)
+                .padding(isMono ? diameter * 0.18 : 24)
             }
             .frame(width: diameter, height: diameter)
             .accessibilityElement(children: .ignore)
@@ -151,5 +157,31 @@ private struct TimerDial: View {
             .accessibilityValue(elapsedText)
             .accessibilityIdentifier("timer.elapsed")
         }
+    }
+}
+
+/// Mono draws watch-face ticks around a raised white disc; still decorative, never a countdown.
+private struct MonoDialFace: View {
+    let diameter: CGFloat
+
+    var body: some View {
+        let tickDiameter = diameter - 16
+        let circumference = CGFloat.pi * tickDiameter
+        ZStack {
+            Circle()
+                .stroke(ZJTheme.ink.opacity(0.7),
+                        style: StrokeStyle(lineWidth: 10, dash: [1.3, circumference / 60 - 1.3]))
+                .frame(width: tickDiameter, height: tickDiameter)
+            Circle()
+                .stroke(ZJTheme.ink, style: StrokeStyle(lineWidth: 16, dash: [2.2, circumference / 12 - 2.2]))
+                .frame(width: tickDiameter, height: tickDiameter)
+            Circle()
+                .fill(ZJTheme.surface)
+                .frame(width: diameter * 0.76, height: diameter * 0.76)
+                .shadow(color: .black.opacity(0.10), radius: 24, x: 0, y: 12)
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        }
+        .frame(width: diameter, height: diameter)
+        .accessibilityHidden(true)
     }
 }
