@@ -6,8 +6,8 @@ struct ZJInkGrain: View {
     var color = ZJTheme.onAccent.opacity(0.30)
 
     var body: some View {
-        // Ink gaps belong to the printed style only; tech controls stay flat.
-        if ZJTheme.style == .printed { grain }
+        // Ink gaps belong to the printed style only; monochrome controls stay flat.
+        if ZJTheme.style.isPrinted { grain }
     }
 
     private var grain: some View {

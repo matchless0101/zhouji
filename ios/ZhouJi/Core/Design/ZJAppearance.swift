@@ -6,6 +6,7 @@ import UIKit
 enum ZJVisualStyle: String, CaseIterable, Identifiable, Sendable {
     case printed
     case tech
+    case mono
 
     static let defaultsKey = "zj.visualStyle"
 
@@ -15,8 +16,15 @@ enum ZJVisualStyle: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .printed: "复古印刷"
         case .tech: "黑白科技"
+        case .mono: "黑白柔和"
         }
     }
+
+    /// Only the graphite tech style renders on a dark page.
+    var isDark: Bool { self == .tech }
+
+    /// Printed artwork, paper grain and the handwritten face belong to the default style only.
+    var isPrinted: Bool { self == .printed }
 }
 
 /// Views read the style through `ZJTheme`, so Observation re-renders every page that touched a token.
@@ -37,7 +45,7 @@ final class ZJAppearance: @unchecked Sendable {
         self.style = style
         defaults.set(style.rawValue, forKey: ZJVisualStyle.defaultsKey)
         // Sheets already on screen keep their own trait collection; align every window with the new scheme.
-        let interfaceStyle: UIUserInterfaceStyle = style == .tech ? .dark : .light
+        let interfaceStyle: UIUserInterfaceStyle = style.isDark ? .dark : .light
         for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
             for window in scene.windows { window.overrideUserInterfaceStyle = interfaceStyle }
         }
@@ -45,7 +53,7 @@ final class ZJAppearance: @unchecked Sendable {
 }
 
 extension View {
-    /// Printed artwork stays in color on paper and becomes a quiet grayscale print in the tech style.
+    /// Printed artwork stays in color on paper and becomes a quiet grayscale print in the monochrome styles.
     func zjIllustrationTone() -> some View {
         modifier(ZJIllustrationTone())
     }
@@ -53,9 +61,9 @@ extension View {
 
 private struct ZJIllustrationTone: ViewModifier {
     func body(content: Content) -> some View {
-        let isTech = ZJTheme.style == .tech
+        let style = ZJTheme.style
         content
-            .grayscale(isTech ? 1 : 0)
-            .opacity(isTech ? 0.72 : 1)
+            .grayscale(style.isPrinted ? 0 : 1)
+            .opacity(style == .tech ? 0.72 : style == .mono ? 0.85 : 1)
     }
 }

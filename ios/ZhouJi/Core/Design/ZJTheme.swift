@@ -3,19 +3,31 @@ import SwiftUI
 enum ZJTheme {
     static var style: ZJVisualStyle { ZJAppearance.shared.style }
 
-    private static var palette: ZJPalette { style == .tech ? .tech : .printed }
-
-    static func handwriting(_ size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
-        // The tech style trades the hand-lettered face for the system Chinese face at an optically matched size.
-        self.style == .tech
-            ? .custom("PingFangSC-Medium", size: (size * 0.84).rounded(), relativeTo: style)
-            : .custom("Xiaolai", size: size, relativeTo: style)
+    private static var palette: ZJPalette {
+        switch style {
+        case .printed: .printed
+        case .tech: .tech
+        case .mono: .mono
+        }
     }
 
-    /// Readouts use rounded digits on paper and fixed-width digits in the tech style.
-    static var numberDesign: Font.Design { style == .tech ? .monospaced : .rounded }
+    static func handwriting(_ size: CGFloat, relativeTo style: Font.TextStyle = .body) -> Font {
+        // The monochrome styles trade the hand-lettered face for the system Chinese face at an optically matched size.
+        self.style.isPrinted
+            ? .custom("Xiaolai", size: size, relativeTo: style)
+            : .custom("PingFangSC-Medium", size: (size * 0.84).rounded(), relativeTo: style)
+    }
 
-    static var colorScheme: ColorScheme { style == .tech ? .dark : .light }
+    /// Readouts use rounded digits on paper, fixed-width digits in the tech style and plain system digits in mono.
+    static var numberDesign: Font.Design {
+        switch style {
+        case .printed: .rounded
+        case .tech: .monospaced
+        case .mono: .default
+        }
+    }
+
+    static var colorScheme: ColorScheme { style.isDark ? .dark : .light }
 
     static var background: Color { palette.background }
 
@@ -41,10 +53,29 @@ enum ZJTheme {
 
     static var timerSoft: Color { accentSoft }
 
+    /// The block that carries "happening now" content; only mono inverts it to black.
+    static var emphasisSurface: Color { palette.emphasisSurface }
+
+    static var onEmphasis: Color { palette.onEmphasis }
+
+    static var secondaryOnEmphasis: Color { palette.secondaryOnEmphasis }
+
     static let pagePadding: CGFloat = 18
     static let controlHeight: CGFloat = 48
-    static var cornerRadius: CGFloat { style == .tech ? 10 : 22 }
-    static var compactCornerRadius: CGFloat { style == .tech ? 6 : 14 }
+    static var cornerRadius: CGFloat {
+        switch style {
+        case .printed: 22
+        case .tech: 10
+        case .mono: 24
+        }
+    }
+    static var compactCornerRadius: CGFloat {
+        switch style {
+        case .printed: 14
+        case .tech: 6
+        case .mono: 16
+        }
+    }
 
     static var pageBackground: ZJPaperBackground { ZJPaperBackground() }
 
@@ -83,13 +114,18 @@ struct ZJGoalIcon: View {
 
 private struct ZJCardModifier: ViewModifier {
     func body(content: Content) -> some View {
+        let isMono = ZJTheme.style == .mono
         content
             .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
-                    .stroke(ZJTheme.divider.opacity(0.35), lineWidth: 0.7)
+                // Mono separates layers with shadow alone.
+                if !isMono {
+                    RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous)
+                        .stroke(ZJTheme.divider.opacity(0.35), lineWidth: 0.7)
+                }
             }
-            .shadow(color: ZJTheme.secondaryInk.opacity(0.055), radius: 6, x: 0, y: 2)
+            .shadow(color: isMono ? .black.opacity(0.06) : ZJTheme.secondaryInk.opacity(0.055),
+                    radius: isMono ? 12 : 6, x: 0, y: isMono ? 6 : 2)
     }
 }
 
@@ -150,6 +186,18 @@ extension View {
     func zjCard() -> some View {
         modifier(ZJCardModifier())
     }
+
+    /// Mono turns "happening now" cards into black ink blocks; the other styles keep the regular card.
+    @ViewBuilder
+    func zjEmphasisCard() -> some View {
+        if ZJTheme.style == .mono {
+            background(ZJTheme.emphasisSurface,
+                       in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
+                .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 10)
+        } else {
+            zjCard()
+        }
+    }
 }
 
 /// Shared color tokens; every page reads them through `ZJTheme` instead of branching on the style.
@@ -164,6 +212,9 @@ struct ZJPalette {
     let accentSoft: Color
     let onAccent: Color
     let success: Color
+    let emphasisSurface: Color
+    let onEmphasis: Color
+    let secondaryOnEmphasis: Color
 
     /// Cream paper, moss green and terracotta from the Liuli printed redesign.
     static let printed = ZJPalette(
@@ -176,7 +227,10 @@ struct ZJPalette {
         accent: Color(red: 0.753, green: 0.361, blue: 0.239),
         accentSoft: Color(red: 0.951, green: 0.849, blue: 0.738),
         onAccent: Color(red: 0.997, green: 0.974, blue: 0.922),
-        success: Color(red: 0.386, green: 0.463, blue: 0.322)
+        success: Color(red: 0.386, green: 0.463, blue: 0.322),
+        emphasisSurface: Color(red: 0.994, green: 0.967, blue: 0.91),
+        onEmphasis: Color(red: 0.2, green: 0.224, blue: 0.176),
+        secondaryOnEmphasis: Color(red: 0.42, green: 0.425, blue: 0.35)
     )
 
     /// Graphite surfaces with white primary actions; secondary text stays above 7:1 on the page.
@@ -190,6 +244,26 @@ struct ZJPalette {
         accent: Color(red: 0.949, green: 0.953, blue: 0.961),
         accentSoft: Color(red: 0.149, green: 0.161, blue: 0.180),
         onAccent: Color(red: 0.051, green: 0.055, blue: 0.063),
-        success: Color(red: 0.769, green: 0.788, blue: 0.812)
+        success: Color(red: 0.769, green: 0.788, blue: 0.812),
+        emphasisSurface: Color(red: 0.090, green: 0.098, blue: 0.110),
+        onEmphasis: Color(red: 0.925, green: 0.933, blue: 0.941),
+        secondaryOnEmphasis: Color(red: 0.616, green: 0.639, blue: 0.667)
+    )
+
+    /// Light gray page, white cards and black ink blocks; #555555 secondary text keeps 6.7:1 on the page.
+    static let mono = ZJPalette(
+        background: Color(red: 0.953, green: 0.953, blue: 0.945),
+        surface: .white,
+        mutedSurface: Color(red: 0.937, green: 0.937, blue: 0.929),
+        ink: Color(red: 0.067, green: 0.067, blue: 0.067),
+        secondaryInk: Color(red: 0.333, green: 0.333, blue: 0.333),
+        divider: Color(red: 0.902, green: 0.902, blue: 0.890),
+        accent: Color(red: 0.067, green: 0.067, blue: 0.067),
+        accentSoft: Color(red: 0.937, green: 0.937, blue: 0.929),
+        onAccent: .white,
+        success: Color(red: 0.067, green: 0.067, blue: 0.067),
+        emphasisSurface: Color(red: 0.067, green: 0.067, blue: 0.067),
+        onEmphasis: .white,
+        secondaryOnEmphasis: Color(red: 0.710, green: 0.710, blue: 0.710)
     )
 }

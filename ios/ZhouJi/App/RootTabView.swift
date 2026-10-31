@@ -69,7 +69,79 @@ struct RootTabView: View {
         }
     }
 
+    @ViewBuilder
     private var navigationBar: some View {
+        if ZJTheme.style == .mono {
+            floatingNavigationBar
+        } else {
+            stripNavigationBar
+        }
+    }
+
+    /// Mono floats a labelled capsule above the page with the add action in its center.
+    private var floatingNavigationBar: some View {
+        HStack(spacing: 2) {
+            ForEach(AppTab.allCases, id: \.self) { tab in
+                if tab == .calendar { addTaskButton }
+                floatingTab(tab)
+            }
+        }
+        .padding(8)
+        .background(ZJTheme.surface, in: Capsule())
+        .shadow(color: .black.opacity(0.10), radius: 20, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 1)
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 24)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("底部导航")
+    }
+
+    private func floatingTab(_ tab: AppTab) -> some View {
+        let isSelected = selection == tab
+        return Button {
+            selection = tab
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: tab.symbol)
+                    .font(.system(size: 19, weight: isSelected ? .semibold : .regular))
+                Text(tab.title)
+                    .font(.caption2.weight(isSelected ? .bold : .medium))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(isSelected ? ZJTheme.ink : ZJTheme.secondaryInk)
+            .frame(maxWidth: .infinity, minHeight: 52)
+            .background {
+                if isSelected { Capsule().fill(ZJTheme.mutedSurface) }
+            }
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(tab.title)
+        .accessibilityIdentifier("tab.\(tab.rawValue)")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var addTaskButton: some View {
+        Button {
+            selection = .today
+            todayPath = [.newTask]
+        } label: {
+            Image(systemName: "plus")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(ZJTheme.onAccent)
+                .frame(width: 52, height: 52)
+                .background(ZJTheme.accent, in: Circle())
+                .shadow(color: .black.opacity(0.25), radius: 9, x: 0, y: 4)
+        }
+        .buttonStyle(.plain)
+        .padding(.horizontal, 4)
+        .accessibilityLabel("添加任务")
+        .accessibilityIdentifier("tab.addTask")
+    }
+
+    private var stripNavigationBar: some View {
         HStack(spacing: 0) {
             ForEach(AppTab.allCases, id: \.self) { tab in
                 Button {

@@ -73,7 +73,7 @@ struct TodayView: View {
 
                             completedTasksSection(tasks: completedTodayTasks)
 
-                            if !incompleteTasks.isEmpty {
+                            if !incompleteTasks.isEmpty && showsFloatingAddButton {
                                 floatingButtonClearance
                             }
                         }
@@ -87,7 +87,7 @@ struct TodayView: View {
                     }
                     .clipped()
                     .overlay(alignment: .bottomTrailing) {
-                        if !incompleteTasks.isEmpty {
+                        if !incompleteTasks.isEmpty && showsFloatingAddButton {
                             NavigationLink(value: TodayDestination.newTask) {
                                 Image(systemName: "plus")
                             }
@@ -245,6 +245,9 @@ struct TodayView: View {
         }
     }
 
+    /// Mono moves the add action into the center of the floating navigation capsule.
+    private var showsFloatingAddButton: Bool { ZJTheme.style != .mono }
+
     // Scrollable clearance lets the final task move above the floating button.
     // It is part of the list, so content can still scroll behind the button.
     private var floatingButtonClearance: some View {
@@ -290,16 +293,19 @@ struct TodayView: View {
                     .background {
                         Circle().fill(ZJTheme.accent)
                             .overlay {
-                                Canvas { context, size in
-                                    for index in 0..<420 {
-                                        let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
-                                        let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
-                                        let side: CGFloat = index.isMultiple(of: 5) ? 1.1 : 0.5
-                                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
-                                                     with: .color(ZJTheme.onAccent.opacity(0.22)))
+                                // Screen-print grain belongs to the printed style only.
+                                if ZJTheme.style.isPrinted {
+                                    Canvas { context, size in
+                                        for index in 0..<420 {
+                                            let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
+                                            let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
+                                            let side: CGFloat = index.isMultiple(of: 5) ? 1.1 : 0.5
+                                            context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
+                                                         with: .color(ZJTheme.onAccent.opacity(0.22)))
+                                        }
                                     }
+                                    .clipShape(Circle())
                                 }
-                                .clipShape(Circle())
                             }
                             .allowsHitTesting(false)
                     }
@@ -323,18 +329,18 @@ struct TodayView: View {
             HStack(spacing: 12) {
                 Image(systemName: timer.isRunning ? "waveform" : "pause.fill")
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ZJTheme.timerAccent)
+                    .foregroundStyle(ZJTheme.style == .mono ? ZJTheme.onEmphasis : ZJTheme.timerAccent)
                     .frame(width: 32, height: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(timer.activeSession?.taskTitleSnapshot ?? "本次计时")
                         .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(ZJTheme.ink)
+                        .foregroundStyle(ZJTheme.onEmphasis)
                         .lineLimit(1)
 
                     Text(timer.isRunning ? "正在投入" : "已经暂停")
                         .font(.caption)
-                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .foregroundStyle(ZJTheme.secondaryOnEmphasis)
                 }
 
                 Spacer()
@@ -343,12 +349,12 @@ struct TodayView: View {
                     Text(TimerMath.formattedDuration(timer.elapsed(at: context.date)))
                         .font(.system(.subheadline, design: ZJTheme.numberDesign, weight: .semibold))
                         .monospacedDigit()
-                        .foregroundStyle(ZJTheme.ink)
+                        .foregroundStyle(ZJTheme.onEmphasis)
                 }
 
                 Image(systemName: "chevron.up")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .foregroundStyle(ZJTheme.secondaryOnEmphasis)
             }
             .padding(.horizontal, ZJTheme.pagePadding)
             .padding(.vertical, 10)
@@ -356,7 +362,7 @@ struct TodayView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("查看当前计时")
-        .zjCard()
+        .zjEmphasisCard()
         .padding(.horizontal, ZJTheme.pagePadding)
     }
 

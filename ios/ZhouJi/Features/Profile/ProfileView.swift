@@ -451,7 +451,7 @@ struct ProfileSettingRow: View {
     }
 }
 
-/// Switches between the printed paper look and the monochrome tech look; the choice stays on this device.
+/// Switches between the printed paper look and the two monochrome looks; the choice stays on this device.
 private struct VisualStyleSwitch: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -532,7 +532,7 @@ private struct AboutZhouJiView: View {
                         Text("一粥又一周")
                             .font(ZJTheme.handwriting(30, relativeTo: .title).weight(.bold))
                             .overlay(alignment: .bottom) {
-                                Capsule().fill(ZJTheme.style == .tech ? ZJTheme.secondaryInk : Color(red: 0.86, green: 0.65, blue: 0.29))
+                                Capsule().fill(ZJTheme.style.isPrinted ? Color(red: 0.86, green: 0.65, blue: 0.29) : ZJTheme.secondaryInk)
                                     .overlay { ZJInkGrain(count: 250).clipShape(Capsule()) }
                                     .frame(height: 4)
                                     .rotationEffect(.degrees(-3))

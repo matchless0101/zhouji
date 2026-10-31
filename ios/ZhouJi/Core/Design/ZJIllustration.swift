@@ -20,10 +20,12 @@ struct ZJPaperBackground: View {
 
     var body: some View {
         let ink = ZJTheme.ink
-        let isTech = ZJTheme.style == .tech
+        let style = ZJTheme.style
         ZJTheme.background.overlay {
             Canvas { context, size in
-                if isTech {
+                // Mono keeps a clean flat page.
+                if style == .mono { return }
+                if style == .tech {
                     // A faint measuring grid replaces paper fibres in the tech style.
                     let step: CGFloat = 24
                     var grid = Path()
@@ -80,15 +82,15 @@ struct ZJIcon: View {
 
     var body: some View {
         Group {
-            // The tech style draws line symbols instead of the printed artwork.
-            if let name = assetName, ZJTheme.style == .printed {
+            // The monochrome styles draw line symbols instead of the printed artwork.
+            if let name = assetName, ZJTheme.style.isPrinted {
                 Image(name)
                     .renderingMode(tint == nil ? .original : .template)
                     .resizable()
                     .scaledToFit()
             } else {
                 Image(systemName: systemName)
-                    .font(.system(size: size * (ZJTheme.style == .tech ? 0.56 : 0.7),
+                    .font(.system(size: size * (ZJTheme.style.isPrinted ? 0.7 : 0.56),
                                   weight: ZJTheme.style == .tech ? .light : .regular))
             }
         }

@@ -129,7 +129,7 @@ struct GoalDetailView: View {
 
             GoalProgressHeader(progress: progress)
                 .padding(12)
-                .goalPaperCard()
+                .goalProgressCard()
                 .listRowInsets(EdgeInsets(top: 0, leading: ZJTheme.pagePadding, bottom: 14, trailing: ZJTheme.pagePadding))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
@@ -560,10 +560,10 @@ private struct GoalProgressHeader: View {
                     .font(.system(.title, design: ZJTheme.numberDesign, weight: .semibold))
                     .monospacedDigit()
             }
-            .foregroundStyle(ZJTheme.ink)
+            .foregroundStyle(ZJTheme.onEmphasis)
 
             ProgressView(value: progress.fraction)
-                .tint(ZJTheme.success)
+                .tint(ZJTheme.style == .mono ? ZJTheme.onEmphasis : ZJTheme.success)
                 .scaleEffect(x: 1, y: 3)
                 .frame(height: 12)
                 .accessibilityLabel("目标进度")
@@ -706,5 +706,15 @@ private extension View {
                     .stroke(ZJTheme.divider.opacity(0.75), lineWidth: 0.8)
                     .allowsHitTesting(false)
             }
+    }
+
+    /// The progress card becomes a black ink block in mono and stays on paper elsewhere.
+    @ViewBuilder
+    func goalProgressCard() -> some View {
+        if ZJTheme.style == .mono {
+            zjEmphasisCard()
+        } else {
+            goalPaperCard()
+        }
     }
 }
