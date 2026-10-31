@@ -545,8 +545,8 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launch()
 
-        XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
-        XCTAssertTrue(app.buttons["添加任务"].exists)
+        XCTAssertTrue(app.buttons["tab.addTask"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["tab.addTask"].isHittable)
         let firstTask = app.buttons["today.firstTask"]
         XCTAssertTrue(firstTask.isHittable)
         XCTAssertEqual(firstTask.frame.midX, app.frame.midX, accuracy: 2)
@@ -555,7 +555,6 @@ final class ZhouJiUITests: XCTestCase {
         let message = app.staticTexts["today.message"]
         XCTAssertTrue(message.isHittable)
         XCTAssertLessThan(message.frame.maxY, firstTask.frame.minY)
-        XCTAssertLessThanOrEqual(message.frame.maxX, app.frame.width * 0.6)
         saveScreenshot("today-empty-reference", app: app)
         XCTAssertFalse(app.staticTexts["今天想做点什么？"].exists)
         XCTAssertTrue(app.buttons["tab.today"].isSelected)
@@ -1062,8 +1061,9 @@ final class ZhouJiUITests: XCTestCase {
         let backButton = app.buttons["返回目标列表"]
         XCTAssertTrue(backButton.waitForExistence(timeout: 2))
         backButton.tap()
-        let goalRow = app.cells.containing(.staticText, identifier: "保持运动").element
-        goalRow.swipeLeft()
+        let goalCard = app.buttons["保持运动"]
+        XCTAssertTrue(goalCard.waitForExistence(timeout: 2))
+        goalCard.press(forDuration: 1.0)
         app.buttons["删除"].tap()
 
         let confirmDeletion = app.buttons["删除目标"]
@@ -1086,7 +1086,6 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(greeting.waitForExistence(timeout: 3))
         let originalFrame = greeting.frame
         saveScreenshot("today-scale-empty", app: app)
-        assertTodayArtworkReachesScreenEdges(in: app)
 
         app.buttons["today.firstTask"].tap()
         let field = app.textFields["今天要做什么？"]
@@ -1095,9 +1094,8 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["添加"].tap()
         XCTAssertTrue(app.staticTexts["Read one page"].waitForExistence(timeout: 3))
         saveScreenshot("today-scale-incomplete", app: app)
-        assertTodayArtworkReachesScreenEdges(in: app)
-        XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1, "添加任务后首页插画中的文字不应随场景缩小")
-        XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1, "首页场景应保持相同的横向比例")
+        XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1, "添加任务后首页标题不应缩小")
+        XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1, "首页标题应保持相同的横向位置")
         XCTAssertTrue(app.buttons["tab.today"].isHittable)
 
         let complete = app.buttons["完成任务"].firstMatch
@@ -1106,7 +1104,6 @@ final class ZhouJiUITests: XCTestCase {
         complete.tap()
         XCTAssertTrue(app.buttons["today.firstTask"].waitForExistence(timeout: 3))
         saveScreenshot("today-scale-completed", app: app)
-        assertTodayArtworkReachesScreenEdges(in: app)
         XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
         XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
 
@@ -1118,7 +1115,6 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(greeting.isHittable)
         XCTAssertEqual(greeting.frame.height, originalFrame.height, accuracy: 1)
         XCTAssertEqual(greeting.frame.minX, originalFrame.minX, accuracy: 1)
-        assertTodayArtworkReachesScreenEdges(in: app)
         let restoredCompletion = app.buttons["完成任务"].firstMatch
         for _ in 0..<3 where !restoredCompletion.isHittable { app.swipeUp() }
         XCTAssertTrue(restoredCompletion.isHittable)
@@ -1130,11 +1126,11 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launchArguments += ["-ZJPreviewSampleData", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
-        let add = app.buttons["添加任务"]
+        let add = app.buttons["tab.addTask"]
         let lastTimer = app.buttons.matching(identifier: "开始计时").element(boundBy: 2)
         XCTAssertTrue(add.waitForExistence(timeout: 3))
         let list = app.collectionViews.firstMatch
-        XCTAssertGreaterThanOrEqual(list.frame.maxY, add.frame.maxY)
+        XCTAssertLessThanOrEqual(list.frame.maxY, add.frame.minY + 1, "列表在悬浮导航上方结束")
         for _ in 0..<4 {
             if lastTimer.isHittable && !lastTimer.frame.intersects(add.frame) { break }
             list.swipeUp()
@@ -1174,7 +1170,7 @@ final class ZhouJiUITests: XCTestCase {
         saveScreenshot("today-one-task-after-completion", app: app)
 
         let start = remaining.buttons["开始计时"]
-        let add = app.buttons["添加任务"]
+        let add = app.buttons["tab.addTask"]
         let list = app.collectionViews.firstMatch
         for _ in 0..<3 where !start.isHittable || start.frame.intersects(add.frame) { list.swipeUp() }
         XCTAssertTrue(start.isHittable)
@@ -1198,7 +1194,7 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["添加"].tap()
 
         let start = app.buttons["开始计时"].firstMatch
-        let add = app.buttons["添加任务"]
+        let add = app.buttons["tab.addTask"]
         XCTAssertTrue(start.waitForExistence(timeout: 3))
         XCTAssertEqual(greeting.frame.minY, initialGreetingY, accuracy: 2,
                        "添加唯一任务后不应自动滚动首页")
@@ -1208,7 +1204,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(start.isHittable, "单项任务的计时入口应可通过手动滚动操作")
         XCTAssertFalse(start.frame.intersects(add.frame), "新增按钮不能遮住任务计时入口")
         XCTAssertTrue(list.exists)
-        XCTAssertGreaterThanOrEqual(list.frame.maxY, add.frame.maxY, "列表应延伸到悬浮加号下方，不为加号保留固定横条")
+        XCTAssertLessThanOrEqual(list.frame.maxY, add.frame.minY + 1, "列表在悬浮导航上方结束，加号不遮挡任务")
         XCTAssertLessThanOrEqual(start.frame.maxY, app.buttons["tab.today"].frame.minY)
         let beforeTimerGreetingY = greeting.frame.minY
         start.tap()
@@ -1281,8 +1277,8 @@ final class ZhouJiUITests: XCTestCase {
         dragStart.press(forDuration: 0.05,
             thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.96)))
         XCTAssertTrue(keyboard.waitForNonExistence(timeout: 3))
-        assertLightPaper(in: app)
-        assertLightPaper(in: app, sampleYFraction: 0.94)
+        assertLightPage(in: app)
+        assertLightPage(in: app, sampleYFraction: 0.94)
         saveScreenshot("new-task-keyboard-dismissed-paper", app: app)
         app.buttons["返回今天"].tap()
         XCTAssertTrue(app.buttons["tab.today"].waitForExistence(timeout: 3))
@@ -1290,7 +1286,7 @@ final class ZhouJiUITests: XCTestCase {
         for tab in ["goals", "calendar", "profile", "today"] {
             app.buttons["tab.\(tab)"].tap()
             XCTAssertTrue(app.buttons["tab.\(tab)"].isSelected)
-            assertLightPaper(in: app)
+            assertLightPage(in: app)
         }
     }
 
@@ -1339,7 +1335,7 @@ final class ZhouJiUITests: XCTestCase {
 
         createGoal(named: "完成毕业论文", in: app)
         app.buttons["tab.today"].tap()
-        app.buttons["添加任务"].tap()
+        app.buttons["tab.addTask"].tap()
 
         let goalPicker = app.buttons["today.goalPicker"]
         XCTAssertTrue(goalPicker.waitForExistence(timeout: 2))
@@ -1616,14 +1612,14 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["收起"].waitForExistence(timeout: 2))
         app.buttons["收起"].tap()
 
-        let addTask = app.buttons["添加任务"]
+        let addTask = app.buttons["tab.addTask"]
         let currentTimer = app.buttons["查看当前计时"]
         XCTAssertTrue(addTask.waitForExistence(timeout: 2))
         XCTAssertTrue(addTask.isHittable)
         XCTAssertTrue(currentTimer.isHittable)
         XCTAssertFalse(addTask.frame.intersects(currentTimer.frame))
-        XCTAssertGreaterThan(addTask.frame.midX, app.frame.midX)
-        XCTAssertLessThanOrEqual(addTask.frame.maxY, app.buttons["tab.today"].frame.minY)
+        XCTAssertEqual(addTask.frame.midX, app.frame.midX, accuracy: 2, "添加任务位于悬浮导航正中")
+        XCTAssertEqual(addTask.frame.midY, app.buttons["tab.today"].frame.midY, accuracy: 4)
         saveScreenshot("today-floating-glass-active-timer", app: app)
 
         addTask.tap()
@@ -1640,18 +1636,17 @@ final class ZhouJiUITests: XCTestCase {
             for tab in ["today", "goals", "calendar", "profile"] {
                 app.buttons["tab.\(tab)"].tap()
                 XCTAssertTrue(app.buttons["tab.\(tab)"].isSelected)
-                assertLightPaper(in: app)
+                assertLightPage(in: app)
                 saveScreenshot("fixed-light-\(legacyAppearance)-\(tab)", app: app)
             }
             openPreferences(in: app)
             XCTAssertTrue(app.buttons["关于粥记"].waitForExistence(timeout: 2))
             XCTAssertFalse(app.buttons["外观"].exists)
-            assertLightPaper(in: app)
+            assertLightPage(in: app)
             app.buttons["profile.closePanel"].tap()
-            app.buttons["tab.today"].tap()
-            app.buttons["添加任务"].tap()
+            app.buttons["tab.addTask"].tap()
             XCTAssertTrue(app.textFields["今天要做什么？"].waitForExistence(timeout: 2))
-            assertLightPaper(in: app)
+            assertLightPage(in: app)
             app.terminate()
         }
     }
@@ -1663,7 +1658,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJPreviewSampleData", "-appAppearance", "light",
                                 "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityM"]
         app.launch()
-        XCTAssertTrue(app.buttons["添加任务"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["tab.addTask"].waitForExistence(timeout: 3))
         saveScreenshot("today-light-large-text", app: app)
         app.buttons["tab.goals"].tap()
         XCTAssertTrue(app.buttons["目标筛选"].waitForExistence(timeout: 2))
@@ -1754,28 +1749,6 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    private func assertTodayArtworkReachesScreenEdges(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
-        var latestSamples: [(isRight: Bool, inset: Int, inkFraction: Double)] = []
-        // A native scroll indicator briefly covers the inner sampled columns after scrolling.
-        // Wait for the actual pixels to satisfy the same per-column requirement; clipping still times out.
-        let reachesEdges = NSPredicate { _, _ in
-            guard let samples = self.todayArtworkEdgeSamples(in: app), !samples.isEmpty else { return false }
-            latestSamples = samples
-            return samples.allSatisfy { $0.inkFraction > 0.02 }
-        }
-        let result = XCTWaiter.wait(
-            for: [XCTNSPredicateExpectation(predicate: reachesEdges, object: nil)],
-            timeout: 3
-        )
-        XCTAssertEqual(result, .completed, "首页插画应在滚动稳定后到达两侧边缘", file: file, line: line)
-        XCTAssertFalse(latestSamples.isEmpty, "Screenshot unavailable", file: file, line: line)
-        for sample in latestSamples {
-            XCTAssertGreaterThan(sample.inkFraction, 0.02,
-                                 "首页插画应到达\(sample.isRight ? "右" : "左")侧屏幕边缘，不能被列表左右留白裁切（第 \(sample.inset) 列）", file: file, line: line)
-        }
-    }
-
-    @MainActor
     private func goalArtworkTopAtMargin(in app: XCUIApplication, above bottom: CGFloat, margin: CGFloat = 14) -> CGFloat? {
         guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else { return nil }
         let width = image.width
@@ -1799,47 +1772,6 @@ final class ZhouJiUITests: XCTestCase {
             }
         }
         return nil
-    }
-
-    @MainActor
-    private func todayArtworkEdgeSamples(in app: XCUIApplication) -> [(isRight: Bool, inset: Int, inkFraction: Double)]? {
-        guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
-            return nil
-        }
-        let width = image.width
-        let height = image.height
-        var pixels = [UInt8](repeating: 0, count: width * height * 4)
-        pixels.withUnsafeMutableBytes { buffer in
-            let context = CGContext(data: buffer.baseAddress, width: width, height: height,
-                                    bitsPerComponent: 8, bytesPerRow: width * 4,
-                                    space: CGColorSpaceCreateDeviceRGB(),
-                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
-            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
-        }
-        // The reference's terracotta tabletop reaches both sides of the screen.
-        // Inspect visible pixels, so a full-size image clipped by its list row cannot pass.
-        // Include the outermost pixel: the asset's transparent rim must not leave a gap.
-        let scale = CGFloat(width) / app.frame.width
-        var samplesByColumn: [(isRight: Bool, inset: Int, inkFraction: Double)] = []
-        for isRight in [false, true] {
-            for inset in stride(from: 0, to: Int(5 * scale), by: 2) {
-                var inkPixels = 0
-                var samples = 0
-                for y in stride(from: Int(CGFloat(height) * 0.15), to: Int(CGFloat(height) * 0.7), by: 3) {
-                    let x = isRight ? width - inset - 1 : inset
-                    let offset = (y * width + x) * 4
-                    let red = Int(pixels[offset])
-                    let green = Int(pixels[offset + 1])
-                    let blue = Int(pixels[offset + 2])
-                    if red > 150 && red - green > 18 && green - blue > 12 && blue < 185 {
-                        inkPixels += 1
-                    }
-                    samples += 1
-                }
-                samplesByColumn.append((isRight, inset, Double(inkPixels) / Double(max(1, samples))))
-            }
-        }
-        return samplesByColumn
     }
 
     @MainActor
@@ -1878,7 +1810,7 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    private func assertLightPaper(in app: XCUIApplication, sampleYFraction: Double = 0.12, file: StaticString = #filePath, line: UInt = #line) {
+    private func assertLightPage(in app: XCUIApplication, sampleYFraction: Double = 0.12, file: StaticString = #filePath, line: UInt = #line) {
         guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else {
             XCTFail("Screenshot unavailable", file: file, line: line)
             return
@@ -1894,7 +1826,7 @@ final class ZhouJiUITests: XCTestCase {
             context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
         }
         // Bitmap row zero is the screenshot top. Do not flip and sample bottom artwork.
-        // Use the median to ignore individual paper specks.
+        // Use the median to ignore stray pixels.
         let sampleX = Int(Double(width) * 0.015)
         let sampleY = Int(Double(height) * sampleYFraction)
         var channels = [[Int](), [Int](), [Int]()]
@@ -1907,11 +1839,10 @@ final class ZhouJiUITests: XCTestCase {
         let red = channels[0].sorted()[24]
         let green = channels[1].sorted()[24]
         let blue = channels[2].sorted()[24]
-        XCTAssertGreaterThan(red, 200, "Expected light paper, got RGB \(red), \(green), \(blue)", file: file, line: line)
-        XCTAssertGreaterThan(green, 200, file: file, line: line)
-        XCTAssertGreaterThan(blue, 180, file: file, line: line)
-        XCTAssertGreaterThan(red, green, file: file, line: line)
-        XCTAssertGreaterThan(green, blue, file: file, line: line)
+        XCTAssertGreaterThan(red, 230, "Expected the light gray page, got RGB \(red), \(green), \(blue)", file: file, line: line)
+        XCTAssertGreaterThan(green, 230, file: file, line: line)
+        XCTAssertGreaterThan(blue, 230, file: file, line: line)
+        XCTAssertLessThanOrEqual(abs(red - blue), 8, "The page should stay neutral gray", file: file, line: line)
     }
 
     @MainActor

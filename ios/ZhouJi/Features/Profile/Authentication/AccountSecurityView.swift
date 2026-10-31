@@ -50,7 +50,7 @@ struct AccountSecurityView: View {
             AuthenticationPage(title: "账户安全", subtitle: "给自己的记录，留一把安全的钥匙。") {
                 if let current = account.account, current.hasPassword {
                     Text("用户名：\(current.username ?? "")")
-                        .font(ZJTheme.handwriting(22, relativeTo: .headline))
+                        .font(ZJTheme.titleFont(22, relativeTo: .headline))
                     action(.changePassword, identifier: "changePassword")
                     action(.rotateRecovery, identifier: "rotateRecovery")
                     if current.weChatBound {
@@ -96,7 +96,7 @@ struct AccountSecurityView: View {
                 Image(systemName: "chevron.right").font(.body)
             }
         }
-        .buttonStyle(ZJPaperButtonStyle())
+        .buttonStyle(ZJSecondaryButtonStyle())
         .disabled(account.isBusy)
         .accessibilityIdentifier("account.security.\(identifier)")
     }
@@ -114,10 +114,10 @@ private struct SecurityActionView: View {
 
     var body: some View {
         AuthenticationPage(title: action.title, subtitle: "先验证当前密码，再完成这一步。") {
-            PrintedPasswordField(title: "当前密码", text: $password, identifier: "account.security.password")
+            ZJPasswordField(title: "当前密码", text: $password, identifier: "account.security.password")
             if action == .changePassword {
-                PrintedPasswordField(title: "新密码", text: $newPassword, identifier: "account.security.newPassword", isNew: true)
-                PrintedPasswordField(title: "确认新密码", text: $confirmation, identifier: "account.security.confirmation", isNew: true)
+                ZJPasswordField(title: "新密码", text: $newPassword, identifier: "account.security.newPassword", isNew: true)
+                ZJPasswordField(title: "确认新密码", text: $confirmation, identifier: "account.security.confirmation", isNew: true)
             }
             if action == .rotateRecovery {
                 Text("更新后旧恢复码立即失效，其他设备需要重新登录。请保存新的恢复码。")
@@ -134,17 +134,17 @@ private struct SecurityActionView: View {
                 Text(action == .unbindWeChat ? "确认解绑微信？账号密码仍可使用，本机记录会保留。" : "确认替换恢复码？旧码将立即失效，请保存接下来显示的新恢复码。")
                     .font(.body).foregroundStyle(ZJTheme.ink)
                 Button(action == .unbindWeChat ? "确认解绑" : "替换恢复码") { perform() }
-                    .buttonStyle(ZJPrintedButtonStyle())
+                    .buttonStyle(ZJPrimaryButtonStyle())
                     .disabled(!canSubmit)
                 Button("取消") { confirmsAction = false }
-                    .buttonStyle(ZJPaperButtonStyle())
+                    .buttonStyle(ZJSecondaryButtonStyle())
                     .disabled(account.isBusy)
             } else {
                 Button(action.title) {
                     if action == .rotateRecovery || action == .unbindWeChat { confirmsAction = true }
                     else { perform() }
                 }
-                .buttonStyle(ZJPrintedButtonStyle())
+                .buttonStyle(ZJPrimaryButtonStyle())
                 .disabled(!canSubmit)
                 .accessibilityIdentifier("account.security.submit")
             }
@@ -186,9 +186,9 @@ private struct PasswordSetupView: View {
 
     var body: some View {
         AuthenticationPage(title: "设置用户名和密码", subtitle: "还是原来的账户，多一种登录方式。") {
-            PrintedUsernameField(text: $username, identifier: "account.password.setup.username")
-            PrintedPasswordField(title: "密码", text: $password, identifier: "account.password.setup.password", isNew: true)
-            PrintedPasswordField(title: "确认密码", text: $confirmation, identifier: "account.password.setup.confirmation", isNew: true)
+            ZJUsernameField(text: $username, identifier: "account.password.setup.username")
+            ZJPasswordField(title: "密码", text: $password, identifier: "account.password.setup.password", isNew: true)
+            ZJPasswordField(title: "确认密码", text: $confirmation, identifier: "account.password.setup.confirmation", isNew: true)
             Text("用户名为 4–32 位英文字母、数字或下划线，设置后暂不支持修改；密码为 15–128 个字符。")
                 .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
             if !confirmation.isEmpty && confirmation != password {
@@ -206,7 +206,7 @@ private struct PasswordSetupView: View {
                     }
                 }
             }
-            .buttonStyle(ZJPrintedButtonStyle())
+            .buttonStyle(ZJPrimaryButtonStyle())
             .disabled(account.isBusy || !PasswordCredentials.isValidUsername(username)
                 || !PasswordCredentials.isValidPassword(password) || password != confirmation)
             .accessibilityIdentifier("account.password.setup.submit")

@@ -162,7 +162,7 @@ struct ZhouJiApp: App {
                 .onOpenURL { accountStore.handleWeChat(url: $0) }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { accountStore.handleWeChat(activity: $0) }
                 .tint(ZJTheme.accent)
-                .preferredColorScheme(ZJTheme.colorScheme)
+                .preferredColorScheme(.light)
         }
     }
     #if DEBUG

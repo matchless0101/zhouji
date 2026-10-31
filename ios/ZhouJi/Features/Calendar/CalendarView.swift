@@ -24,37 +24,21 @@ struct CalendarView: View {
                             VStack(spacing: 14) {
                                 monthHeader
                                 monthGrid(activity: activity, now: context.date)
-                                    .background(ZJTheme.pageBackground)
-                                daySummary(facts)
-                                Color.clear
-                                    .aspectRatio(1.2, contentMode: .fit)
-                                    .padding(.horizontal, -ZJTheme.pagePadding)
-                                    .accessibilityHidden(true)
-                                    .overlay(alignment: .topTrailing) {
-                                        if viewportHeight >= 700 && !dynamicTypeSize.isAccessibilitySize {
-                                            Text("好的时光，\n都在路上。")
-                                            .font(ZJTheme.handwriting(20, relativeTo: .body))
-                                            .lineSpacing(5)
-                                            .foregroundStyle(ZJTheme.ink)
-                                            .rotationEffect(.degrees(-9))
-                                            .padding(.trailing, 28)
-                                            .padding(.top, 4)
-                                        }
-                                    }
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 12)
+                                    .zjCard()
+                                daySummary(facts, now: context.date)
+                                if viewportHeight >= 700 && !dynamicTypeSize.isAccessibilitySize {
+                                    Text("好的时光，都在路上。")
+                                        .font(.subheadline)
+                                        .foregroundStyle(ZJTheme.secondaryInk)
+                                        .padding(.top, 6)
+                                }
                             }
                             .padding(.horizontal, ZJTheme.pagePadding)
                             .padding(.top, 20)
                         }
                         .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
-                        .background(alignment: .bottom) {
-                            Image(decorative: "LiuliCalendarReference")
-                                .resizable()
-                                .scaledToFit()
-                                .zjIllustrationTone()
-                                .frame(maxWidth: .infinity)
-                                .accessibilityHidden(true)
-                                .allowsHitTesting(false)
-                        }
                     }
                 }
             }
@@ -90,41 +74,12 @@ struct CalendarView: View {
         }
     }
 
-    private var monthHeader: some View {
-        HStack {
-            Button { moveMonth(-1) } label: {
-                Image(systemName: "chevron.left").frame(width: 44, height: 44)
-            }
-            .accessibilityLabel("上个月")
-            .accessibilityIdentifier("calendar.previousMonth")
-            Spacer()
-            Button {
-                month = .now
-                selectedDate = .now
-            } label: {
-                Text(String(format: "%d.%02d", Calendar.current.component(.year, from: month), Calendar.current.component(.month, from: month)))
-                    .font(ZJTheme.handwriting(28, relativeTo: .title2))
-                    .padding(.vertical, 10)
-            }
-            .accessibilityLabel("回到今天")
-            .accessibilityIdentifier("calendar.today")
-            Spacer()
-            Button { moveMonth(1) } label: {
-                Image(systemName: "chevron.right").frame(width: 44, height: 44)
-            }
-            .accessibilityLabel("下个月")
-            .accessibilityIdentifier("calendar.nextMonth")
-        }
-        .foregroundStyle(ZJTheme.ink)
-        .buttonStyle(.plain)
-    }
-
     private func monthGrid(activity: Set<Date>, now: Date) -> some View {
         let cells = CalendarFactsService.monthDays(containing: month)
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7), spacing: 4) {
             ForEach(Array(["日", "一", "二", "三", "四", "五", "六"].enumerated()), id: \.offset) { _, title in
                 Text(title)
-                    .font(ZJTheme.handwriting(17, relativeTo: .subheadline))
+                    .font(ZJTheme.titleFont(17, relativeTo: .subheadline))
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .frame(height: 32)
                     .accessibilityHidden(true)
@@ -168,80 +123,133 @@ struct CalendarView: View {
         .accessibilityIdentifier("calendar.day.\(dayNumber)")
     }
 
-    private func daySummary(_ facts: CalendarDayFacts) -> some View {
-        Button { isDayPresented = true } label: {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("\(Calendar.current.component(.month, from: selectedDate))月\(Calendar.current.component(.day, from: selectedDate))日")
-                        .font(ZJTheme.handwriting(20, relativeTo: .headline))
+    private var monthHeader: some View {
+        let calendar = Calendar.current
+        return HStack(alignment: .center) {
+            Button {
+                month = .now
+                selectedDate = .now
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(String(calendar.component(.year, from: month)))
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                    Text("\(calendar.component(.month, from: month))月")
+                        .font(.largeTitle.weight(.bold))
                         .foregroundStyle(ZJTheme.ink)
-                        .accessibilityIdentifier("calendar.selectedDate")
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 16) { summaryMetrics(facts) }
-                        VStack(alignment: .leading, spacing: 4) { summaryMetrics(facts) }
-                    }
-                    if facts.isEmpty {
-                        Text("从一件小事开始，也很好。")
-                            .font(.caption)
-                            .foregroundStyle(ZJTheme.secondaryInk)
-                            .accessibilityIdentifier("calendar.empty")
-                    }
                 }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                    .accessibilityHidden(true)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .accessibilityLabel("回到今天")
+            .accessibilityIdentifier("calendar.today")
+            Spacer()
+            HStack(spacing: 8) {
+                Button { moveMonth(-1) } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .frame(width: 44, height: 44)
+                        .background(ZJTheme.surface, in: Circle())
+                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+                }
+                .accessibilityLabel("上个月")
+                .accessibilityIdentifier("calendar.previousMonth")
+                Button { moveMonth(1) } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ZJTheme.onAccent)
+                        .frame(width: 44, height: 44)
+                        .background(ZJTheme.accent, in: Circle())
+                }
+                .accessibilityLabel("下个月")
+                .accessibilityIdentifier("calendar.nextMonth")
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func daySummary(_ facts: CalendarDayFacts, now: Date) -> some View {
+        let calendar = Calendar.current
+        let isToday = calendar.isDate(selectedDate, inSameDayAs: now)
+        let weekday = selectedDate.formatted(.dateTime.weekday(.wide).locale(Locale(identifier: "zh_CN")))
+        return Button { isDayPresented = true } label: {
+            VStack(alignment: .leading, spacing: 18) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text("\(calendar.component(.month, from: selectedDate))月\(calendar.component(.day, from: selectedDate))日")
+                        .font(.headline.weight(.bold))
+                        .accessibilityIdentifier("calendar.selectedDate")
+                    Text(isToday ? "\(weekday) · 今天" : weekday)
+                        .font(.subheadline)
+                        .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                    Spacer(minLength: 8)
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(ZJTheme.emphasisSurface)
+                        .frame(width: 36, height: 36)
+                        .background(ZJTheme.onEmphasis, in: Circle())
+                        .accessibilityHidden(true)
+                }
+                HStack(alignment: .bottom, spacing: 12) {
+                    summaryMetric(title: "完成", value: "\(facts.completions.count) 件")
+                        .accessibilityLabel("\(facts.completions.count) 件完成")
+                        .accessibilityIdentifier("calendar.completed")
+                    summaryMetric(title: "有效投入", value: ElapsedTimeText.string(for: facts.seconds))
+                        .accessibilityLabel("有效投入 \(ElapsedTimeText.string(for: facts.seconds))")
+                        .accessibilityIdentifier("calendar.duration")
+                }
+                if facts.isEmpty {
+                    Text("这一天还没有留下记录。从一件小事开始，也很好。")
+                        .font(.caption)
+                        .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("calendar.empty")
+                }
+            }
+            .foregroundStyle(ZJTheme.onEmphasis)
+            .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .zjCard()
+            .background(ZJInkBlock())
+            .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("calendar.summary")
         .accessibilityHint("查看当天完成事项和实际投入明细")
     }
 
-    @ViewBuilder
-    private func summaryMetrics(_ facts: CalendarDayFacts) -> some View {
-        Text("\(facts.completions.count) 件完成")
-            .accessibilityIdentifier("calendar.completed")
-            .font(.subheadline)
-            .foregroundStyle(ZJTheme.secondaryInk)
-        Label {
-            Text(ElapsedTimeText.string(for: facts.seconds))
-        } icon: {
-            ZJIcon(systemName: "clock", size: 24)
+    private func summaryMetric(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+            Text(value)
+                .font(.system(.title, design: ZJTheme.numberDesign, weight: .light))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
         }
-            .accessibilityIdentifier("calendar.duration")
-            .font(.subheadline)
-            .foregroundStyle(ZJTheme.secondaryInk)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 
     private func dailyJournal(_ facts: CalendarDayFacts, now: Date) -> some View {
-        let metricsLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-            : AnyLayout(HStackLayout(spacing: 16))
+        let calendar = Calendar.current
+        let isToday = calendar.isDate(selectedDate, inSameDayAs: now)
+        let tiles = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 10))
+            : AnyLayout(HStackLayout(spacing: 10))
         return VStack(alignment: .leading, spacing: 14) {
-            Text("\(Calendar.current.component(.month, from: selectedDate))月\(Calendar.current.component(.day, from: selectedDate))日的记录")
-                .font(.headline)
+            Text("\(calendar.component(.month, from: selectedDate))月\(calendar.component(.day, from: selectedDate))日的记录")
+                .font(.title2.weight(.bold))
                 .foregroundStyle(ZJTheme.ink)
                 .accessibilityIdentifier("calendar.selectedDate")
-            metricsLayout {
-                Text("\(facts.completions.count) 件完成")
+            tiles {
+                journalTile(title: "完成", value: "\(facts.completions.count) 件", isInk: true)
+                    .accessibilityLabel("\(facts.completions.count) 件完成")
                     .accessibilityIdentifier("calendar.completed")
-                Label {
-                    Text(ElapsedTimeText.string(for: facts.seconds))
-                } icon: {
-                    ZJIcon(systemName: "clock", size: 24)
-                }
+                journalTile(title: "有效投入", value: ElapsedTimeText.string(for: facts.seconds), isInk: false)
+                    .accessibilityLabel("有效投入 \(ElapsedTimeText.string(for: facts.seconds))")
                     .accessibilityIdentifier("calendar.duration")
             }
-            .font(.subheadline)
-            .foregroundStyle(ZJTheme.secondaryInk)
-            .frame(maxWidth: .infinity, alignment: .leading)
-
             if facts.isEmpty {
                 Text("这一天还没有留下记录。\n从一件小事开始，也很好。")
                     .font(.subheadline)
@@ -251,41 +259,111 @@ struct CalendarView: View {
                     .accessibilityIdentifier("calendar.empty")
             }
             if !facts.completions.isEmpty {
-                ForEach(facts.completions) { completion in
-                    journalRow(title: completion.title, detail: completion.time.formatted(date: .omitted, time: .shortened),
-                               symbol: ZJTheme.goalSymbol(for: completion.iconName), completed: true)
+                Text("完成的事")
+                    .font(.headline)
+                    .foregroundStyle(ZJTheme.ink)
+                    .padding(.top, 8)
+                VStack(spacing: 0) {
+                    ForEach(facts.completions) { completion in
+                        HStack(spacing: 12) {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(ZJTheme.onAccent)
+                                .frame(width: 22, height: 22)
+                                .background(ZJTheme.accent, in: Circle())
+                                .accessibilityLabel("已完成")
+                            Text(completion.title)
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(ZJTheme.ink)
+                            Spacer(minLength: 8)
+                            Text(completion.time.formatted(date: .omitted, time: .shortened))
+                                .font(.subheadline)
+                                .monospacedDigit()
+                                .foregroundStyle(ZJTheme.secondaryInk)
+                        }
+                        .padding(.horizontal, 16)
+                        .frame(minHeight: 54)
+                        .accessibilityElement(children: .combine)
+                        if completion.id != facts.completions.last?.id {
+                            Divider().overlay(ZJTheme.divider).padding(.horizontal, 16)
+                        }
+                    }
                 }
+                .zjCard()
             }
             if !facts.timings.isEmpty {
-                Text("实际投入").font(.caption).foregroundStyle(ZJTheme.secondaryInk)
+                Text("投入记录")
+                    .font(.headline)
+                    .foregroundStyle(ZJTheme.ink)
+                    .padding(.top, 8)
                 ForEach(facts.timings) { timing in
-                    let isToday = Calendar.current.isDate(selectedDate, inSameDayAs: now)
-                    let status = isToday && timing.state != .finished ? (timing.state == .running ? " · 计时中" : " · 已暂停") : ""
-                    journalRow(title: timing.title,
-                               detail: [timing.goalName, ElapsedTimeText.string(for: timing.seconds) + status].compactMap { $0 }.joined(separator: " · "),
-                               symbol: "clock", completed: false)
+                    let isActive = isToday && timing.state != .finished
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(timing.title)
+                                .font(.body.weight(.semibold))
+                            Text(timing.goalName ?? "无目标")
+                                .font(.caption)
+                                .foregroundStyle(isActive ? ZJTheme.secondaryOnEmphasis : ZJTheme.secondaryInk)
+                        }
+                        Spacer(minLength: 8)
+                        if isActive {
+                            Text(timing.state == .running ? "计时中" : "已暂停")
+                                .font(.caption2.weight(.semibold))
+                                .padding(.horizontal, 9)
+                                .padding(.vertical, 4)
+                                .background(ZJTheme.onEmphasis.opacity(0.14), in: Capsule())
+                        }
+                        Text(ElapsedTimeText.string(for: timing.seconds))
+                            .font(.system(.title3, design: ZJTheme.numberDesign, weight: .light))
+                            .monospacedDigit()
+                    }
+                    .foregroundStyle(isActive ? ZJTheme.onEmphasis : ZJTheme.ink)
+                    .padding(.horizontal, 18)
+                    .frame(maxWidth: .infinity, minHeight: 66)
+                    .background {
+                        if isActive {
+                            ZJInkBlock(cornerRadius: 22)
+                        } else {
+                            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                .fill(ZJTheme.surface)
+                                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
                 }
+                Text("名称为计时开始时的快照；跨午夜的计时只计入当天部分。")
+                    .font(.caption)
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .zjCard()
     }
 
-    private func journalRow(title: String, detail: String, symbol: String, completed: Bool) -> some View {
-        HStack(spacing: 12) {
-            ZJIcon(systemName: symbol, size: 38).frame(width: 28)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(title).font(.body.weight(.medium)).foregroundStyle(ZJTheme.ink)
-                Text(detail).font(.caption).foregroundStyle(ZJTheme.secondaryInk)
-            }
-            Spacer(minLength: 0)
-            if completed {
-                Image(systemName: "checkmark.circle.fill").font(.title2).foregroundStyle(ZJTheme.success)
-                    .accessibilityLabel("已完成")
+    private func journalTile(title: String, value: String, isInk: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(isInk ? ZJTheme.secondaryOnEmphasis : ZJTheme.secondaryInk)
+            Text(value)
+                .font(.system(.title, design: ZJTheme.numberDesign, weight: .light))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .foregroundStyle(isInk ? ZJTheme.onEmphasis : ZJTheme.ink)
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+        .background {
+            if isInk {
+                RoundedRectangle(cornerRadius: 24, style: .continuous).fill(ZJTheme.emphasisSurface)
+            } else {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(ZJTheme.surface)
+                    .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
             }
         }
-        .padding(.vertical, 3)
         .accessibilityElement(children: .combine)
     }
 

@@ -13,15 +13,15 @@ struct PasswordLoginView: View {
     var body: some View {
         NavigationStack(path: $path) {
             AuthenticationPage(title: "账号登录", subtitle: "回到自己的小小记录。") {
-                PrintedUsernameField(text: $username, identifier: "account.password.login.username")
-                PrintedPasswordField(title: "密码", text: $password, identifier: "account.password.login.password")
+                ZJUsernameField(text: $username, identifier: "account.password.login.username")
+                ZJPasswordField(title: "密码", text: $password, identifier: "account.password.login.password")
                 AuthenticationStatus()
                 Button("登录") {
                     Task {
                         if await account.loginPassword(username: username, password: password) { password = ""; dismiss() }
                     }
                 }
-                .buttonStyle(ZJPrintedButtonStyle())
+                .buttonStyle(ZJPrimaryButtonStyle())
                 .disabled(account.isBusy || !PasswordCredentials.isValidUsername(username) || !PasswordCredentials.isValidPassword(password))
                 .accessibilityIdentifier("account.password.login.submit")
                 HStack {
@@ -31,7 +31,7 @@ struct PasswordLoginView: View {
                     Button("忘记密码") { account.message = nil; path.append(.recover) }
                         .accessibilityIdentifier("account.password.recoverOpen")
                 }
-                .font(ZJTheme.handwriting(18, relativeTo: .body))
+                .font(ZJTheme.titleFont(18, relativeTo: .body))
                 .frame(minHeight: 44)
                 .disabled(account.isBusy)
                 Text("未登录也可以继续记录，任务和计时默认保存在本机。")

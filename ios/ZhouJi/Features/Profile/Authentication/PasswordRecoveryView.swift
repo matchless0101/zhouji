@@ -10,19 +10,19 @@ struct PasswordRecoveryView: View {
 
     var body: some View {
         AuthenticationPage(title: "找回密码", subtitle: "用你保存的恢复码，重新回来。") {
-            PrintedUsernameField(text: $username, identifier: "account.password.recover.username")
+            ZJUsernameField(text: $username, identifier: "account.password.recover.username")
             VStack(alignment: .leading, spacing: 8) {
-                Text("恢复码").font(ZJTheme.handwriting(21, relativeTo: .headline))
+                Text("恢复码").font(ZJTheme.titleFont(21, relativeTo: .headline))
                 TextField("输入注册时保存的恢复码", text: $recoveryCode)
                     .font(.system(.body, design: .monospaced))
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
                     .privacySensitive()
-                    .padding(16).zjPaperCard()
+                    .padding(16).zjCard()
                     .accessibilityIdentifier("account.password.recover.code")
             }
-            PrintedPasswordField(title: "新密码", text: $password, identifier: "account.password.recover.password", isNew: true)
-            PrintedPasswordField(title: "确认新密码", text: $confirmation, identifier: "account.password.recover.confirmation", isNew: true)
+            ZJPasswordField(title: "新密码", text: $password, identifier: "account.password.recover.password", isNew: true)
+            ZJPasswordField(title: "确认新密码", text: $confirmation, identifier: "account.password.recover.confirmation", isNew: true)
             Text("重置后所有设备需重新登录，旧恢复码将被替换。若密码和恢复码都丢失，无法找回账户。")
                 .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
             AuthenticationStatus()
@@ -33,7 +33,7 @@ struct PasswordRecoveryView: View {
                     }
                 }
             }
-            .buttonStyle(ZJPrintedButtonStyle())
+            .buttonStyle(ZJPrimaryButtonStyle())
             .disabled(account.isBusy || !PasswordCredentials.isValidUsername(username)
                       || !PasswordCredentials.isValidRecoveryCode(recoveryCode)
                       || !PasswordCredentials.isValidPassword(password) || password != confirmation)

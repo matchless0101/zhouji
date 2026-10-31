@@ -69,17 +69,8 @@ struct RootTabView: View {
         }
     }
 
-    @ViewBuilder
+    /// A labelled capsule floats above the page with the add action in its center.
     private var navigationBar: some View {
-        if ZJTheme.style == .mono {
-            floatingNavigationBar
-        } else {
-            stripNavigationBar
-        }
-    }
-
-    /// Mono floats a labelled capsule above the page with the add action in its center.
-    private var floatingNavigationBar: some View {
         HStack(spacing: 2) {
             ForEach(AppTab.allCases, id: \.self) { tab in
                 if tab == .calendar { addTaskButton }
@@ -139,33 +130,6 @@ struct RootTabView: View {
         .padding(.horizontal, 4)
         .accessibilityLabel("添加任务")
         .accessibilityIdentifier("tab.addTask")
-    }
-
-    private var stripNavigationBar: some View {
-        HStack(spacing: 0) {
-            ForEach(AppTab.allCases, id: \.self) { tab in
-                Button {
-                    selection = tab
-                } label: {
-                    ZJIcon(systemName: tab.symbol, size: 40,
-                           tint: selection == tab ? ZJTheme.accent : ZJTheme.secondaryInk)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(tab.title)
-                .accessibilityIdentifier("tab.\(tab.rawValue)")
-                .accessibilityAddTraits(selection == tab ? .isSelected : [])
-            }
-        }
-        .padding(.top, 4)
-        .padding(.bottom, 24)
-        .background(ZJTheme.surface)
-        .overlay(alignment: .top) { ZJTheme.divider.opacity(0.45).frame(height: 0.5) }
-        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("底部导航")
     }
 
     private static var debugInitialTab: AppTab? {

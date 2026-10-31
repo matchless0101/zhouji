@@ -191,7 +191,7 @@ struct TaskNavigationBackgroundTests {
         navigation.view.backgroundColor = .green
         let destination = navigation.viewControllers[0]
         destination.view.backgroundColor = .yellow
-        let paper = TaskNavigationBackground.PaperController()
+        let paper = TaskNavigationBackground.PageBackgroundController()
         destination.addChild(paper)
         paper.didMove(toParent: destination)
         #expect(tab.view.backgroundColor == UIColor(ZJTheme.background))

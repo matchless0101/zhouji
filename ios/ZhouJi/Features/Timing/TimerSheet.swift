@@ -17,7 +17,7 @@ struct TimerSheet: View {
                 ScrollView {
                     VStack(spacing: 12) {
                         Text(timer.activeSession?.taskTitleSnapshot ?? "本次计时")
-                            .font(ZJTheme.handwriting(32, relativeTo: .title).weight(.bold))
+                            .font(ZJTheme.titleFont(32, relativeTo: .title).weight(.bold))
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                             .padding(.top, 16)
@@ -25,7 +25,7 @@ struct TimerSheet: View {
                             HStack(spacing: 8) {
                                 ZJGoalIcon(iconName: goalIcon(for: goal), size: 32)
                                 Text(goal)
-                                    .font(ZJTheme.handwriting(20, relativeTo: .subheadline))
+                                    .font(ZJTheme.titleFont(20, relativeTo: .subheadline))
                                     .foregroundStyle(ZJTheme.secondaryInk)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("timer.goal")
@@ -37,7 +37,7 @@ struct TimerSheet: View {
                                 .foregroundStyle(ZJTheme.success)
                                 .accessibilityHidden(true)
                             Text(timer.isRunning ? "正在投入" : "已经暂停")
-                                .font(ZJTheme.handwriting(20, relativeTo: .headline))
+                                .font(ZJTheme.titleFont(20, relativeTo: .headline))
                         }
                         .padding(.top, 12)
 
@@ -59,13 +59,13 @@ struct TimerSheet: View {
                     } label: {
                         Label(timer.isRunning ? "暂停" : "继续", systemImage: timer.isRunning ? "pause.fill" : "play.fill")
                     }
-                    .buttonStyle(ZJPrintedButtonStyle())
+                    .buttonStyle(ZJPrimaryButtonStyle())
                     Button {
                         if timer.finishActiveSession() { dismiss() }
                     } label: {
                         Label("结束计时", systemImage: "stop.fill")
                     }
-                    .buttonStyle(ZJPaperButtonStyle(border: ZJTheme.divider))
+                    .buttonStyle(ZJSecondaryButtonStyle())
                 }
                 .padding(.horizontal, ZJTheme.pagePadding)
                 .padding(.top, 8)
@@ -96,13 +96,13 @@ struct TimerSheet: View {
         HStack(spacing: 6) {
             ZJBackButton(label: "返回", action: dismiss.callAsFunction)
             Text("计时")
-                .font(ZJTheme.handwriting(28, relativeTo: .title).weight(.bold))
+                .font(ZJTheme.titleFont(28, relativeTo: .title).weight(.bold))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: 0)
             Button("收起", action: dismiss.callAsFunction)
-                .font(ZJTheme.handwriting(19, relativeTo: .body))
+                .font(ZJTheme.titleFont(19, relativeTo: .body))
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .foregroundStyle(ZJTheme.secondaryInk)
@@ -123,33 +123,22 @@ private struct TimerDial: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
             let elapsedText = TimerMath.formattedDuration(timer.elapsed(at: context.date))
-            let isMono = ZJTheme.style == .mono
             ZStack {
-                if isMono {
-                    MonoDialFace(diameter: diameter)
-                } else {
-                    // A complete decorative ring, not a countdown or a fabricated progress value.
-                    Circle().strokeBorder(ZJTheme.success, lineWidth: 13)
-                        .overlay {
-                            ZJInkGrain(count: 2_000)
-                                .mask(Circle().strokeBorder(lineWidth: 13))
-                        }
-                }
+                DialFace(diameter: diameter)
                 VStack(spacing: 8) {
                     Text(elapsedText)
-                        .font(.system(size: isMono ? timerFontSize * 1.1 : timerFontSize,
-                                      weight: isMono ? .light : .semibold, design: ZJTheme.numberDesign))
+                        .font(.system(size: timerFontSize * 1.1, weight: .light, design: ZJTheme.numberDesign))
                         .monospacedDigit()
                         .minimumScaleFactor(0.25)
                         .lineLimit(1)
                         .contentTransition(reduceMotion ? .identity : .numericText())
                     Text("本次投入")
-                        .font(ZJTheme.handwriting(19, relativeTo: .caption))
+                        .font(ZJTheme.titleFont(19, relativeTo: .caption))
                         .lineLimit(1)
                         .minimumScaleFactor(0.35)
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
-                .padding(isMono ? diameter * 0.18 : 24)
+                .padding(diameter * 0.18)
             }
             .frame(width: diameter, height: diameter)
             .accessibilityElement(children: .ignore)
@@ -160,8 +149,8 @@ private struct TimerDial: View {
     }
 }
 
-/// Mono draws watch-face ticks around a raised white disc; still decorative, never a countdown.
-private struct MonoDialFace: View {
+/// Watch-face ticks around a raised white disc; decorative, never a countdown or fabricated progress.
+private struct DialFace: View {
     let diameter: CGFloat
 
     var body: some View {

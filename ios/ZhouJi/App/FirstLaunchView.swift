@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A one-time paper cover over the real, already loaded today page.
+/// A one-time cover over the real, already loaded today page.
 struct FirstLaunchView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
@@ -50,12 +50,11 @@ struct FirstLaunchView: View {
                 .offset(x: width * 0.04 + 5)
             OpeningBookmark()
                 .fill(ZJTheme.accent.opacity(0.8))
-                .overlay { ZJInkGrain(count: 45).clipShape(OpeningBookmark()) }
                 .frame(width: width * 0.055, height: height * 0.13)
                 .offset(x: width * 0.825)
 
             Text("一粥又一周")
-                .font(ZJTheme.handwriting(width * 0.05, relativeTo: .subheadline))
+                .font(ZJTheme.titleFont(width * 0.05, relativeTo: .subheadline))
                 .tracking(2)
                 .foregroundStyle(ZJTheme.secondaryInk)
                 .frame(width: width)
@@ -64,7 +63,7 @@ struct FirstLaunchView: View {
                 .animation(.easeOut(duration: 0.43).delay(0.1), value: arrived)
 
             Text("把今天，\n慢慢写好。")
-                .font(ZJTheme.handwriting(width * 0.108, relativeTo: .largeTitle))
+                .font(ZJTheme.titleFont(width * 0.108, relativeTo: .largeTitle))
                 .multilineTextAlignment(.center)
                 .lineSpacing(width * 0.015)
                 .foregroundStyle(ZJTheme.ink)
@@ -74,8 +73,7 @@ struct FirstLaunchView: View {
                 .animation(.easeOut(duration: 0.43).delay(0.1), value: arrived)
 
             Capsule()
-                .fill(Color(red: 0.847, green: 0.627, blue: 0.306))
-                .overlay { ZJInkGrain(count: 28).clipShape(Capsule()) }
+                .fill(ZJTheme.ink)
                 .frame(width: width * 0.39, height: 4)
                 .scaleEffect(x: arrived ? 1 : 0, y: 1, anchor: .leading)
                 .rotationEffect(.degrees(-3))
@@ -85,13 +83,14 @@ struct FirstLaunchView: View {
             Image(decorative: "LiuliWriting")
                 .resizable()
                 .scaledToFit()
+                .zjIllustrationTone()
                 .frame(width: width * 0.96)
                 .offset(x: width * 0.02, y: height * 0.46 + (arrived ? 0 : 7))
                 .opacity(arrived ? 1 : 0)
                 .animation(.easeOut(duration: 0.44), value: arrived)
 
             Text("从一件小事开始。")
-                .font(ZJTheme.handwriting(width * 0.048, relativeTo: .subheadline))
+                .font(ZJTheme.titleFont(width * 0.048, relativeTo: .subheadline))
                 .foregroundStyle(ZJTheme.secondaryInk)
                 .frame(width: width)
                 .offset(y: height * 0.76)

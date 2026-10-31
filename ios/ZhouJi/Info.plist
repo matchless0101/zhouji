@@ -35,10 +35,6 @@
 		<string>weixinULAPI</string>
 		<string>weixinURLParamsAPI</string>
 	</array>
-	<key>UIAppFonts</key>
-	<array>
-		<string>Xiaolai-Regular.ttf</string>
-	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 	<key>ZhouJiWeChatAppID</key>

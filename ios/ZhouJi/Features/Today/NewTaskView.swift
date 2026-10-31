@@ -66,25 +66,17 @@ struct NewTaskView: View {
 
     private func pageHeader(isCompact: Bool, width: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: isCompact ? 6 : 12) {
-            Button(action: dismiss.callAsFunction) {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 22, weight: .medium))
-                    .foregroundStyle(ZJTheme.ink)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("返回今天")
+            ZJBackButton(label: "返回今天", action: dismiss.callAsFunction)
 
             HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: isCompact ? 8 : 12) {
                     Text("新建任务")
-                        .font(ZJTheme.handwriting(isCompact ? 34 : 38, relativeTo: .largeTitle).weight(.bold))
+                        .font(ZJTheme.titleFont(isCompact ? 34 : 38, relativeTo: .largeTitle).weight(.bold))
                         .foregroundStyle(ZJTheme.ink)
                         .accessibilityAddTraits(.isHeader)
 
                     Text("把想做的事，\n变成可以完成的行动。")
-                        .font(ZJTheme.handwriting(isCompact ? 15 : 17, relativeTo: .subheadline))
+                        .font(ZJTheme.titleFont(isCompact ? 15 : 17, relativeTo: .subheadline))
                         .lineSpacing(3)
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
@@ -165,7 +157,7 @@ struct NewTaskView: View {
 
     private func formLabel(_ title: String) -> some View {
         Text(title)
-            .font(ZJTheme.handwriting(18, relativeTo: .headline).weight(.bold))
+            .font(ZJTheme.titleFont(18, relativeTo: .headline).weight(.bold))
             .foregroundStyle(ZJTheme.ink)
             .padding(.bottom, 8)
     }
@@ -199,12 +191,12 @@ struct NewTaskView: View {
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(selectedGoal?.name ?? "不关联目标")
-                        .font(ZJTheme.handwriting(17, relativeTo: .body).weight(.bold))
+                        .font(ZJTheme.titleFont(17, relativeTo: .body).weight(.bold))
                         .foregroundStyle(ZJTheme.ink)
                         .lineLimit(1)
 
                     Text(selectedGoal == nil ? "稍后也可以再决定" : "任务会计入这个目标的进度")
-                        .font(ZJTheme.handwriting(13, relativeTo: .caption))
+                        .font(ZJTheme.titleFont(13, relativeTo: .caption))
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -237,7 +229,7 @@ struct NewTaskView: View {
                 .accessibilityHidden(true)
 
             Text("任务保持简单：只记录名称和归属目标。")
-                .font(ZJTheme.handwriting(14, relativeTo: .footnote))
+                .font(ZJTheme.titleFont(14, relativeTo: .footnote))
                 .fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(ZJTheme.secondaryInk)
@@ -247,33 +239,8 @@ struct NewTaskView: View {
     private var submitBar: some View {
         Button(action: createTask) {
             Text("添加任务")
-                .font(ZJTheme.handwriting(23, relativeTo: .headline))
-                .foregroundStyle(ZJTheme.onAccent)
-                .frame(maxWidth: .infinity, minHeight: 54)
-                .padding(.vertical, 2)
-                .background {
-                    RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
-                        .fill(normalizedTitle.isEmpty ? ZJTheme.secondaryInk.opacity(0.35) : ZJTheme.accent)
-                        .overlay {
-                            if !normalizedTitle.isEmpty {
-                                Canvas { context, size in
-                                    for index in 0..<650 {
-                                        let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
-                                        let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
-                                        let side: CGFloat = index.isMultiple(of: 5) ? 1.1 : 0.5
-                                        context.fill(
-                                            Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
-                                            with: .color(ZJTheme.onAccent.opacity(0.24))
-                                        )
-                                    }
-                                }
-                                .clipShape(.rect(cornerRadius: ZJTheme.cornerRadius))
-                                .allowsHitTesting(false)
-                            }
-                        }
-                }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ZJPrimaryButtonStyle())
         .disabled(normalizedTitle.isEmpty)
         .accessibilityLabel("添加")
         .padding(.horizontal, ZJTheme.pagePadding)
@@ -301,23 +268,16 @@ struct NewTaskView: View {
 }
 
 // SwiftUI's native navigation/tab containers can expose their default background
-// before the hidden tab bar finishes its transition. Keep that surface on paper.
+// before the hidden tab bar finishes its transition. Keep that surface on the page color.
 struct TaskNavigationBackground: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> PaperController { PaperController() }
-    func updateUIViewController(_ controller: PaperController, context: Context) {
-        // Only a visual style switch rewrites native backgrounds; text edits leave them alone.
-        controller.style = ZJTheme.style
-    }
+    func makeUIViewController(context: Context) -> PageBackgroundController { PageBackgroundController() }
+    func updateUIViewController(_ controller: PageBackgroundController, context: Context) {}
 
-    final class PaperController: UIViewController {
+    final class PageBackgroundController: UIViewController {
         override func loadView() {
             view = UIView()
             view.backgroundColor = .clear
             view.isUserInteractionEnabled = false
-        }
-
-        var style = ZJTheme.style {
-            didSet { if style != oldValue { applyBackground() } }
         }
 
         override func didMove(toParent parent: UIViewController?) {

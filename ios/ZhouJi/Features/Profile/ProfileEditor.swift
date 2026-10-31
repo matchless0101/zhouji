@@ -72,7 +72,7 @@ struct ProfileEditor: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
-                    ZJPaperHeader(title: "个人资料", identifier: "profile.editorHeading")
+                    ZJPageHeader(title: "个人资料", identifier: "profile.editorHeading")
                     VStack(spacing: 8) {
                         ProfileAvatarView(avatar: avatar, size: dynamicTypeSize.isAccessibilitySize ? 72 : 100)
                         Text(normalizedName.isEmpty ? "粥记用户" : normalizedName)
@@ -84,7 +84,7 @@ struct ProfileEditor: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         Text("昵称")
-                            .font(ZJTheme.handwriting(22, relativeTo: .headline).weight(.bold))
+                            .font(ZJTheme.titleFont(22, relativeTo: .headline).weight(.bold))
                         TextField("怎么称呼你", text: $nickname)
                             .font(.body)
                             .textContentType(.nickname)
@@ -93,11 +93,11 @@ struct ProfileEditor: View {
                             .onSubmit { nicknameFocused = false }
                             .padding(16)
                             .frame(minHeight: 48)
-                            .zjPaperCard()
+                            .zjCard()
                             .accessibilityLabel("昵称")
                             .accessibilityIdentifier("profile.nickname")
                         Text("1–20 个字符")
-                            .font(ZJTheme.handwriting(14, relativeTo: .footnote))
+                            .font(ZJTheme.titleFont(14, relativeTo: .footnote))
                             .foregroundStyle(ZJTheme.secondaryInk)
                         if !nameIsValid {
                             Text(AccountError.invalidProfile.localizedDescription)
@@ -110,7 +110,7 @@ struct ProfileEditor: View {
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("选择头像")
-                            .font(ZJTheme.handwriting(22, relativeTo: .headline).weight(.bold))
+                            .font(ZJTheme.titleFont(22, relativeTo: .headline).weight(.bold))
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: dynamicTypeSize.isAccessibilitySize ? 2 : 3), spacing: 10) {
                             ForEach(ProfileAvatar.allCases) { option in
                                 Button {
@@ -120,12 +120,12 @@ struct ProfileEditor: View {
                                     VStack(spacing: 4) {
                                         ProfileAvatarView(avatar: option, size: 72)
                                         Text(option.title)
-                                            .font(ZJTheme.handwriting(17, relativeTo: .caption))
+                                            .font(ZJTheme.titleFont(17, relativeTo: .caption))
                                             .foregroundStyle(ZJTheme.secondaryInk)
                                     }
                                     .padding(.vertical, 8)
                                     .frame(maxWidth: .infinity)
-                                    .zjPaperCard()
+                                    .zjCard()
                                     .overlay {
                                         if avatar == option {
                                             RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
@@ -153,7 +153,7 @@ struct ProfileEditor: View {
                         }
                     }
                     Text("昵称和头像保存在你的粥记账户中。")
-                        .font(ZJTheme.handwriting(14, relativeTo: .footnote))
+                        .font(ZJTheme.titleFont(14, relativeTo: .footnote))
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                     if let message = account.message {
@@ -185,7 +185,7 @@ struct ProfileEditor: View {
                         if account.isBusy { ProgressView().tint(ZJTheme.onAccent) }
                     }
                 }
-                .buttonStyle(ZJPrintedButtonStyle())
+                .buttonStyle(ZJPrimaryButtonStyle())
                 .disabled(account.isBusy || !nameIsValid)
                 .accessibilityIdentifier("profile.save")
                 .padding(.horizontal, ZJTheme.pagePadding)

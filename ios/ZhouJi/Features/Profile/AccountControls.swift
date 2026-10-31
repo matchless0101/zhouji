@@ -18,7 +18,7 @@ struct AccountControls: View {
                     .font(.footnote)
                     .foregroundStyle(ZJTheme.secondaryInk)
                 Button("账号登录") { showsPasswordLogin = true }
-                    .buttonStyle(ZJPrintedButtonStyle())
+                    .buttonStyle(ZJPrimaryButtonStyle())
                     .disabled(account.isBusy)
                     .accessibilityIdentifier("account.password.open")
                 if let challenge = account.challenge {
@@ -31,8 +31,9 @@ struct AccountControls: View {
                                 if account.account == nil { await account.prepare() }
                             }
                         }
-                        .signInWithAppleButtonStyle(ZJTheme.style == .tech ? .white : .black)
+                        .signInWithAppleButtonStyle(.black)
                         .frame(height: 50)
+                        .clipShape(Capsule())
                         .disabled(account.isBusy || challenge.expiresAt <= context.date.timeIntervalSince1970)
                         .accessibilityIdentifier("account.appleLogin")
                         if challenge.expiresAt <= context.date.timeIntervalSince1970 {
@@ -74,13 +75,13 @@ struct AccountControls: View {
                     Text(contentSync.isEnabled
                          ? "任务与计时默认保存在本机。仅在你主动同步后才会上传已结束的计时。"
                          : "任务与计时记录仍保存在本机，云同步尚未上线。")
-                        .font(ZJTheme.handwriting(16, relativeTo: .footnote))
+                        .font(ZJTheme.titleFont(16, relativeTo: .footnote))
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 if account.account?.hasPassword == true || account.account?.canSetUpPassword == true {
                     Button("账户安全") { securityFlow = AccountSecurityFlow(); showsSecurity = true }
-                        .buttonStyle(ZJPaperButtonStyle())
+                        .buttonStyle(ZJSecondaryButtonStyle())
                         .disabled(account.isBusy)
                         .accessibilityIdentifier("account.security.open")
                 }
@@ -88,7 +89,7 @@ struct AccountControls: View {
             AccountStatusRow()
         }
         .padding(16)
-        .zjPaperCard()
+        .zjCard()
         .sheet(isPresented: $showsPasswordLogin) { PasswordLoginView() }
         .sheet(isPresented: $showsSecurity) { AccountSecurityView(flow: securityFlow) }
         .task { account.refreshWeChatAvailability(); await account.prepare() }
@@ -106,11 +107,11 @@ struct AccountSessionActions: View {
             if account.account != nil {
                 VStack(spacing: 6) {
                     Button("退出登录") { showsLogout = true }
-                        .buttonStyle(ZJPaperButtonStyle(border: ZJTheme.secondaryInk))
+                        .buttonStyle(ZJSecondaryButtonStyle())
                         .disabled(account.isBusy)
                         .accessibilityIdentifier("account.logout")
                     Button("注销账户", role: .destructive) { showsDeletion = true }
-                        .font(ZJTheme.handwriting(17, relativeTo: .footnote))
+                        .font(ZJTheme.titleFont(17, relativeTo: .footnote))
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .disabled(account.isBusy)

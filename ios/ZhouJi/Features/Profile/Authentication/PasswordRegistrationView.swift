@@ -8,9 +8,9 @@ struct PasswordRegistrationView: View {
 
     var body: some View {
         AuthenticationPage(title: "注册账号", subtitle: "给每一点积累，一个名字。") {
-            PrintedUsernameField(text: $username, identifier: "account.password.register.username")
-            PrintedPasswordField(title: "密码", text: $password, identifier: "account.password.register.password", isNew: true)
-            PrintedPasswordField(title: "确认密码", text: $confirmation, identifier: "account.password.register.confirmation", isNew: true)
+            ZJUsernameField(text: $username, identifier: "account.password.register.username")
+            ZJPasswordField(title: "密码", text: $password, identifier: "account.password.register.password", isNew: true)
+            ZJPasswordField(title: "确认密码", text: $confirmation, identifier: "account.password.register.confirmation", isNew: true)
             Text("密码使用 15–128 个字符。用户名注册后暂不支持修改，昵称可随时调整。")
                 .font(.footnote).foregroundStyle(ZJTheme.secondaryInk)
             if !confirmation.isEmpty && password != confirmation {
@@ -25,7 +25,7 @@ struct PasswordRegistrationView: View {
                     }
                 }
             }
-            .buttonStyle(ZJPrintedButtonStyle())
+            .buttonStyle(ZJPrimaryButtonStyle())
             .disabled(account.isBusy || !PasswordCredentials.isValidUsername(username)
                       || !PasswordCredentials.isValidPassword(password) || password != confirmation)
             .accessibilityIdentifier("account.password.register.submit")

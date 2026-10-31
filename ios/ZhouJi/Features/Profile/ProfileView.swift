@@ -21,12 +21,12 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(alignment: .leading, spacing: 22) {
                     header
-                    menuCard
-                    if !dynamicTypeSize.isAccessibilitySize { postcard }
+                    if !dynamicTypeSize.isAccessibilitySize { recordCard }
+                    menu
                 }
-                .padding(.horizontal, ZJTheme.pagePadding + 6)
+                .padding(.horizontal, ZJTheme.pagePadding + 2)
                 .padding(.top, 30)
                 .padding(.bottom, 28)
             }
@@ -36,6 +36,9 @@ struct ProfileView: View {
                 Button { presentedPanel = .preferences } label: {
                     ZJIcon(systemName: "gearshape", size: 40)
                         .frame(width: 44, height: 44)
+                        .background {
+                            Circle().fill(ZJTheme.surface).shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+                        }
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("偏好设置")
@@ -57,26 +60,22 @@ struct ProfileView: View {
     }
 
     private var header: some View {
-        VStack(spacing: 12) {
+        HStack(spacing: 14) {
             if let profile = account.account {
                 let avatar = ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli
                 Button { presentedPanel = .editProfile } label: {
-                    VStack(spacing: 12) {
-                        ProfileAvatarView(avatar: avatar, size: dynamicTypeSize.isAccessibilitySize ? 88 : 112)
-                        Text(profile.displayName)
-                            .font(.title.weight(.semibold))
-                            .foregroundStyle(ZJTheme.ink)
-                            .multilineTextAlignment(.center)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Label(profile.providerName, systemImage: profile.providerIcon)
-                            .font(.caption)
-                            .foregroundStyle(ZJTheme.secondaryInk)
-                        Text("编辑个人资料")
-                            .font(ZJTheme.handwriting(17, relativeTo: .subheadline))
-                            .foregroundStyle(ZJTheme.secondaryInk)
+                    HStack(spacing: 14) {
+                        ProfileAvatarView(avatar: avatar, size: 60)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Label(profile.providerName, systemImage: profile.providerIcon)
+                                .font(.caption)
+                                .foregroundStyle(ZJTheme.secondaryInk)
+                            Text(profile.displayName)
+                                .font(.title2.weight(.bold))
+                                .foregroundStyle(ZJTheme.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -85,73 +84,168 @@ struct ProfileView: View {
                 .accessibilityValue("头像：\(avatar.title)")
                 .accessibilityIdentifier("profile.identity")
             } else {
-                ProfileAvatarView(avatar: .liuli, size: dynamicTypeSize.isAccessibilitySize ? 88 : 112)
-                Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
-                    .font(.title.weight(.semibold))
-                    .foregroundStyle(ZJTheme.ink)
-                    .multilineTextAlignment(.center)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier("profile.guestName")
+                ProfileAvatarView(avatar: .liuli, size: 60)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("你好，")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                    Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("profile.guestName")
+                }
             }
+            // Leaves room for the floating settings button.
+            Spacer(minLength: 52)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, dynamicTypeSize.isAccessibilitySize ? 42 : 22)
+        .padding(.top, 2)
     }
 
-    private var menuCard: some View {
-        VStack(spacing: 0) {
-            panelButton(.overview, title: "我的概况", symbol: "star.fill", identifier: "profile.overview")
-            menuDivider
-            panelButton(.preferences, title: "偏好设置", symbol: "leaf.fill", identifier: "profile.preferences")
+    /// Decorative stack of record cards.
+    private var recordCard: some View {
+        let isGuest = libraries.current.scope == LibraryScope.guest
+        return ZStack(alignment: .top) {
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .fill(ZJTheme.secondaryInk.opacity(0.3))
+                .frame(height: 170)
+                .padding(.leading, 34)
+                .padding(.trailing, -6)
+                .rotationEffect(.degrees(6))
+                .offset(y: -6)
+            RoundedRectangle(cornerRadius: 26, style: .continuous)
+                .fill(ZJTheme.secondaryInk)
+                .frame(height: 170)
+                .padding(.leading, 18)
+                .padding(.trailing, 2)
+                .rotationEffect(.degrees(3))
+                .offset(y: 2)
+            VStack(alignment: .leading) {
+                HStack {
+                    Text("ZHOUJI · LOCAL")
+                        .font(.caption2.weight(.bold))
+                        .tracking(2)
+                        .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                    Spacer()
+                    Text(isGuest ? "游客记录" : "账户记录")
+                        .font(.caption)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(ZJTheme.onEmphasis.opacity(0.14), in: Capsule())
+                }
+                Spacer()
+                Text("MORE GOOD DAYS.")
+                    .font(.title3.weight(.semibold))
+                    .tracking(2.5)
+            }
+            .foregroundStyle(ZJTheme.onEmphasis)
+            .padding(22)
+            .frame(maxWidth: .infinity, minHeight: 170, maxHeight: 170)
+            .background(ZJInkBlock(cornerRadius: 26))
+            .offset(y: 12)
         }
-        .zjCard()
+        .frame(height: 196)
+        .padding(.top, 6)
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
     }
 
-    private var menuDivider: some View {
-        Divider().overlay(ZJTheme.divider.opacity(0.7)).padding(.horizontal, 18)
+    private var menu: some View {
+        VStack(spacing: 10) {
+            panelButton(.overview, title: "我的概况", detail: "累计完成、本周投入与完成率",
+                            symbol: "chart.bar", isInk: true, identifier: "profile.overview")
+            panelButton(.preferences, title: "偏好设置", detail: "视觉风格、账户与记录库",
+                            symbol: "slider.horizontal.3", isInk: false, identifier: "profile.preferences")
+        }
     }
 
-    private func panelButton(_ panel: ProfilePanel, title: String, symbol: String, identifier: String) -> some View {
+    private func panelButton(_ panel: ProfilePanel, title: String, detail: String, symbol: String,
+                                 isInk: Bool, identifier: String) -> some View {
         Button { presentedPanel = panel } label: {
-            HStack(spacing: 16) {
-                ZJIcon(systemName: symbol, size: 40).frame(width: 32)
-                Text(title).font(ZJTheme.handwriting(20, relativeTo: .body)).foregroundStyle(ZJTheme.ink)
+            HStack(spacing: 14) {
+                Image(systemName: symbol)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(isInk ? ZJTheme.onAccent : ZJTheme.ink)
+                    .frame(width: 42, height: 42)
+                    .background(isInk ? ZJTheme.accent : ZJTheme.mutedSurface, in: Circle())
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(ZJTheme.ink)
+                    Text(detail)
+                        .font(.caption)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                }
                 Spacer(minLength: 8)
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(ZJTheme.ink).accessibilityHidden(true)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .accessibilityHidden(true)
             }
-            .padding(.horizontal, 18)
-            .padding(.vertical, 16)
-            .frame(minHeight: 62)
+            .padding(.horizontal, 14)
+            .frame(minHeight: 68)
+            .zjCard()
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
     }
 
-    private var postcard: some View {
-        ZStack(alignment: .bottomTrailing) {
-            Image("LiuliPostcard")
-                .resizable()
-                .scaledToFit()
-                .zjIllustrationTone()
-            Text("MORE\nGOOD\nDAYS.")
-                .font(ZJTheme.handwriting(15, relativeTo: .body))
-                .tracking(1)
-                .lineSpacing(2)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(ZJTheme.ink)
-                .frame(width: 78)
-                .rotationEffect(.degrees(7))
-                .padding(.trailing, 7)
-                .padding(.bottom, 26)
+    private func metrics(secondsThisWeek: TimeInterval, completed: Int, rate: Int) -> some View {
+        let tiles = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+        return VStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("本周真实投入")
+                    .font(.subheadline)
+                    .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                Text(ElapsedTimeText.string(for: secondsThisWeek))
+                    .font(.system(size: 44, weight: .light, design: ZJTheme.numberDesign))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .accessibilityIdentifier("profile.weekFocus")
+                Text("从周一 00:00 起，只计运行中的时间")
+                    .font(.caption)
+                    .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+            }
+            .foregroundStyle(ZJTheme.onEmphasis)
+            .padding(22)
+            .frame(maxWidth: .infinity, minHeight: 180, alignment: .bottomLeading)
+            .background(ZJInkBlock())
+            tiles {
+                metricTile(title: "累计完成", value: "\(completed) 件", symbol: "checkmark", identifier: "profile.completed")
+                metricTile(title: "任务完成率", value: "\(rate)%", symbol: "chart.pie", identifier: "profile.completionRate")
+            }
         }
-        .aspectRatio(4 / 3, contentMode: .fit)
-        .frame(maxWidth: 300)
-        .frame(maxWidth: .infinity)
-        .padding(.top, 10)
-        .padding(.bottom, 18)
-        .accessibilityHidden(true)
-        .allowsHitTesting(false)
+    }
+
+    private func metricTile(title: String, value: String, symbol: String, identifier: String) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            Image(systemName: symbol)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(ZJTheme.ink)
+                .frame(width: 40, height: 40)
+                .background(ZJTheme.mutedSurface, in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(value)
+                    .font(.system(size: 34, weight: .light, design: ZJTheme.numberDesign))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .foregroundStyle(ZJTheme.ink)
+                    .accessibilityIdentifier(identifier)
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(ZJTheme.secondaryInk)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 160, alignment: .leading)
+        .zjCard()
     }
 
     private var overview: some View {
@@ -162,7 +256,7 @@ struct ProfileView: View {
                 let rate = completionRate
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        ZJPaperHeader(title: "我的概况", subtitle: "每一步，都算数。", illustration: "LiuliWriting", identifier: "profile.overviewHeading")
+                        ZJPageHeader(title: "我的概况", subtitle: "每一步，都算数。", illustration: "LiuliWriting", identifier: "profile.overviewHeading")
                         switch duration {
                         case .failure(let error):
                             Text(error.localizedDescription).foregroundStyle(ZJTheme.secondaryInk)
@@ -197,17 +291,6 @@ struct ProfileView: View {
         }
     }
 
-    private func metrics(secondsThisWeek: TimeInterval, completed: Int, rate: Int) -> some View {
-        VStack(spacing: 0) {
-            ProfileMetricRow(title: "累计完成", value: "\(completed) 件", detail: "每一步都算数", systemImage: "checkmark.circle.fill", identifier: "profile.completed")
-            Divider().overlay(ZJTheme.divider)
-            ProfileMetricRow(title: "本周专注", value: ElapsedTimeText.string(for: secondsThisWeek), detail: "来自真实计时", systemImage: "clock.fill", identifier: "profile.weekFocus")
-            Divider().overlay(ZJTheme.divider)
-            ProfileMetricRow(title: "任务完成率", value: "\(rate)%", detail: "当前任务进度", systemImage: "leaf.fill", identifier: "profile.completionRate")
-        }
-        .padding(.horizontal, 14)
-        .zjPaperCard()
-    }
 
 }
 
@@ -229,7 +312,7 @@ private struct ProfilePreferencesView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    ZJPaperHeader(title: "偏好设置", illustration: "LiuliPreferences", identifier: "profile.preferencesHeading")
+                    ZJPageHeader(title: "偏好设置", illustration: "LiuliPreferences", identifier: "profile.preferencesHeading")
                     identityCard
                     settingsCard
                     sectionTitle("账户")
@@ -285,7 +368,7 @@ private struct ProfilePreferencesView: View {
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
                 .padding(16)
-                .zjPaperCard()
+                .zjCard()
             }
             .buttonStyle(.plain)
             .disabled(account.isBusy)
@@ -314,17 +397,13 @@ private struct ProfilePreferencesView: View {
             Spacer(minLength: 0)
         }
         .padding(16)
-        .zjPaperCard()
+        .zjCard()
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.guestNotice")
     }
 
     private var settingsCard: some View {
         VStack(spacing: 0) {
-            VisualStyleSwitch()
-
-            settingDivider
-
             ProfileSettingRow(
                 title: "数据与存储",
                 detail: "本机存储 · \(tasks.count) 项任务",
@@ -349,7 +428,7 @@ private struct ProfilePreferencesView: View {
             .accessibilityLabel("关于粥记")
             .accessibilityValue("版本 \(Self.appVersion)")
         }
-        .zjPaperCard()
+        .zjCard()
     }
 
     private var settingDivider: some View {
@@ -360,53 +439,13 @@ private struct ProfilePreferencesView: View {
 
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
-            .font(ZJTheme.handwriting(25, relativeTo: .title2).weight(.bold))
+            .font(ZJTheme.titleFont(25, relativeTo: .title2).weight(.bold))
             .foregroundStyle(ZJTheme.ink)
             .padding(.top, 6)
             .accessibilityAddTraits(.isHeader)
     }
 
     private static var appVersion: String { ZJAppVersion.display }
-}
-
-private struct ProfileMetricRow: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    let title: String
-    let value: String
-    let detail: String
-    let systemImage: String
-    let identifier: String
-
-    var body: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
-            : AnyLayout(HStackLayout(spacing: 10))
-        layout {
-            HStack(spacing: 10) {
-                ZJIcon(systemName: systemImage, size: 48, tint: ZJTheme.success)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(title)
-                        .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(detail)
-                        .font(ZJTheme.handwriting(15, relativeTo: .caption))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            Text(value)
-                .font(.system(.title, design: ZJTheme.numberDesign, weight: .semibold))
-                .monospacedDigit()
-                .minimumScaleFactor(0.65)
-                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                .fixedSize(horizontal: false, vertical: true)
-                .layoutPriority(1)
-                .accessibilityIdentifier(identifier)
-        }
-        .foregroundStyle(ZJTheme.ink)
-        .padding(.vertical, 26)
-    }
 }
 
 struct ProfileSettingRow: View {
@@ -428,12 +467,12 @@ struct ProfileSettingRow: View {
                 : AnyLayout(HStackLayout(spacing: 8))
             layout {
                 Text(title)
-                    .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
+                    .font(ZJTheme.titleFont(20, relativeTo: .headline).weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
                     .fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 Text(detail)
-                    .font(ZJTheme.handwriting(14, relativeTo: .caption))
+                    .font(ZJTheme.titleFont(14, relativeTo: .caption))
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -448,56 +487,6 @@ struct ProfileSettingRow: View {
         .padding(.vertical, 16)
         .frame(minHeight: 64)
         .contentShape(Rectangle())
-    }
-}
-
-/// Switches between the printed paper look and the two monochrome looks; the choice stays on this device.
-private struct VisualStyleSwitch: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    var body: some View {
-        let current = ZJTheme.style
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
-                Image(systemName: "circle.lefthalf.filled")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(ZJTheme.success)
-                    .frame(width: 32, height: 36)
-                    .accessibilityHidden(true)
-                Text("视觉风格")
-                    .font(ZJTheme.handwriting(20, relativeTo: .headline).weight(.bold))
-                    .foregroundStyle(ZJTheme.ink)
-                    .accessibilityAddTraits(.isHeader)
-            }
-            let layout = dynamicTypeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(spacing: 8))
-                : AnyLayout(HStackLayout(spacing: 8))
-            layout {
-                ForEach(ZJVisualStyle.allCases) { style in
-                    let isSelected = style == current
-                    Button {
-                        ZJAppearance.shared.select(style)
-                    } label: {
-                        Text(style.title)
-                            .font(ZJTheme.handwriting(18, relativeTo: .subheadline).weight(.bold))
-                            .foregroundStyle(isSelected ? ZJTheme.onAccent : ZJTheme.ink)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(isSelected ? ZJTheme.accent : ZJTheme.surface.opacity(0.65),
-                                        in: RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
-                                    .stroke(isSelected ? ZJTheme.accent : ZJTheme.divider, lineWidth: 1)
-                            }
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityAddTraits(isSelected ? .isSelected : [])
-                    .accessibilityIdentifier("profile.visualStyle.\(style.rawValue)")
-                }
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 16)
     }
 }
 
@@ -516,7 +505,7 @@ private struct AboutZhouJiView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     Text("关于粥记")
-                        .font(ZJTheme.handwriting(32, relativeTo: .title).weight(.bold))
+                        .font(ZJTheme.titleFont(32, relativeTo: .title).weight(.bold))
                         .accessibilityAddTraits(.isHeader)
                     if !dynamicTypeSize.isAccessibilitySize {
                         Image(decorative: "LiuliAbout")
@@ -528,12 +517,11 @@ private struct AboutZhouJiView: View {
                     }
                     VStack(spacing: 4) {
                         Text("粥记")
-                            .font(ZJTheme.handwriting(62, relativeTo: .largeTitle).weight(.bold))
+                            .font(ZJTheme.titleFont(62, relativeTo: .largeTitle).weight(.bold))
                         Text("一粥又一周")
-                            .font(ZJTheme.handwriting(30, relativeTo: .title).weight(.bold))
+                            .font(ZJTheme.titleFont(30, relativeTo: .title).weight(.bold))
                             .overlay(alignment: .bottom) {
-                                Capsule().fill(ZJTheme.style.isPrinted ? Color(red: 0.86, green: 0.65, blue: 0.29) : ZJTheme.secondaryInk)
-                                    .overlay { ZJInkGrain(count: 250).clipShape(Capsule()) }
+                                Capsule().fill(ZJTheme.secondaryInk)
                                     .frame(height: 4)
                                     .rotationEffect(.degrees(-3))
                                     .offset(y: 7)
@@ -541,11 +529,11 @@ private struct AboutZhouJiView: View {
                             }
                     }
                     Text("版本 \(ZJAppVersion.display)")
-                        .font(ZJTheme.handwriting(17, relativeTo: .footnote))
+                        .font(ZJTheme.titleFont(17, relativeTo: .footnote))
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .accessibilityIdentifier("about.version")
                     Text("打开即做，记录真实投入。\n把重要的事，一件一件完成。")
-                        .font(ZJTheme.handwriting(19, relativeTo: .body))
+                        .font(ZJTheme.titleFont(19, relativeTo: .body))
                         .foregroundStyle(ZJTheme.secondaryInk)
                         .lineSpacing(7)
                         .fixedSize(horizontal: false, vertical: true)
@@ -556,7 +544,7 @@ private struct AboutZhouJiView: View {
                         }
                         .accessibilityHidden(true)
                         Text("A LITTLE EVERYDAY,\nA BETTER WEEK.")
-                            .font(ZJTheme.handwriting(13, relativeTo: .caption))
+                            .font(ZJTheme.titleFont(13, relativeTo: .caption))
                             .tracking(1)
                     }
                     .padding(.top, 8)

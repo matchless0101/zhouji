@@ -14,22 +14,22 @@ struct LocalLibraryCard: View {
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 6) {
                     Text(isGuest ? "当前：游客记录" : "当前：账户的本机记录")
-                        .font(ZJTheme.handwriting(19, relativeTo: .headline).weight(.bold))
+                        .font(ZJTheme.titleFont(19, relativeTo: .headline).weight(.bold))
                         .accessibilityIdentifier("library.current")
                     Text(isGuest ? "升级前的记录保留在游客记录中。不同账户各自保存，切换不会合并。" : "不同账户各自保存，切换不会合并。")
-                        .font(ZJTheme.handwriting(15, relativeTo: .footnote))
+                        .font(ZJTheme.titleFont(15, relativeTo: .footnote))
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
                 .fixedSize(horizontal: false, vertical: true)
             }
             if isGuest, libraries.authenticatedScope != nil {
                 Button("打开此账户的记录") { libraries.showAccount() }
-                    .buttonStyle(ZJPaperButtonStyle())
+                    .buttonStyle(ZJSecondaryButtonStyle())
                     .accessibilityIdentifier("library.account")
                     .disabled(account.isBusy)
             } else if !isGuest {
                 Button("查看游客记录") { libraries.showGuest() }
-                    .buttonStyle(ZJPaperButtonStyle())
+                    .buttonStyle(ZJSecondaryButtonStyle())
                     .accessibilityIdentifier("library.guest")
                     .disabled(account.isBusy)
                 if libraries.authenticatedScope == nil {
@@ -44,6 +44,6 @@ struct LocalLibraryCard: View {
             }
         }
         .padding(16)
-        .zjPaperCard()
+        .zjCard()
     }
 }

@@ -16,8 +16,10 @@ struct TaskRow: View {
     var body: some View {
         HStack(spacing: 12) {
             Button(action: toggleCompletion) {
+                // Soft squares mark completion.
+                let markShape = RoundedRectangle(cornerRadius: completionSize * 0.28, style: .continuous)
                 ZStack {
-                    Circle()
+                    markShape
                         .stroke(
                             task.isCompleted || isCompleting ? ZJTheme.success : ZJTheme.secondaryInk,
                             lineWidth: 1.5
@@ -25,7 +27,7 @@ struct TaskRow: View {
                         .frame(width: completionSize, height: completionSize)
 
                     if task.isCompleted || isCompleting {
-                        Circle()
+                        markShape
                             .fill(ZJTheme.success)
                             .frame(width: completionSize, height: completionSize)
                         Image(systemName: "checkmark")

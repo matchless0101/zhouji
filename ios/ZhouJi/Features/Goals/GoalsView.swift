@@ -63,30 +63,11 @@ struct GoalsView: View {
                         .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 6, bottom: 6, trailing: ZJTheme.pagePadding + 6))
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                    } else if ZJTheme.style == .mono {
+                    } else {
                         goalGrid
                             .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 2, bottom: 6, trailing: ZJTheme.pagePadding + 2))
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
-                    } else {
-                        ForEach(filteredGoals) { goal in
-                            Button {
-                                navigationPath.append(.tasks(goal))
-                            } label: {
-                                GoalRow(goal: goal)
-                            }
-                            .buttonStyle(.plain)
-                            .listRowInsets(EdgeInsets(top: 6, leading: ZJTheme.pagePadding + 6, bottom: 6, trailing: ZJTheme.pagePadding + 6))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
-                            .swipeActions {
-                                Button(role: .destructive) {
-                                    pendingDeletion = goal
-                                } label: {
-                                    Label("删除", systemImage: "trash")
-                                }
-                            }
-                        }
                     }
                     Color.clear.frame(height: 255)
                         .accessibilityHidden(true)
@@ -193,7 +174,7 @@ struct GoalsView: View {
                     }
                 } label: {
                     Text("我的目标")
-                        .font(ZJTheme.handwriting(34, relativeTo: .largeTitle).weight(.bold))
+                        .font(ZJTheme.titleFont(34, relativeTo: .largeTitle).weight(.bold))
                         .foregroundStyle(ZJTheme.ink)
                         .frame(minHeight: 44, alignment: .leading)
                 }
@@ -214,7 +195,7 @@ struct GoalsView: View {
             HStack(alignment: .bottom) {
                 if !dynamicTypeSize.isAccessibilitySize {
                     Text("慢一点，\n但一直向前。")
-                        .font(ZJTheme.handwriting(19, relativeTo: .body))
+                        .font(ZJTheme.titleFont(19, relativeTo: .body))
                         .lineSpacing(4)
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
@@ -223,7 +204,7 @@ struct GoalsView: View {
         }
     }
 
-    /// Mono lays goals out as two-column cards; deletion moves from swipe to the long-press menu.
+    /// Goals are two-column cards; deletion lives in the long-press menu and a VoiceOver action.
     private var goalGrid: some View {
         let columnCount = dynamicTypeSize.isAccessibilitySize ? 1 : 2
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnCount), spacing: 12) {
@@ -238,7 +219,7 @@ struct GoalsView: View {
                     Button(role: .destructive) {
                         pendingDeletion = goal
                     } label: {
-                        Label("删除目标", systemImage: "trash")
+                        Label("删除", systemImage: "trash")
                     }
                 }
                 .accessibilityAction(named: "删除") { pendingDeletion = goal }
@@ -328,32 +309,6 @@ private enum GoalFilter: CaseIterable, Hashable {
     }
 }
 
-private struct GoalRow: View {
-    let goal: Goal
-    private var progress: GoalProgress { GoalService.progress(for: goal) }
-
-    var body: some View {
-        HStack(spacing: 16) {
-            GoalListIcon(iconName: goal.displayIconName)
-            Text(goal.name)
-                .font(ZJTheme.handwriting(20, relativeTo: .body))
-                .foregroundStyle(ZJTheme.ink)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 8)
-            Image(systemName: "chevron.right")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(ZJTheme.ink)
-                .accessibilityHidden(true)
-        }
-        .padding(.horizontal, 18)
-        .padding(.vertical, 16)
-        .frame(minHeight: 78)
-        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
-        .accessibilityElement(children: .combine)
-        .accessibilityValue("完成 \(progress.completed) 个，共 \(progress.total) 个任务，进度百分之 \(progress.percentage)")
-    }
-}
-
 private struct GoalCard: View {
     let goal: Goal
     private var progress: GoalProgress { GoalService.progress(for: goal) }
@@ -389,36 +344,3 @@ private struct GoalCard: View {
     }
 }
 
-private struct GoalListIcon: View {
-    let iconName: String
-
-    var body: some View {
-        Group {
-            if iconName == "book.closed" {
-                Canvas { context, size in
-                    let cover = CGRect(x: 7, y: 4, width: 30, height: 36)
-                    context.fill(Path(roundedRect: cover, cornerRadius: 3), with: .color(ZJTheme.success))
-                    var spine = Path()
-                    spine.move(to: CGPoint(x: 12, y: 6))
-                    spine.addLine(to: CGPoint(x: 12, y: 34))
-                    spine.addLine(to: CGPoint(x: 35, y: 34))
-                    context.stroke(spine, with: .color(ZJTheme.onAccent), style: StrokeStyle(lineWidth: 1.6, lineCap: .round))
-                    for index in 0..<42 {
-                        let x = CGFloat((index * 17 + 3) % 27) + 8
-                        let y = CGFloat((index * 11 + 9) % 33) + 5
-                        context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: 0.7, height: 0.7)),
-                                     with: .color(ZJTheme.onAccent.opacity(0.35)))
-                    }
-                }
-            } else if iconName == "heart" {
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 34, weight: .regular))
-                    .foregroundStyle(ZJTheme.accent)
-            } else {
-                ZJIcon(systemName: iconName, size: 52)
-            }
-        }
-        .frame(width: 44, height: 44)
-        .accessibilityHidden(true)
-    }
-}

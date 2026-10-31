@@ -16,7 +16,7 @@ struct AuthenticationPage<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                ZJPaperHeader(title: title, subtitle: subtitle, illustration: "LiuliHeart")
+                ZJPageHeader(title: title, subtitle: subtitle, illustration: "LiuliHeart")
                 content
             }
             .padding(.horizontal, ZJTheme.pagePadding)
@@ -44,21 +44,21 @@ struct AuthenticationPage<Content: View>: View {
     }
 }
 
-struct PrintedUsernameField: View {
+struct ZJUsernameField: View {
     @Binding var text: String
     let identifier: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("用户名").font(ZJTheme.handwriting(21, relativeTo: .headline))
+            Text("用户名").font(ZJTheme.titleFont(21, relativeTo: .headline))
             TextField("4–32 位字母、数字或下划线", text: $text)
-                .font(ZJTheme.handwriting(20, relativeTo: .body))
+                .font(.body)
                 .textContentType(.username)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(.asciiCapable)
                 .padding(16)
-                .zjPaperCard()
+                .zjCard()
                 .accessibilityLabel("用户名")
                 .accessibilityIdentifier(identifier)
             if !text.isEmpty && !PasswordCredentials.isValidUsername(text) {
@@ -70,7 +70,7 @@ struct PrintedUsernameField: View {
     }
 }
 
-struct PrintedPasswordField: View {
+struct ZJPasswordField: View {
     let title: String
     @Binding var text: String
     let identifier: String
@@ -79,7 +79,7 @@ struct PrintedPasswordField: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(ZJTheme.handwriting(21, relativeTo: .headline))
+            Text(title).font(ZJTheme.titleFont(21, relativeTo: .headline))
             HStack(spacing: 8) {
                 Group {
                     if showsPassword { TextField("15–128 个字符", text: $text) }
@@ -104,7 +104,7 @@ struct PrintedPasswordField: View {
             .padding(.leading, 16)
             .padding(.trailing, 4)
             .padding(.vertical, 6)
-            .zjPaperCard()
+            .zjCard()
         }
     }
 }

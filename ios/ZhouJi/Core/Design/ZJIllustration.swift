@@ -16,42 +16,10 @@ struct ZJIllustration: View {
     }
 }
 
-struct ZJPaperBackground: View {
-
-    var body: some View {
-        let ink = ZJTheme.ink
-        let style = ZJTheme.style
-        ZJTheme.background.overlay {
-            Canvas { context, size in
-                // Mono keeps a clean flat page.
-                if style == .mono { return }
-                if style == .tech {
-                    // A faint measuring grid replaces paper fibres in the tech style.
-                    let step: CGFloat = 24
-                    var grid = Path()
-                    for x in stride(from: step, to: size.width, by: step) {
-                        grid.move(to: CGPoint(x: x, y: 0))
-                        grid.addLine(to: CGPoint(x: x, y: size.height))
-                    }
-                    for y in stride(from: step, to: size.height, by: step) {
-                        grid.move(to: CGPoint(x: 0, y: y))
-                        grid.addLine(to: CGPoint(x: size.width, y: y))
-                    }
-                    context.stroke(grid, with: .color(ink.opacity(0.035)), lineWidth: 0.5)
-                    return
-                }
-                // Fixed positions keep the paper still while the surrounding views update.
-                for index in 0..<1_600 {
-                    let x = CGFloat((index * 73 + 19) % 997) / 997 * size.width
-                    let y = CGFloat((index * 137 + 47) % 991) / 991 * size.height
-                    let side = index.isMultiple(of: 5) ? 1.2 : 0.6
-                    context.fill(Path(ellipseIn: CGRect(x: x, y: y, width: side, height: side)),
-                                 with: .color(ink.opacity(0.045)))
-                }
-            }
-        }
-        .accessibilityHidden(true)
-        .allowsHitTesting(false)
+extension View {
+    /// Liuli artwork is shown as a quiet grayscale print so it never competes with the content.
+    func zjIllustrationTone() -> some View {
+        grayscale(1).opacity(0.85)
     }
 }
 
@@ -65,15 +33,14 @@ struct ZJAddButtonStyle: ButtonStyle {
             .foregroundStyle(ZJTheme.onAccent)
             .frame(width: diameter, height: diameter)
             .background(ZJTheme.accent, in: Circle())
-            .overlay { Circle().strokeBorder(ZJTheme.onAccent.opacity(0.3), lineWidth: 1) }
-            .shadow(color: ZJTheme.accent.opacity(0.12), radius: 6, y: 3)
+            .shadow(color: .black.opacity(0.18), radius: 8, y: 4)
             .padding(max(0, (44 - diameter) / 2))
             .contentShape(Rectangle())
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.95 : 1)
     }
 }
 
-/// Printed artwork replaces matching symbols; specialized controls keep their existing meaning.
+/// Line system symbols at a consistent optical size.
 struct ZJIcon: View {
     let systemName: String
     var size: CGFloat = 40
@@ -81,44 +48,10 @@ struct ZJIcon: View {
     var isDecorative = true
 
     var body: some View {
-        Group {
-            // The monochrome styles draw line symbols instead of the printed artwork.
-            if let name = assetName, ZJTheme.style.isPrinted {
-                Image(name)
-                    .renderingMode(tint == nil ? .original : .template)
-                    .resizable()
-                    .scaledToFit()
-            } else {
-                Image(systemName: systemName)
-                    .font(.system(size: size * (ZJTheme.style.isPrinted ? 0.7 : 0.56),
-                                  weight: ZJTheme.style == .tech ? .light : .regular))
-            }
-        }
-        .foregroundStyle(tint ?? ZJTheme.success)
-        .frame(width: size, height: size)
-        .accessibilityHidden(isDecorative)
-    }
-
-    private var assetName: String? {
-        switch systemName {
-        case "leaf", "leaf.fill": "LiuliLeaf"
-        case "book", "book.fill", "book.closed": "LiuliBook"
-        case "graduationcap", "graduationcap.fill": "LiuliStudy"
-        case "briefcase", "briefcase.fill": "LiuliWork"
-        case "iphone": "LiuliDigital"
-        case "paintpalette", "paintpalette.fill": "LiuliCreate"
-        case "figure.run", "dumbbell", "dumbbell.fill": "LiuliDumbbell"
-        case "heart", "heart.fill": "LiuliLove"
-        case "star", "star.fill": "LiuliStar"
-        case "clock", "clock.fill": "LiuliClock"
-        case "sun.max", "sun.max.fill": "LiuliSun"
-        case "cloud", "cloud.fill": "LiuliCloud"
-        case "house", "house.fill": "LiuliHome"
-        case "calendar": "LiuliCalendarIcon"
-        case "target", "scope", "sparkles": "LiuliTarget"
-        case "person", "person.fill": "LiuliProfile"
-        case "gearshape", "gearshape.fill": "LiuliGear"
-        default: nil
-        }
+        Image(systemName: systemName)
+            .font(.system(size: size * 0.56, weight: .regular))
+            .foregroundStyle(tint ?? ZJTheme.success)
+            .frame(width: size, height: size)
+            .accessibilityHidden(isDecorative)
     }
 }
