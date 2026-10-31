@@ -102,7 +102,7 @@ struct GoalDetailView: View {
         let tasks = visibleTasks
 
         return List {
-            GoalPageHeader(title: goal.name, illustration: "LiuliReading", isCompact: false, illustrationWidth: 150)
+            GoalPageHeader(title: goal.name, isCompact: false)
                 .listRowInsets(EdgeInsets(top: 4, leading: ZJTheme.pagePadding, bottom: 10, trailing: ZJTheme.pagePadding))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
@@ -339,9 +339,7 @@ struct GoalSettingsView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         GoalPageHeader(
                             title: "目标设置",
-                            illustration: "LiuliWriting",
                             isCompact: proxy.size.height < 420 || isNameFieldFocused,
-                            illustrationWidth: 160,
                             headingIdentifier: "goal.settings.heading"
                         )
                         preview
@@ -563,38 +561,21 @@ enum GoalDestination: Hashable {
 }
 
 private struct GoalPageHeader: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
-    let illustration: String
     let isCompact: Bool
-    var illustrationWidth: CGFloat = 182
     var headingIdentifier = "goal.tasks.heading"
 
     var body: some View {
-        HStack(alignment: .top, spacing: 4) {
-                Text(title)
-                    .font(ZJTheme.titleFont(isCompact ? 30 : 36, relativeTo: .largeTitle).weight(.bold))
-                    .foregroundStyle(ZJTheme.ink)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 12)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier(headingIdentifier)
-                    .accessibilityLabel(title)
-
-                if dynamicTypeSize <= .large {
-                    Image(decorative: illustration)
-                        .resizable()
-                        .scaledToFit()
-                        .zjIllustrationTone()
-                        .containerRelativeFrame(.horizontal) { width, _ in
-                            min(isCompact ? 124 : illustrationWidth, max(0, width - ZJTheme.pagePadding * 2) * 0.5)
-                        }
-                        .allowsHitTesting(false)
-                }
-        }
-        .frame(minHeight: dynamicTypeSize <= .large ? (isCompact ? 84 : illustrationWidth * 2 / 3) : nil, alignment: .top)
+        Text(title)
+            .font(ZJTheme.titleFont(isCompact ? 30 : 36, relativeTo: .largeTitle).weight(.bold))
+            .foregroundStyle(ZJTheme.ink)
+            .lineLimit(2)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier(headingIdentifier)
+            .accessibilityLabel(title)
     }
 }
 

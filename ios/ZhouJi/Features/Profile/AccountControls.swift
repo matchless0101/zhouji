@@ -44,7 +44,7 @@ struct AccountControls: View {
                     ProgressView("正在准备登录…")
                 } else {
                     Button("准备 Apple 登录") { Task { await account.prepare() } }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(ZJSecondaryButtonStyle())
                         .accessibilityIdentifier("account.retry")
                 }
                 if account.weChatAvailability == .available {

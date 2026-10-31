@@ -80,12 +80,9 @@ struct FirstLaunchView: View {
                 .offset(x: width * 0.31, y: height * 0.435)
                 .animation(.easeOut(duration: 0.47).delay(0.35), value: arrived)
 
-            Image(decorative: "LiuliWriting")
-                .resizable()
-                .scaledToFit()
-                .zjIllustrationTone()
-                .frame(width: width * 0.96)
-                .offset(x: width * 0.02, y: height * 0.46 + (arrived ? 0 : 7))
+            ZJInkBlock()
+                .frame(width: width * 0.84, height: height * 0.2)
+                .offset(x: width * 0.08, y: height * 0.5 + (arrived ? 0 : 7))
                 .opacity(arrived ? 1 : 0)
                 .animation(.easeOut(duration: 0.44), value: arrived)
 

@@ -35,6 +35,7 @@
 		4A1B3064094F784577006B1E /* PasswordAuthenticationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F17EE827B1AC29EC6FECDE3F /* PasswordAuthenticationTests.swift */; };
 		4A768B3B07A3902F2A0592C3 /* BackupStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FEE7AF1C9D56D5A2419352D /* BackupStoreTests.swift */; };
 		4C49D54E113B95836F75D6E0 /* PasswordAuthenticationPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B34C82A0843C31E66F659E /* PasswordAuthenticationPreview.swift */; };
+		4E15C32813D6418589EE6B06 /* ZJSymbols.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDEDD27D47BBC8F066C77151 /* ZJSymbols.swift */; };
 		52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 760666CB6E383348C6C86675 /* WeChatLogin.swift */; };
 		682A9D55B6ED06B1A4ED6439 /* LegacyDataFixtures.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DEFF0ACE3D334D3578F42D /* LegacyDataFixtures.swift */; };
 		69562FF1E2401E02EC0EED1D /* TaskUndoToast.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ACD33918C9A02DB0E5BFDDE /* TaskUndoToast.swift */; };
@@ -78,7 +79,6 @@
 		F16ECC25C431FC829086CEFB /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 2699FF4AB95E602B07219343 /* libc++.tbd */; };
 		F2851822A0F4327E36619364 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F603C0EA9CC9519AB6D49B6E /* Assets.xcassets */; };
 		F2CA43E89037A64FA1F0BBD9 /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0DAA4E51D19F76B4A2C3CC4 /* NewTaskView.swift */; };
-		F8C6377B6C6222B95E0393D5 /* ZJIllustration.swift in Sources */ = {isa = PBXBuildFile; fileRef = C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */; };
 		FBBB4B4F5C31323534BF4DC8 /* LocalLibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 977E7FD8712AAB6E371BE832 /* LocalLibraryStore.swift */; };
 		FC6658D33F1F6BE015B8E3A0 /* PasswordCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E56FF2F74CD5235A7FC624 /* PasswordCredentials.swift */; };
 		FE28DCD971FF32BDE4C8D643 /* AuthenticationPage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552E26BA125451C1E7A58BF1 /* AuthenticationPage.swift */; };
@@ -157,7 +157,6 @@
 		B90C3693D7692B91B748FF78 /* PasswordLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasswordLoginView.swift; sourceTree = "<group>"; };
 		BD4B87165654A2AA2783DF61 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C607725C41AC3A40809F71B5 /* AccountAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountAPI.swift; sourceTree = "<group>"; };
-		C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJIllustration.swift; sourceTree = "<group>"; };
 		CB3F194AA199F8F19DDC6823 /* TimerMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerMathTests.swift; sourceTree = "<group>"; };
 		CE38239592F10514065F5284 /* MigrationRegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationRegressionTests.swift; sourceTree = "<group>"; };
 		D2C168C99ADB089400590D2D /* WechatOpenSDK-NoPay.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = "WechatOpenSDK-NoPay.xcframework"; path = "Vendor/WechatOpenSDK-NoPay.xcframework"; sourceTree = "<group>"; };
@@ -167,6 +166,7 @@
 		D89BE23FED71960E40A8F4E9 /* App.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = App.xcconfig; sourceTree = "<group>"; };
 		DC72B41BE1C6E9A27ED8B28E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		DCE5E197571B6A9562B44356 /* TimerSwitchConfirmation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerSwitchConfirmation.swift; sourceTree = "<group>"; };
+		DDEDD27D47BBC8F066C77151 /* ZJSymbols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZJSymbols.swift; sourceTree = "<group>"; };
 		DF369424D165E148281CB11E /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		E01969A83CD9F462B172766C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E0A833A4B8E439A6BA4F48D1 /* TimerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerController.swift; sourceTree = "<group>"; };
@@ -259,7 +259,7 @@
 			isa = PBXGroup;
 			children = (
 				7F4DA52C1D5A33B51B98ABD2 /* ZJControls.swift */,
-				C648C05F33E15CBDBEFC1C9A /* ZJIllustration.swift */,
+				DDEDD27D47BBC8F066C77151 /* ZJSymbols.swift */,
 				F9FE7B80BB92D300651E1455 /* ZJTheme.swift */,
 			);
 			path = Design;
@@ -644,7 +644,7 @@
 				23E7DCBAD1541CB9B3B8C612 /* TodoTask.swift in Sources */,
 				52616E10E8762F14561C6CCE /* WeChatLogin.swift in Sources */,
 				E3FEA481BF8EC9B0381EB5BD /* ZJControls.swift in Sources */,
-				F8C6377B6C6222B95E0393D5 /* ZJIllustration.swift in Sources */,
+				4E15C32813D6418589EE6B06 /* ZJSymbols.swift in Sources */,
 				D2E22F80798C1C853DD72685 /* ZJTheme.swift in Sources */,
 				28865D5DD7A05944FC445A8B /* ZhouJiApp.swift in Sources */,
 			);

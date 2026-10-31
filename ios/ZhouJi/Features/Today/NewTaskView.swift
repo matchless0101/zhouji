@@ -29,7 +29,7 @@ struct NewTaskView: View {
                 let isCompact = proxy.size.height < 520
                 ScrollView {
                     VStack(alignment: .leading, spacing: isCompact ? 12 : 20) {
-                        pageHeader(isCompact: isCompact, width: proxy.size.width - ZJTheme.pagePadding * 2)
+                        pageHeader(isCompact: isCompact)
                         taskForm(isCompact: isCompact)
                         formHint
                     }
@@ -64,7 +64,7 @@ struct NewTaskView: View {
         }
     }
 
-    private func pageHeader(isCompact: Bool, width: CGFloat) -> some View {
+    private func pageHeader(isCompact: Bool) -> some View {
         VStack(alignment: .leading, spacing: isCompact ? 6 : 12) {
             ZJBackButton(label: "返回今天", action: dismiss.callAsFunction)
 
@@ -82,16 +82,6 @@ struct NewTaskView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-
-                if dynamicTypeSize <= .large {
-                    Image(decorative: "LiuliWriting")
-                        .resizable()
-                        .scaledToFit()
-                        .zjIllustrationTone()
-                        .frame(width: min(isCompact ? 132 : 180, width * 0.43))
-                        .padding(.top, isCompact ? 6 : 12)
-                        .allowsHitTesting(false)
-                }
             }
         }
     }

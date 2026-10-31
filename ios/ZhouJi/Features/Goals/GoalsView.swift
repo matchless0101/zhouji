@@ -1,6 +1,5 @@
 import SwiftData
 import SwiftUI
-import UIKit
 
 struct GoalsView: View {
     @Binding var navigationPath: [GoalDestination]
@@ -15,8 +14,6 @@ struct GoalsView: View {
     private var visibleGoals: [Goal]
 
     @State private var isAddingGoal = false
-    @State private var backgroundHeight: CGFloat = 0
-    @State private var isKeyboardVisible = false
     @State private var draftName = ""
     @State private var pendingDeletion: Goal?
     @State private var presentedError: String?
@@ -69,11 +66,6 @@ struct GoalsView: View {
                             .listRowBackground(Color.clear)
                             .listRowSeparator(.hidden)
                     }
-                    Color.clear.frame(height: 255)
-                        .accessibilityHidden(true)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
                 }
                 .listStyle(.plain)
                 .contentMargins(.top, 0, for: .scrollContent)
@@ -92,34 +84,7 @@ struct GoalsView: View {
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if isAddingGoal { addGoalControls }
             }
-            .background(alignment: .top) {
-                ZStack(alignment: .bottom) {
-                    ZJTheme.pageBackground.ignoresSafeArea()
-                    GeometryReader { proxy in
-                        Image(decorative: "LiuliGoalsReference")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: proxy.size.width * 1.4, height: proxy.size.width * 1.4 / 1.5)
-                            .frame(width: proxy.size.width, height: 255, alignment: .bottom)
-                            .clipped()
-                            .zjIllustrationTone()
-                    }
-                    .frame(height: 255)
-                    .allowsHitTesting(false)
-                }
-                .frame(height: backgroundHeight, alignment: .bottom)
-            }
-            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { height in
-                // Preserve the resting canvas while the input bar and keyboard reduce the viewport.
-                guard !isAddingGoal, !isKeyboardVisible else { return }
-                backgroundHeight = height
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
-                isKeyboardVisible = true
-            }
-            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { _ in
-                isKeyboardVisible = false
-            }
+            .background(ZJTheme.pageBackground.ignoresSafeArea())
             .navigationDestination(for: GoalDestination.self) { destination in
                 switch destination {
                 case .tasks(let goal):

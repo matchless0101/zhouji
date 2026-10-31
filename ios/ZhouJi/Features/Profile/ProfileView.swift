@@ -154,7 +154,7 @@ struct ProfileView: View {
         VStack(spacing: 10) {
             panelButton(.overview, title: "我的概况", detail: "累计完成、本周投入与完成率",
                             symbol: "chart.bar", isInk: true, identifier: "profile.overview")
-            panelButton(.preferences, title: "偏好设置", detail: "视觉风格、账户与记录库",
+            panelButton(.preferences, title: "偏好设置", detail: "账户、记录库与关于粥记",
                             symbol: "slider.horizontal.3", isInk: false, identifier: "profile.preferences")
         }
     }
@@ -256,7 +256,7 @@ struct ProfileView: View {
                 let rate = completionRate
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        ZJPageHeader(title: "我的概况", subtitle: "每一步，都算数。", illustration: "LiuliWriting", identifier: "profile.overviewHeading")
+                        ZJPageHeader(title: "我的概况", subtitle: "每一步，都算数。", identifier: "profile.overviewHeading")
                         switch duration {
                         case .failure(let error):
                             Text(error.localizedDescription).foregroundStyle(ZJTheme.secondaryInk)
@@ -264,13 +264,6 @@ struct ProfileView: View {
                             TimelineView(.periodic(from: .now, by: duration.isRunning ? 1 : 60)) { tick in
                                 metrics(secondsThisWeek: duration.seconds(now: tick.date), completed: completed, rate: rate)
                             }
-                        }
-                        if !dynamicTypeSize.isAccessibilitySize {
-                            Image(decorative: "LiuliOverview")
-                                .resizable()
-                                .scaledToFit()
-                                .zjIllustrationTone()
-                                .allowsHitTesting(false)
                         }
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
@@ -312,7 +305,7 @@ private struct ProfilePreferencesView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    ZJPageHeader(title: "偏好设置", illustration: "LiuliPreferences", identifier: "profile.preferencesHeading")
+                    ZJPageHeader(title: "偏好设置", identifier: "profile.preferencesHeading")
                     identityCard
                     settingsCard
                     sectionTitle("账户")
@@ -498,7 +491,6 @@ enum ZJAppVersion {
 
 private struct AboutZhouJiView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         NavigationStack {
@@ -507,14 +499,6 @@ private struct AboutZhouJiView: View {
                     Text("关于粥记")
                         .font(ZJTheme.titleFont(32, relativeTo: .title).weight(.bold))
                         .accessibilityAddTraits(.isHeader)
-                    if !dynamicTypeSize.isAccessibilitySize {
-                        Image(decorative: "LiuliAbout")
-                            .resizable()
-                            .scaledToFit()
-                            .zjIllustrationTone()
-                            .frame(maxWidth: 300)
-                            .allowsHitTesting(false)
-                    }
                     VStack(spacing: 4) {
                         Text("粥记")
                             .font(ZJTheme.titleFont(62, relativeTo: .largeTitle).weight(.bold))

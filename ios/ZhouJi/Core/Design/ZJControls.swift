@@ -21,41 +21,27 @@ struct ZJBackButton: View {
 }
 
 struct ZJPageHeader: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let title: String
     var subtitle: String?
-    var illustration: String?
     var identifier: String = ""
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(title)
-                    .font(ZJTheme.titleFont(34, relativeTo: .largeTitle).weight(.bold))
-                    .foregroundStyle(ZJTheme.ink)
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(ZJTheme.titleFont(34, relativeTo: .largeTitle).weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(identifier)
+            if let subtitle {
+                Text(subtitle)
+                    .font(ZJTheme.titleFont(20, relativeTo: .subheadline))
+                    .foregroundStyle(ZJTheme.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier(identifier)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(ZJTheme.titleFont(20, relativeTo: .subheadline))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 8)
-            if let illustration, dynamicTypeSize <= .large {
-                Image(decorative: illustration)
-                    .resizable()
-                    .scaledToFit()
-                    .zjIllustrationTone()
-                    .containerRelativeFrame(.horizontal) { width, _ in
-                        max(0, width - ZJTheme.pagePadding * 2) * 0.49
-                    }
-                    .allowsHitTesting(false)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 8)
     }
 }
 

@@ -1,28 +1,5 @@
 import SwiftUI
 
-struct ZJIllustration: View {
-    let name: String
-    var height: CGFloat = 200
-
-    var body: some View {
-        Image(name)
-            .resizable()
-            .scaledToFit()
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .zjIllustrationTone()
-            .accessibilityHidden(true)
-            .allowsHitTesting(false)
-    }
-}
-
-extension View {
-    /// Liuli artwork is shown as a quiet grayscale print so it never competes with the content.
-    func zjIllustrationTone() -> some View {
-        grayscale(1).opacity(0.85)
-    }
-}
-
 struct ZJAddButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var diameter: CGFloat = 56

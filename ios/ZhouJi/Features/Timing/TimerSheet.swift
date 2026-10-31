@@ -12,8 +12,7 @@ struct TimerSheet: View {
             GeometryReader { proxy in
                 let ringDiameter = dynamicTypeSize.isAccessibilitySize
                     ? min(proxy.size.width * 0.9, max(230, proxy.size.height * 0.55))
-                    : min(proxy.size.width * 0.76, max(150, (proxy.size.height - 180) * 0.67))
-                let illustrationHeight = min(proxy.size.width * 0.5, max(60, proxy.size.height - 180 - ringDiameter))
+                    : min(proxy.size.width * 0.82, max(150, proxy.size.height - 280))
                 ScrollView {
                     VStack(spacing: 12) {
                         Text(timer.activeSession?.taskTitleSnapshot ?? "本次计时")
@@ -42,9 +41,7 @@ struct TimerSheet: View {
                         .padding(.top, 12)
 
                         TimerDial(diameter: ringDiameter)
-                        if !dynamicTypeSize.isAccessibilitySize {
-                            ZJIllustration(name: "LiuliTimer", height: illustrationHeight)
-                        }
+                            .padding(.top, 12)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.horizontal, ZJTheme.pagePadding)

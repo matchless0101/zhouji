@@ -16,7 +16,7 @@ struct AuthenticationPage<Content: View>: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                ZJPageHeader(title: title, subtitle: subtitle, illustration: "LiuliHeart")
+                ZJPageHeader(title: title, subtitle: subtitle)
                 content
             }
             .padding(.horizontal, ZJTheme.pagePadding)

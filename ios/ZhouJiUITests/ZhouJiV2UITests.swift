@@ -17,10 +17,10 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(name.waitForExistence(timeout: 3))
         name.tap(); name.typeText("same_wechat_user")
         let password = app.secureTextFields["account.password.setup.password"]
-        password.tap(); password.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: password, in: app)
         let confirmation = app.secureTextFields["account.password.setup.confirmation"]
         if !confirmation.isHittable { app.swipeUp() }
-        confirmation.tap(); confirmation.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: confirmation, in: app)
         let submit = app.buttons["account.password.setup.submit"]
         if !submit.isHittable { app.swipeUp() }; submit.tap()
         let saved = app.buttons["account.recovery.saved"]
@@ -38,7 +38,7 @@ final class ZhouJiUITests: XCTestCase {
         let loginName = app.textFields["account.password.login.username"]
         loginName.tap(); loginName.typeText("same_wechat_user")
         let loginPassword = app.secureTextFields["account.password.login.password"]
-        loginPassword.tap(); loginPassword.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: loginPassword, in: app)
         app.buttons["account.password.login.submit"].tap()
         XCTAssertTrue(app.buttons["profile.identity"].waitForExistence(timeout: 5))
         saveScreenshot("independent-wechat-password-login", app: app)
@@ -56,7 +56,7 @@ final class ZhouJiUITests: XCTestCase {
         let name = app.textFields["account.password.login.username"]
         name.tap(); name.typeText("sample_user")
         let password = app.secureTextFields["account.password.login.password"]
-        password.tap(); password.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: password, in: app)
         app.buttons["account.password.login.submit"].tap()
         let top = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
         top.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
@@ -84,7 +84,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["account.security.rotateRecovery"].exists)
         app.buttons["account.security.unbind"].tap()
         let password = app.secureTextFields["account.security.password"]
-        password.tap(); password.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: password, in: app)
         app.buttons["account.security.submit"].tap()
         app.buttons["确认解绑"].tap()
         let bind = app.buttons["account.security.bind"]
@@ -92,7 +92,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertFalse(bind.isEnabled)
         XCTAssertTrue(app.staticTexts["当前设备未安装微信，暂时无法绑定；账号密码登录不受影响。"].exists)
         app.buttons["account.security.rotateRecovery"].tap()
-        password.tap(); password.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: password, in: app)
         app.buttons["account.security.submit"].tap()
         app.buttons["替换恢复码"].tap()
         XCTAssertTrue(app.buttons["account.recovery.saved"].waitForExistence(timeout: 5), app.debugDescription)
@@ -116,7 +116,7 @@ final class ZhouJiUITests: XCTestCase {
         for identifier in ["account.password.register.password", "account.password.register.confirmation"] {
             let field = app.secureTextFields[identifier]
             for _ in 0..<6 where !field.isHittable { app.swipeUp() }
-            field.tap(); field.typeText("ui-test-long-password")
+            enterPassword("ui-test-long-password", into: field, in: app)
         }
         let submit = app.buttons["account.password.register.submit"]
         for _ in 0..<6 where !submit.isHittable { app.swipeUp() }; submit.tap()
@@ -143,9 +143,9 @@ final class ZhouJiUITests: XCTestCase {
         let name = app.textFields["account.password.register.username"]
         name.tap(); name.typeText("sample_user")
         let password = app.secureTextFields["account.password.register.password"]
-        password.tap(); password.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: password, in: app)
         let confirmation = app.secureTextFields["account.password.register.confirmation"]
-        confirmation.tap(); confirmation.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: confirmation, in: app)
         app.buttons["account.password.register.submit"].tap()
         let saved = app.buttons["account.recovery.saved"]
         XCTAssertTrue(saved.waitForExistence(timeout: 5)); saved.tap()
@@ -157,23 +157,23 @@ final class ZhouJiUITests: XCTestCase {
         let bind = app.buttons["account.security.bind"]
         XCTAssertTrue(bind.waitForExistence(timeout: 3)); bind.tap()
         let current = app.secureTextFields["account.security.password"]
-        current.tap(); current.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: current, in: app)
         app.buttons["account.security.submit"].tap()
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: current)], timeout: 5), .completed)
         let unbind = app.buttons["account.security.unbind"]
         XCTAssertTrue(unbind.waitForExistence(timeout: 5))
         app.buttons["account.security.changePassword"].tap()
-        current.tap(); current.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: current, in: app)
         let newPassword = app.secureTextFields["account.security.newPassword"]
-        newPassword.tap(); newPassword.typeText("ui-test-updated-password")
+        enterPassword("ui-test-updated-password", into: newPassword, in: app)
         let newConfirmation = app.secureTextFields["account.security.confirmation"]
-        newConfirmation.tap(); newConfirmation.typeText("ui-test-updated-password")
+        enterPassword("ui-test-updated-password", into: newConfirmation, in: app)
         app.buttons["account.security.submit"].tap()
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: current)], timeout: 5), .completed)
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true AND isEnabled == true"), object: unbind)], timeout: 5), .completed)
         unbind.tap()
         XCTAssertTrue(app.staticTexts["解绑后仍可用账号密码登录，不会删除任务与计时记录。"].waitForExistence(timeout: 3))
-        current.tap(); current.typeText("ui-test-updated-password")
+        enterPassword("ui-test-updated-password", into: current, in: app)
         XCTAssertTrue(app.buttons["account.security.submit"].isEnabled)
         app.buttons["account.security.submit"].tap()
         let confirmUnbind = app.buttons["确认解绑"]
@@ -181,7 +181,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: current)], timeout: 5), .completed)
         XCTAssertTrue(bind.waitForExistence(timeout: 5))
         app.buttons["account.security.rotateRecovery"].tap()
-        current.tap(); current.typeText("ui-test-updated-password")
+        enterPassword("ui-test-updated-password", into: current, in: app)
         app.buttons["account.security.submit"].tap()
         let confirmRotation = app.buttons["替换恢复码"]
         XCTAssertTrue(confirmRotation.waitForExistence(timeout: 5)); confirmRotation.tap()
@@ -206,9 +206,9 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(username.waitForExistence(timeout: 3))
         username.tap(); username.typeText("sample_user")
         let password = app.secureTextFields["account.password.register.password"]
-        password.tap(); password.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: password, in: app)
         let confirmation = app.secureTextFields["account.password.register.confirmation"]
-        confirmation.tap(); confirmation.typeText("ui-test-long-password")
+        enterPassword("ui-test-long-password", into: confirmation, in: app)
         app.buttons["account.password.register.submit"].tap()
         let saved = app.buttons["account.recovery.saved"]
         XCTAssertTrue(saved.waitForExistence(timeout: 5))
@@ -229,10 +229,10 @@ final class ZhouJiUITests: XCTestCase {
         let code = app.textFields["account.password.recover.code"]
         code.tap(); code.typeText("ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ23-4567")
         let newPassword = app.secureTextFields["account.password.recover.password"]
-        newPassword.tap(); newPassword.typeText("ui-test-new-password")
+        enterPassword("ui-test-new-password", into: newPassword, in: app)
         let newConfirmation = app.secureTextFields["account.password.recover.confirmation"]
         if !newConfirmation.isHittable { app.swipeUp() }
-        newConfirmation.tap(); newConfirmation.typeText("ui-test-new-password")
+        enterPassword("ui-test-new-password", into: newConfirmation, in: app)
         app.buttons["account.password.recover.submit"].tap()
         XCTAssertTrue(saved.waitForExistence(timeout: 5))
         saved.tap()
@@ -240,7 +240,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(loginUsername.waitForExistence(timeout: 5))
         loginUsername.tap(); loginUsername.typeText("sample_user")
         let loginPassword = app.secureTextFields["account.password.login.password"]
-        loginPassword.tap(); loginPassword.typeText("ui-test-new-password")
+        enterPassword("ui-test-new-password", into: loginPassword, in: app)
         app.buttons["account.password.login.submit"].tap()
         openPreferences(in: app)
         XCTAssertTrue(logout.waitForExistence(timeout: 5))
@@ -509,7 +509,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(app.staticTexts["profile.completed"].label, "1 件")
         app.buttons["profile.closePanel"].tap()
         app.buttons["tab.today"].tap()
-        // This completed task sits below the quiet Today illustration.
+        // This completed task sits below the quiet Today card.
         for _ in 0..<4 where !app.staticTexts["账户独有任务"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.staticTexts["账户独有任务"].waitForExistence(timeout: 3))
         XCTAssertFalse(app.staticTexts["整理开题资料"].exists)
@@ -766,15 +766,15 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "profile"]
         app.launch()
         openPreferences(in: app)
-        let button = app.buttons["account.wechatLogin"]
-        if !button.isHittable { app.swipeUp() }
-        XCTAssertTrue(button.waitForExistence(timeout: 5))
-        button.tap()
-        let error = app.staticTexts["account.message"]
-        XCTAssertTrue(error.waitForExistence(timeout: 35))
-        XCTAssertTrue(error.label.contains("微信") || error.label.contains("登录服务"))
+        // Without WeChat installed the entry is replaced by a note; account and Apple login stay available.
+        let availability = app.staticTexts["account.wechatAvailability"]
+        XCTAssertTrue(availability.waitForExistence(timeout: 5))
+        for _ in 0..<3 where !availability.isHittable { app.swipeUp() }
+        XCTAssertTrue(availability.label.contains("未安装微信"))
+        XCTAssertFalse(app.buttons["account.wechatLogin"].exists)
+        XCTAssertTrue(app.buttons["account.password.open"].exists)
         XCTAssertFalse(app.buttons["account.logout"].exists)
-        XCTAssertTrue(button.isEnabled)
+        XCTAssertTrue(app.staticTexts["library.current"].exists)
     }
 
     @MainActor
@@ -1166,7 +1166,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(completedHeader.frame.minY - remaining.frame.maxY, beforeGap, accuracy: 2,
                        "从两项变为一项时，不应突然在未完成与已完成之间插入留白")
         XCTAssertEqual(greeting.frame.minY, beforeGreeting.minY, accuracy: 2,
-                       "完成倒数第二项不应强制滚动首页插画")
+                       "完成倒数第二项不应强制滚动首页")
         saveScreenshot("today-one-task-after-completion", app: app)
 
         let start = remaining.buttons["开始计时"]
@@ -1272,11 +1272,22 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["today.firstTask"].tap()
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 3))
+        // With a hardware keyboard attached the software keyboard stays off screen until typing starts.
+        if keyboard.frame.minY >= app.frame.maxY {
+            let field = app.textFields["今天要做什么？"]
+            field.typeText("a")
+            field.typeText(XCUIKeyboardKey.delete.rawValue)
+        }
+        XCTAssertLessThan(keyboard.frame.minY, app.frame.maxY, "软键盘应出现在屏幕内")
         let dragStart = app.coordinate(withNormalizedOffset: .zero)
             .withOffset(CGVector(dx: app.frame.width * 0.5, dy: keyboard.frame.minY - app.frame.minY - 120))
         dragStart.press(forDuration: 0.05,
             thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.96)))
-        XCTAssertTrue(keyboard.waitForNonExistence(timeout: 3))
+        let keyboardHidden = NSPredicate { _, _ in
+            !keyboard.exists || keyboard.frame.minY >= app.frame.maxY
+        }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: keyboardHidden, object: nil)], timeout: 3),
+                       .completed, "向下拖动后键盘应收起")
         assertLightPage(in: app)
         assertLightPage(in: app, sampleYFraction: 0.94)
         saveScreenshot("new-task-keyboard-dismissed-paper", app: app)
@@ -1511,9 +1522,7 @@ final class ZhouJiUITests: XCTestCase {
         let app = makeApp()
         app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
-        let artworkBottom = app.buttons["tab.goals"].frame.minY
-        XCTAssertNotNil(goalArtworkTopAtMargin(in: app, above: artworkBottom, margin: 0), "插画必须到达左侧屏幕边缘")
-        XCTAssertNotNil(goalArtworkTopAtMargin(in: app, above: artworkBottom, margin: app.frame.width - 0.5), "插画必须到达右侧屏幕边缘")
+        XCTAssertTrue(app.buttons["新建目标"].waitForExistence(timeout: 3))
         let names = ["健康一点", "多读书", "坚持运动", "做更好的自己"]
         for name in names { createGoal(named: name, in: app) }
         for (name, icon) in [("健康一点", "leaf"), ("做更好的自己", "heart")] {
@@ -1536,14 +1545,15 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
-    func testGoalBackgroundStaysInPlaceWhileCreatingGoal() throws {
+    func testGoalPageStaysInPlaceWhileCreatingGoal() throws {
         continueAfterFailure = false
         let app = makeApp()
         app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
         XCTAssertTrue(app.buttons["新建目标"].waitForExistence(timeout: 3))
-        let originalArtworkY = try XCTUnwrap(goalArtworkTopAtMargin(in: app, above: app.buttons["tab.goals"].frame.minY))
-        saveScreenshot("goals-background-before-creation", app: app)
+        let heading = app.buttons["目标筛选"]
+        let originalHeadingY = heading.frame.minY
+        saveScreenshot("goals-before-creation", app: app)
         app.buttons["新建目标"].tap()
         let keyboard = app.keyboards.firstMatch
         XCTAssertTrue(keyboard.waitForExistence(timeout: 3))
@@ -1553,14 +1563,11 @@ final class ZhouJiUITests: XCTestCase {
         let create = app.buttons["创建"]
         XCTAssertTrue(create.isHittable)
         XCTAssertLessThanOrEqual(create.frame.maxY, keyboard.frame.minY)
-        saveScreenshot("goals-background-during-creation", app: app)
-        let visibleArtworkY = goalArtworkTopAtMargin(in: app, above: keyboard.frame.minY)
-        XCTAssertGreaterThanOrEqual(visibleArtworkY ?? app.frame.height, originalArtworkY - 2,
-                                    "输入目标时，背景插画不能从原来的底部位置被推到键盘上方")
+        saveScreenshot("goals-during-creation", app: app)
+        XCTAssertEqual(heading.frame.minY, originalHeadingY, accuracy: 2, "输入目标时，页面标题不应被推动")
         app.buttons["取消"].tap()
         XCTAssertTrue(keyboard.waitForNonExistence(timeout: 3))
-        let restoredArtworkY = try XCTUnwrap(goalArtworkTopAtMargin(in: app, above: app.buttons["tab.goals"].frame.minY))
-        XCTAssertEqual(restoredArtworkY, originalArtworkY, accuracy: 2)
+        XCTAssertEqual(heading.frame.minY, originalHeadingY, accuracy: 2)
         app.buttons["新建目标"].tap()
         field.typeText("每天阅读")
         create.tap()
@@ -1702,6 +1709,18 @@ final class ZhouJiUITests: XCTestCase {
         saveScreenshot("calendar-reference-picnic", app: app)
     }
 
+    /// The simulator's Passwords app may offer a strong password for new-password fields; that sheet
+    /// swallows typed text, so close it before typing.
+    @MainActor
+    private func enterPassword(_ text: String, into field: XCUIElement, in app: XCUIApplication) {
+        field.tap()
+        if app.buttons["GenerateStrongPasswordButton"].waitForExistence(timeout: 1) {
+            app.buttons.matching(identifier: "xmark").firstMatch.tap()
+            field.tap()
+        }
+        field.typeText(text)
+    }
+
     @MainActor
     private func openPreferences(in app: XCUIApplication) {
         let settings = app.buttons["profile.settings"]
@@ -1746,32 +1765,6 @@ final class ZhouJiUITests: XCTestCase {
         field.typeText(name)
         app.buttons["添加"].tap()
         XCTAssertTrue(app.staticTexts[name].waitForExistence(timeout: 2))
-    }
-
-    @MainActor
-    private func goalArtworkTopAtMargin(in app: XCUIApplication, above bottom: CGFloat, margin: CGFloat = 14) -> CGFloat? {
-        guard let image = UIImage(data: app.screenshot().pngRepresentation)?.cgImage else { return nil }
-        let width = image.width
-        let height = image.height
-        var pixels = [UInt8](repeating: 0, count: width * height * 4)
-        pixels.withUnsafeMutableBytes { buffer in
-            let context = CGContext(data: buffer.baseAddress, width: width, height: height,
-                                    bitsPerComponent: 8, bytesPerRow: width * 4,
-                                    space: CGColorSpaceCreateDeviceRGB(),
-                                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue)!
-            context.draw(image, in: CGRect(x: 0, y: 0, width: width, height: height))
-        }
-        let scale = CGFloat(width) / app.frame.width
-        // The 14pt margin is outside cards, inputs and navigation icons.
-        // Inspect actual printed pixels rather than an invisible layout frame.
-        let x = min(width - 1, max(0, Int(margin * scale)))
-        for y in stride(from: Int(100 * scale), to: min(height, Int(bottom * scale)), by: 2) {
-            let offset = (y * width + x) * 4
-            if pixels[offset] < 190 && pixels[offset + 1] < 190 && pixels[offset + 2] < 180 {
-                return CGFloat(y) / scale
-            }
-        }
-        return nil
     }
 
     @MainActor
