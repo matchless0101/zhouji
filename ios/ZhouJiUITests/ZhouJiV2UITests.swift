@@ -1009,7 +1009,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "goals"]
         app.launch()
 
-        XCTAssertTrue(app.buttons["目标筛选"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["goal.filter.all"].waitForExistence(timeout: 3))
         app.buttons["新建目标"].tap()
 
         let goalField = app.textFields["目标名称"]
@@ -1481,11 +1481,9 @@ final class ZhouJiUITests: XCTestCase {
         for _ in 0..<3 where !app.buttons["新建目标"].isHittable { app.swipeUp() }
         XCTAssertTrue(app.buttons["新建目标"].isHittable)
         XCTAssertTrue(app.staticTexts["iOS App"].exists)
-        app.buttons["目标筛选"].tap()
-        app.buttons["已完成"].tap()
+        app.buttons["goal.filter.completed"].tap()
         XCTAssertTrue(app.staticTexts["这里还没有目标"].waitForExistence(timeout: 2))
-        app.buttons["目标筛选"].tap()
-        app.buttons["全部"].tap()
+        app.buttons["goal.filter.all"].tap()
         XCTAssertTrue(app.staticTexts["论文"].waitForExistence(timeout: 2))
         app.buttons["tab.calendar"].tap()
         XCTAssertTrue(app.staticTexts["calendar.completed"].waitForExistence(timeout: 2))
@@ -1541,8 +1539,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(row.exists)
         XCTAssertTrue((row.value as? String ?? "").contains("完成 0 个，共 0 个任务"), "精简视觉后仍保留进度的无障碍说明")
         saveScreenshot("goals-reference-four-cards", app: app)
-        app.buttons["目标筛选"].tap()
-        app.buttons["进行中"].tap()
+        app.buttons["goal.filter.inProgress"].tap()
         XCTAssertTrue(app.staticTexts["多读书"].exists)
     }
 
@@ -1553,7 +1550,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "goals", "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryL"]
         app.launch()
         XCTAssertTrue(app.buttons["新建目标"].waitForExistence(timeout: 3))
-        let heading = app.buttons["目标筛选"]
+        let heading = app.buttons["goal.filter.all"]
         let originalHeadingY = heading.frame.minY
         saveScreenshot("goals-before-creation", app: app)
         app.buttons["新建目标"].tap()
@@ -1670,7 +1667,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(app.buttons["tab.addTask"].waitForExistence(timeout: 3))
         saveScreenshot("today-light-large-text", app: app)
         app.buttons["tab.goals"].tap()
-        XCTAssertTrue(app.buttons["目标筛选"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.buttons["goal.filter.all"].waitForExistence(timeout: 2))
         saveScreenshot("goals-light-large-text", app: app)
         app.buttons["tab.calendar"].tap()
         XCTAssertTrue(app.buttons["calendar.previousMonth"].waitForExistence(timeout: 2))

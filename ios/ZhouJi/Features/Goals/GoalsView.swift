@@ -75,15 +75,10 @@ struct GoalsView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
-                // A black card below the status bar keeps the system time readable.
                 pageHeader
-                    .padding(.horizontal, 20)
-                    .padding(.top, 14)
-                    .padding(.bottom, 20)
-                    .background(ZJInkBlock(cornerRadius: 30))
-                    .padding(.horizontal, ZJTheme.pagePadding)
-                    .padding(.top, 6)
-                    .padding(.bottom, 10)
+                    .padding(.horizontal, ZJTheme.pagePadding + 2)
+                    .padding(.top, 20)
+                    .padding(.bottom, 12)
                     .background(ZJTheme.pageBackground)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -129,62 +124,89 @@ struct GoalsView: View {
         }
     }
 
-    /// A black header carries the motto, the filter and the new-goal button.
+    /// Title and motto with the new-goal button, then a segmented filter that shows each count.
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center) {
-                Text("目标 · \(visibleGoals.count)")
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("我的目标")
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .accessibilityAddTraits(.isHeader)
+                    // The motto is decorative, so large accessibility text gives its room to the goals.
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Text("慢一点，但一直向前。")
+                            .font(.subheadline)
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
                 Spacer(minLength: 8)
                 if !isAddingGoal {
                     Button(action: beginCreatingGoal) {
                         Image(systemName: "plus")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(ZJTheme.ink)
-                            .frame(width: 44, height: 44)
-                            .background(ZJTheme.surface, in: Circle())
+                            .foregroundStyle(ZJTheme.onAccent)
+                            .frame(width: 48, height: 48)
+                            .background(ZJTheme.accent, in: Circle())
+                            .compositingGroup()
+                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("新建目标")
                 } else {
-                    Color.clear.frame(width: 44, height: 44)
+                    Color.clear.frame(width: 48, height: 48)
                 }
             }
-            Text(dynamicTypeSize.isAccessibilitySize ? "慢一点，但一直向前。" : "慢一点，\n但一直向前。")
-                .font(.title2.weight(.bold))
-                .lineSpacing(4)
-                .foregroundStyle(ZJTheme.onEmphasis)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityAddTraits(.isHeader)
-            Menu {
-                ForEach(GoalFilter.allCases, id: \.self) { filter in
-                    Button { selectedFilter = filter } label: {
-                        if selectedFilter == filter {
-                            Label(filter.title, systemImage: "checkmark")
-                        } else {
-                            Text(filter.title)
-                        }
+            filterBar
+        }
+    }
+
+    private var filterBar: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 4))
+            : AnyLayout(HStackLayout(spacing: 4))
+        return layout {
+            ForEach(GoalFilter.allCases, id: \.self) { filter in
+                let isSelected = selectedFilter == filter
+                Button {
+                    selectedFilter = filter
+                } label: {
+                    HStack(spacing: 5) {
+                        Text(filter.title)
+                            .font(.subheadline.weight(isSelected ? .bold : .semibold))
+                        Text("\(count(for: filter))")
+                            .font(.subheadline.weight(.medium))
+                            .monospacedDigit()
+                            .foregroundStyle(isSelected ? ZJTheme.onAccent.opacity(0.7) : ZJTheme.secondaryInk)
                     }
+                    .foregroundStyle(isSelected ? ZJTheme.onAccent : ZJTheme.ink)
+                    .frame(maxWidth: .infinity, minHeight: 40)
+                    .background {
+                        if isSelected { Capsule().fill(ZJTheme.accent) }
+                    }
+                    .contentShape(Capsule())
                 }
-            } label: {
-                HStack(spacing: 8) {
-                    Text("我的目标 · \(selectedFilter.title)")
-                        .font(.subheadline.weight(.medium))
-                    Image(systemName: "chevron.down")
-                        .font(.caption.weight(.bold))
-                }
-                .foregroundStyle(ZJTheme.onEmphasis)
-                .padding(.horizontal, 14)
-                .frame(minHeight: 36)
-                .background(ZJTheme.onEmphasis.opacity(0.12), in: Capsule())
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(filter.title)，\(count(for: filter)) 个目标")
+                .accessibilityIdentifier("goal.filter.\(filter)")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
-            .accessibilityLabel("我的目标，筛选目标")
-            .accessibilityIdentifier("目标筛选")
-            .accessibilityValue(selectedFilter.title)
-            .accessibilityHint("选择全部、进行中或已完成目标")
+        }
+        .padding(4)
+        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .compositingGroup()
+        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("筛选目标")
+        .accessibilityIdentifier("目标筛选")
+    }
+
+    private func count(for filter: GoalFilter) -> Int {
+        switch filter {
+        case .all: visibleGoals.count
+        case .inProgress: inProgressGoals.count
+        case .completed: completedGoals.count
         }
     }
 
