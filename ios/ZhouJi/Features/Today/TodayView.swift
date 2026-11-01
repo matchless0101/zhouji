@@ -134,9 +134,14 @@ struct TodayView: View {
                 }
                 .onChange(of: incompleteTasks.isEmpty) { _, isEmpty in
                     guard isEmpty else { return }
-                    DispatchQueue.main.async {
-                        guard self.incompleteTasks.isEmpty else { return }
-                        scroll.scrollTo("today.header", anchor: .top)
+                    // The last row moves sections inside an animated List update, which can carry the
+                    // scroll position along; return to the resting top again once that update settles.
+                    Task { @MainActor in
+                        for delay in [0, 450] {
+                            try? await Task.sleep(for: .milliseconds(delay))
+                            guard self.incompleteTasks.isEmpty else { return }
+                            scroll.scrollTo("today.header", anchor: .top)
+                        }
                     }
                 }
             }

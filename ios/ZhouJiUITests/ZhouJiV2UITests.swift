@@ -614,6 +614,40 @@ final class ZhouJiUITests: XCTestCase {
     }
 
     @MainActor
+    func testCompletingLastTaskFromScrolledListReturnsToRestingTop() throws {
+        continueAfterFailure = false
+        let app = makeApp()
+        app.launchArguments += ["-ZJPreviewSampleData", "-ZJInitialTab", "today"]
+        app.launch()
+        let field = app.textFields["今天要做什么？"]
+        for index in 1...5 {
+            app.buttons["tab.addTask"].tap()
+            XCTAssertTrue(field.waitForExistence(timeout: 2))
+            field.tap()
+            field.typeText("长列表任务 \(index)")
+            app.buttons["添加"].tap()
+            XCTAssertTrue(app.staticTexts["长列表任务 \(index)"].waitForExistence(timeout: 2))
+        }
+
+        let complete = app.buttons.matching(identifier: "完成任务")
+        while complete.count > 0 {
+            app.swipeUp()
+            let visible = complete.allElementsBoundByIndex.filter(\.isHittable)
+            XCTAssertFalse(visible.isEmpty)
+            visible.last?.tap()
+            Thread.sleep(forTimeInterval: 0.6)
+        }
+
+        let add = app.buttons["today.firstTask"]
+        XCTAssertTrue(add.waitForExistence(timeout: 3))
+        Thread.sleep(forTimeInterval: 1)
+        saveScreenshot("today-all-completed-from-scrolled-list", app: app)
+        XCTAssertTrue(app.staticTexts["today.greeting"].isHittable)
+        XCTAssertTrue(app.staticTexts["today.message"].isHittable)
+        XCTAssertTrue(add.isHittable)
+    }
+
+    @MainActor
     func testProfileTabShowsTruthfulLocalOverview() throws {
         continueAfterFailure = false
         let app = makeApp()
