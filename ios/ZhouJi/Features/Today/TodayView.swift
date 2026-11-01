@@ -237,6 +237,7 @@ struct TodayView: View {
                     .foregroundStyle(ZJTheme.ink)
                     .frame(width: diameter, height: diameter)
                     .background(ZJTheme.surface, in: Circle())
+                    .compositingGroup()
                     .shadow(color: .black.opacity(0.10), radius: 14, x: 0, y: 8)
                 Text("记一件事")
                     .font(ZJTheme.titleFont(24, relativeTo: .title3))

@@ -699,7 +699,7 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["profile.avatar.sunrise"].tap()
         app.buttons["profile.save"].tap()
         XCTAssertTrue(app.staticTexts["profile.editorHeading"].waitForNonExistence(timeout: 3))
-        XCTAssertEqual(identity.value as? String, "头像：榴榴")
+        XCTAssertEqual(identity.value as? String, "头像：粥记")
         saveScreenshot("profile-default-avatar", app: app)
 
         openPreferences(in: app)
@@ -1348,12 +1348,14 @@ final class ZhouJiUITests: XCTestCase {
         app.buttons["tab.today"].tap()
         app.buttons["tab.addTask"].tap()
 
-        let goalPicker = app.buttons["today.goalPicker"]
-        XCTAssertTrue(goalPicker.waitForExistence(timeout: 2))
-        XCTAssertEqual(goalPicker.value as? String, "无目标")
-        goalPicker.tap()
-        app.buttons["完成毕业论文"].tap()
-        XCTAssertEqual(goalPicker.value as? String, "完成毕业论文")
+        // Goals are chips; "不选" starts selected and choosing a goal moves the selection.
+        let noGoal = app.buttons["today.goal.none"]
+        XCTAssertTrue(noGoal.waitForExistence(timeout: 2))
+        XCTAssertTrue(noGoal.isSelected)
+        let goalChip = app.buttons["完成毕业论文"]
+        goalChip.tap()
+        XCTAssertTrue(goalChip.isSelected)
+        XCTAssertFalse(noGoal.isSelected)
 
         let taskField = app.textFields["今天要做什么？"]
         taskField.tap()

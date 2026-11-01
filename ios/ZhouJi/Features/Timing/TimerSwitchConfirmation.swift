@@ -81,6 +81,7 @@ private struct TimerSwitchPanel: View {
                         .foregroundStyle(ZJTheme.ink)
                         .frame(width: 32, height: 32)
                         .background(ZJTheme.surface, in: Circle())
+                        .compositingGroup()
                         .shadow(color: .black.opacity(0.12), radius: 6, x: 0, y: 2)
                         .padding(.vertical, -20)
                         .zIndex(1)

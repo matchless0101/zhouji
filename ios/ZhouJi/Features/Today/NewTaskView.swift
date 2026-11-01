@@ -4,7 +4,6 @@ import SwiftUI
 struct NewTaskView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     @Query(
         filter: #Predicate<Goal> { $0.deletedAt == nil },
@@ -28,10 +27,10 @@ struct NewTaskView: View {
             GeometryReader { proxy in
                 let isCompact = proxy.size.height < 520
                 ScrollView {
-                    VStack(alignment: .leading, spacing: isCompact ? 12 : 20) {
-                        pageHeader(isCompact: isCompact)
-                        taskForm(isCompact: isCompact)
-                        formHint
+                    VStack(alignment: .leading, spacing: isCompact ? 14 : 20) {
+                        pageHeader
+                        titleCard
+                        goalChoices
                     }
                     .padding(.horizontal, ZJTheme.pagePadding)
                     .padding(.top, isCompact ? 4 : 10)
@@ -64,36 +63,40 @@ struct NewTaskView: View {
         }
     }
 
-    private func pageHeader(isCompact: Bool) -> some View {
-        VStack(alignment: .leading, spacing: isCompact ? 6 : 12) {
-            ZJBackButton(label: "返回今天", action: dismiss.callAsFunction)
-
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: isCompact ? 8 : 12) {
-                    Text("新建任务")
-                        .font(ZJTheme.titleFont(isCompact ? 34 : 38, relativeTo: .largeTitle).weight(.bold))
+    private var pageHeader: some View {
+        ZStack {
+            Text("记一件事")
+                .font(.headline.weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .accessibilityAddTraits(.isHeader)
+            HStack {
+                Button(action: dismiss.callAsFunction) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(ZJTheme.ink)
-                        .accessibilityAddTraits(.isHeader)
-
-                    Text("把想做的事，\n变成可以完成的行动。")
-                        .font(ZJTheme.titleFont(isCompact ? 15 : 17, relativeTo: .subheadline))
-                        .lineSpacing(3)
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(width: 44, height: 44)
+                        .background(ZJTheme.surface, in: Circle())
+                        .compositingGroup()
+                        .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+                        .contentShape(Circle())
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .buttonStyle(.plain)
+                .accessibilityLabel("返回今天")
+                Spacer()
             }
         }
     }
 
-    private func taskForm(isCompact: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 0) {
-            formLabel("任务名称")
+    private var titleCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("任务名称")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(ZJTheme.secondaryInk)
 
-            HStack(spacing: 0) {
+            HStack(spacing: 6) {
                 TextField("今天要做什么？", text: $draftTitle)
                     .textFieldStyle(.plain)
-                    .font(.body)
+                    .font(.title2.weight(.semibold))
                     .foregroundStyle(ZJTheme.ink)
                     .focused($isTitleFocused)
                     .submitLabel(.done)
@@ -104,9 +107,11 @@ struct NewTaskView: View {
                         draftTitle = ""
                         isTitleFocused = true
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 18))
-                            .foregroundStyle(ZJTheme.secondaryInk.opacity(0.45))
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(ZJTheme.secondaryInk)
+                            .frame(width: 30, height: 30)
+                            .background(ZJTheme.mutedSurface, in: Circle())
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
@@ -114,121 +119,66 @@ struct NewTaskView: View {
                     .accessibilityLabel("清空任务名称")
                 }
             }
-            .padding(.leading, 14)
-            .padding(.trailing, draftTitle.isEmpty ? 14 : 4)
-            .frame(minHeight: 52)
-            .background {
-                inputSurface
-            }
+            .frame(minHeight: 44)
 
-            Divider()
-                .overlay(ZJTheme.divider.opacity(0.8))
-                .padding(.vertical, isCompact ? 8 : 20)
-
-            formLabel("关联目标")
-            goalPicker
+            Capsule()
+                .fill(ZJTheme.ink)
+                .frame(height: 1.5)
+                .accessibilityHidden(true)
         }
-        .padding(isCompact ? 12 : 16)
-        .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius))
-        .overlay {
-            RoundedRectangle(cornerRadius: ZJTheme.cornerRadius)
-                .stroke(ZJTheme.divider.opacity(0.75), lineWidth: 0.8)
-        }
+        .padding(.horizontal, 18)
+        .padding(.top, 16)
+        .padding(.bottom, 18)
+        .zjCard()
     }
 
-    private var inputSurface: some View {
-        RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
-            .fill(ZJTheme.background.opacity(0.45))
-            .overlay {
-                RoundedRectangle(cornerRadius: ZJTheme.compactCornerRadius)
-                    .stroke(ZJTheme.divider.opacity(0.85), lineWidth: 0.8)
-            }
-    }
+    /// Goals are picked from a row of chips; "不选" keeps the task without a goal.
+    private var goalChoices: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("所属目标 · 可选")
+                .font(.caption.weight(.medium))
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .padding(.horizontal, 4)
+                .accessibilityHidden(true)
 
-    private func formLabel(_ title: String) -> some View {
-        Text(title)
-            .font(ZJTheme.titleFont(18, relativeTo: .headline).weight(.bold))
-            .foregroundStyle(ZJTheme.ink)
-            .padding(.bottom, 8)
-    }
-
-    private var goalPicker: some View {
-        Menu {
-            Button {
-                selectedGoal = nil
-            } label: {
-                if selectedGoal == nil {
-                    Label("无目标", systemImage: "checkmark")
-                } else {
-                    Text("无目标")
+            ChipFlowLayout(spacing: 8) {
+                goalChip(title: "不选", isSelected: selectedGoal == nil, identifier: "today.goal.none") {
+                    selectedGoal = nil
                 }
-            }
-
-            ForEach(visibleGoals) { goal in
-                Button {
-                    selectedGoal = goal
-                } label: {
-                    if selectedGoal?.id == goal.id {
-                        Label(goal.name, systemImage: "checkmark")
-                    } else {
-                        Text(goal.name)
+                ForEach(visibleGoals) { goal in
+                    goalChip(title: goal.name, isSelected: selectedGoal?.id == goal.id, identifier: "today.goal.option") {
+                        selectedGoal = goal
                     }
                 }
             }
-        } label: {
-            HStack(spacing: 12) {
-                ZJGoalIcon(iconName: selectedGoal?.displayIconName ?? "target", size: 36)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(selectedGoal?.name ?? "不关联目标")
-                        .font(ZJTheme.titleFont(17, relativeTo: .body).weight(.bold))
-                        .foregroundStyle(ZJTheme.ink)
-                        .lineLimit(1)
-
-                    Text(selectedGoal == nil ? "稍后也可以再决定" : "任务会计入这个目标的进度")
-                        .font(ZJTheme.titleFont(13, relativeTo: .caption))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: 8)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                    .accessibilityHidden(true)
-            }
-            .padding(12)
-            .frame(minHeight: 64)
-            .background {
-                inputSurface
-            }
-            .contentShape(Rectangle())
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("所属目标")
+            .accessibilityIdentifier("today.goalPicker")
         }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("today.goalPicker")
-        .accessibilityLabel("归属目标")
-        .accessibilityValue(selectedGoal?.name ?? "无目标")
-        .accessibilityHint("选择这个任务所属的目标")
     }
 
-    private var formHint: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Image(systemName: "sparkle")
-                .font(.system(size: 16))
-                .accessibilityHidden(true)
-
-            Text("任务保持简单：只记录名称和归属目标。")
-                .font(ZJTheme.titleFont(14, relativeTo: .footnote))
-                .fixedSize(horizontal: false, vertical: true)
+    private func goalChip(title: String, isSelected: Bool, identifier: String,
+                          action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .lineLimit(1)
+                .foregroundStyle(isSelected ? ZJTheme.onAccent : ZJTheme.ink)
+                .padding(.horizontal, 16)
+                .frame(minHeight: 44)
+                .background(isSelected ? ZJTheme.accent : ZJTheme.surface, in: Capsule())
+                .compositingGroup()
+                .shadow(color: .black.opacity(isSelected ? 0.18 : 0.05), radius: isSelected ? 9 : 6, x: 0, y: 4)
+                .contentShape(Capsule())
         }
-        .foregroundStyle(ZJTheme.secondaryInk)
-        .accessibilityElement(children: .combine)
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private var submitBar: some View {
         Button(action: createTask) {
-            Text("添加任务")
+            Label("添加任务", systemImage: "plus")
         }
         .buttonStyle(ZJPrimaryButtonStyle())
         .disabled(normalizedTitle.isEmpty)
@@ -255,6 +205,52 @@ struct NewTaskView: View {
         NewTaskView()
     }
     .modelContainer(for: [Goal.self, TodoTask.self, TimingSession.self], inMemory: true)
+}
+
+/// Wraps chips onto as many rows as they need; a chip never grows wider than the row.
+private struct ChipFlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        let rows = arrange(subviews, width: width)
+        let height = rows.last.map { $0.y + $0.height } ?? 0
+        return CGSize(width: proposal.width ?? rows.map(\.width).max() ?? 0, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        for row in arrange(subviews, width: bounds.width) {
+            for item in row.items {
+                subviews[item.index].place(at: CGPoint(x: bounds.minX + item.x, y: bounds.minY + row.y),
+                                           proposal: ProposedViewSize(item.size))
+            }
+        }
+    }
+
+    private struct Row {
+        var y: CGFloat
+        var height: CGFloat = 0
+        var width: CGFloat = 0
+        var items: [(index: Int, x: CGFloat, size: CGSize)] = []
+    }
+
+    private func arrange(_ subviews: Subviews, width: CGFloat) -> [Row] {
+        var rows = [Row(y: 0)]
+        for index in subviews.indices {
+            let size = subviews[index].sizeThatFits(ProposedViewSize(width: width, height: nil))
+            if !rows[rows.count - 1].items.isEmpty, rows[rows.count - 1].width + spacing + size.width > width {
+                let last = rows[rows.count - 1]
+                rows.append(Row(y: last.y + last.height + spacing))
+            }
+            var row = rows[rows.count - 1]
+            let x = row.items.isEmpty ? 0 : row.width + spacing
+            row.items.append((index, x, size))
+            row.width = x + size.width
+            row.height = max(row.height, size.height)
+            rows[rows.count - 1] = row
+        }
+        return rows
+    }
 }
 
 // SwiftUI's native navigation/tab containers can expose their default background

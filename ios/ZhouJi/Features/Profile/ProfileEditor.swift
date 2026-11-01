@@ -2,14 +2,14 @@ import SwiftUI
 
 // Only stable preset identifiers are sent to the server; no remote image URLs.
 enum ProfileAvatar: String, CaseIterable, Identifiable {
-    // Keep the existing default identifier so saved profiles and the API stay compatible.
-    case liuli = "sunrise"
+    // Keep the existing identifiers so saved profiles and the API stay compatible.
+    case standard = "sunrise"
     case leaf, moon, ocean, flower, mountain
     var id: Self { self }
 
     var title: String {
         switch self {
-        case .liuli: "榴榴"
+        case .standard: "粥记"
         case .leaf: "新芽"
         case .moon: "月夜"
         case .ocean: "海浪"
@@ -18,29 +18,42 @@ enum ProfileAvatar: String, CaseIterable, Identifiable {
         }
     }
 
-    var assetName: String {
+    /// Line symbol for the preset; the default draws the "粥" monogram instead.
+    var symbol: String? {
         switch self {
-        case .liuli: "LiuliHeart"
-        case .leaf: "AvatarLeaf"
-        case .moon: "AvatarMoon"
-        case .ocean: "AvatarOcean"
-        case .flower: "AvatarFlower"
-        case .mountain: "AvatarMountain"
+        case .standard: nil
+        case .leaf: "leaf"
+        case .moon: "moon.stars"
+        case .ocean: "water.waves"
+        case .flower: "camera.macro"
+        case .mountain: "mountain.2"
         }
     }
 
 }
 
+/// Mono Soft avatars: the default is a black disc with a white "粥" monogram,
+/// the presets are black line symbols on a light gray disc.
 struct ProfileAvatarView: View {
     let avatar: ProfileAvatar
     var size: CGFloat = 72
 
     var body: some View {
-        Image(decorative: avatar.assetName)
-            .resizable()
-            .scaledToFit()
-            .frame(width: size, height: size)
-            .accessibilityHidden(true)
+        ZStack {
+            if let symbol = avatar.symbol {
+                Circle().fill(ZJTheme.mutedSurface)
+                Image(systemName: symbol)
+                    .font(.system(size: size * 0.4, weight: .regular))
+                    .foregroundStyle(ZJTheme.ink)
+            } else {
+                Circle().fill(ZJTheme.emphasisSurface)
+                Text("粥")
+                    .font(.system(size: size * 0.42, weight: .bold))
+                    .foregroundStyle(ZJTheme.onEmphasis)
+            }
+        }
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
     }
 
 }
@@ -57,7 +70,7 @@ struct ProfileEditor: View {
     init(profile: AppAccount) {
         accountID = profile.id
         _nickname = State(initialValue: profile.displayName)
-        _avatar = State(initialValue: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli)
+        _avatar = State(initialValue: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .standard)
     }
 
     private var normalizedName: String {

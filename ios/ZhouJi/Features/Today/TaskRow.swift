@@ -102,6 +102,7 @@ struct TaskRow: View {
                                 in: Capsule()
                             )
                             .overlay { Capsule().stroke(ZJTheme.surface, lineWidth: 1.5) }
+                            .compositingGroup()
                             .shadow(color: ZJTheme.timerAccent.opacity(0.10), radius: 8, y: 3)
                     }
                 }

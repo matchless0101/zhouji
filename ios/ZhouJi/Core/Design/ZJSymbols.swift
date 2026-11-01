@@ -10,6 +10,7 @@ struct ZJAddButtonStyle: ButtonStyle {
             .foregroundStyle(ZJTheme.onAccent)
             .frame(width: diameter, height: diameter)
             .background(ZJTheme.accent, in: Circle())
+            .compositingGroup()
             .shadow(color: .black.opacity(0.18), radius: 8, y: 4)
             .padding(max(0, (44 - diameter) / 2))
             .contentShape(Rectangle())

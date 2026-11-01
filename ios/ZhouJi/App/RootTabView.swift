@@ -79,6 +79,7 @@ struct RootTabView: View {
         }
         .padding(8)
         .background(ZJTheme.surface, in: Capsule())
+        .compositingGroup()
         .shadow(color: .black.opacity(0.10), radius: 20, x: 0, y: 10)
         .shadow(color: .black.opacity(0.05), radius: 3, x: 0, y: 1)
         .padding(.horizontal, 20)
@@ -124,6 +125,7 @@ struct RootTabView: View {
                 .foregroundStyle(ZJTheme.onAccent)
                 .frame(width: 52, height: 52)
                 .background(ZJTheme.accent, in: Circle())
+                .compositingGroup()
                 .shadow(color: .black.opacity(0.25), radius: 9, x: 0, y: 4)
         }
         .buttonStyle(.plain)

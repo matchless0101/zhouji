@@ -62,7 +62,7 @@ struct ProfileView: View {
     private var header: some View {
         HStack(spacing: 14) {
             if let profile = account.account {
-                let avatar = ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli
+                let avatar = ProfileAvatar(rawValue: profile.avatar ?? "") ?? .standard
                 Button { presentedPanel = .editProfile } label: {
                     HStack(spacing: 14) {
                         ProfileAvatarView(avatar: avatar, size: 60)
@@ -84,7 +84,7 @@ struct ProfileView: View {
                 .accessibilityValue("头像：\(avatar.title)")
                 .accessibilityIdentifier("profile.identity")
             } else {
-                ProfileAvatarView(avatar: .liuli, size: 60)
+                ProfileAvatarView(avatar: .standard, size: 60)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("你好，")
                         .font(.subheadline.weight(.medium))
@@ -343,7 +343,7 @@ private struct ProfilePreferencesView: View {
                 isProfileEditorPresented = true
             } label: {
                 HStack(spacing: 16) {
-                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .liuli)
+                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .standard)
                     VStack(alignment: .leading, spacing: 7) {
                         Text(profile.displayName)
                             .font(.title2.weight(.semibold))
@@ -374,7 +374,7 @@ private struct ProfilePreferencesView: View {
 
     private var guestIdentityCard: some View {
         HStack(spacing: 16) {
-            ProfileAvatarView(avatar: .liuli)
+            ProfileAvatarView(avatar: .standard)
 
             VStack(alignment: .leading, spacing: 5) {
                 Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")

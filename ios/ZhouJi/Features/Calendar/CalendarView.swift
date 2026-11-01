@@ -150,6 +150,7 @@ struct CalendarView: View {
                         .foregroundStyle(ZJTheme.ink)
                         .frame(width: 44, height: 44)
                         .background(ZJTheme.surface, in: Circle())
+                        .compositingGroup()
                         .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
                 }
                 .accessibilityLabel("上个月")

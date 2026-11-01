@@ -12,6 +12,7 @@ struct ZJBackButton: View {
                 .foregroundStyle(ZJTheme.ink)
                 .frame(width: 44, height: 44)
                 .background(ZJTheme.surface, in: Circle())
+                .compositingGroup()
                 .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
                 .contentShape(Circle())
         }
@@ -55,6 +56,7 @@ struct ZJPrimaryButtonStyle: ButtonStyle {
             .foregroundStyle(isEnabled ? ZJTheme.onAccent : ZJTheme.secondaryInk)
             .frame(maxWidth: .infinity, minHeight: 52)
             .background(isEnabled ? ZJTheme.accent : ZJTheme.mutedSurface, in: Capsule())
+            .compositingGroup()
             .shadow(color: .black.opacity(isEnabled ? 0.18 : 0), radius: 12, x: 0, y: 6)
             .opacity(configuration.isPressed ? 0.8 : 1)
     }
@@ -70,6 +72,7 @@ struct ZJSecondaryButtonStyle: ButtonStyle {
             .foregroundStyle(isEnabled ? ZJTheme.ink : ZJTheme.secondaryInk)
             .frame(maxWidth: .infinity, minHeight: 50)
             .background(ZJTheme.surface, in: Capsule())
+            .compositingGroup()
             .shadow(color: .black.opacity(0.06), radius: 10, x: 0, y: 4)
             .opacity(configuration.isPressed ? 0.7 : 1)
     }

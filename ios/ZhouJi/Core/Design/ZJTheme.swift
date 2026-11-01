@@ -87,6 +87,7 @@ private struct ZJCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(ZJTheme.surface, in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
+            .compositingGroup()
             .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
     }
 }
@@ -153,6 +154,7 @@ extension View {
     func zjEmphasisCard() -> some View {
         background(ZJTheme.emphasisSurface,
                    in: RoundedRectangle(cornerRadius: ZJTheme.cornerRadius, style: .continuous))
+            .compositingGroup()
             .shadow(color: .black.opacity(0.18), radius: 20, x: 0, y: 10)
     }
 }
