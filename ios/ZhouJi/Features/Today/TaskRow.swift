@@ -106,7 +106,7 @@ struct TaskRow: View {
         withAnimation(.easeOut(duration: 0.12), completionCriteria: .logicallyComplete) {
             isCompleting = true
         } completion: {
-            withAnimation(.easeOut(duration: 0.28)) {
+            withAnimation(.spring(duration: 0.45, bounce: 0.12)) {
                 isCompleting = false
                 onToggleCompletion()
             }

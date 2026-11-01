@@ -56,28 +56,25 @@ struct TodayView: View {
                             todayHeaderContent(size: proxy.size, isQuiet: incompleteTasks.isEmpty,
                                                hasCompletedTasks: !completedTodayTasks.isEmpty)
                                 .frame(width: proxy.size.width)
-                                .frame(minHeight: incompleteTasks.isEmpty ? proxy.size.height : nil, alignment: .top)
-                                .animation(nil, value: incompleteTasks.isEmpty)
+                                // Pin the title while the row grows into the resting card.
+                                .frame(maxHeight: .infinity, alignment: .top)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                                 .listRowSeparator(.hidden)
                                 .listRowBackground(Color.clear)
                                 .id("today.header")
 
-                            if !incompleteTasks.isEmpty {
-                                Section {
-                                    taskSectionHeader(title: "未完成", count: incompleteTasks.count)
-
-                                    ForEach(incompleteTasks) { task in
-                                        row(for: task)
-                                            .id(task.id)
-                                    }
+                            // One ForEach holds both groups, so a finished task keeps its identity and
+                            // slides down into “今日完成” instead of fading out and back in.
+                            ForEach(listItems(incomplete: incompleteTasks, completed: completedTodayTasks)) { item in
+                                switch item {
+                                case let .heading(title, count):
+                                    taskSectionHeader(title: title, count: count)
+                                case let .task(task, isFirst, isLast):
+                                    taskRow(for: task, isFirst: isFirst, isLast: isLast)
                                 }
                             }
-
-                            completedTasksSection(tasks: completedTodayTasks)
                         }
                         .listStyle(.plain)
-                        .listSectionSpacing(16)
                         .contentMargins(.top, 0, for: .scrollContent)
                         .contentMargins(.bottom, 12, for: .scrollContent)
                         .contentMargins(.horizontal, 0, for: .scrollContent)
@@ -134,12 +131,11 @@ struct TodayView: View {
                 }
                 .onChange(of: incompleteTasks.isEmpty) { _, isEmpty in
                     guard isEmpty else { return }
-                    // The last row moves sections inside an animated List update, which can carry the
-                    // scroll position along; return to the resting top again once that update settles.
+                    // Let the finished row land in “今日完成” first, then glide back to the resting card.
                     Task { @MainActor in
-                        for delay in [0, 450] {
-                            try? await Task.sleep(for: .milliseconds(delay))
-                            guard self.incompleteTasks.isEmpty else { return }
+                        try? await Task.sleep(for: .milliseconds(450))
+                        guard self.incompleteTasks.isEmpty else { return }
+                        withAnimation(.smooth(duration: 0.35)) {
                             scroll.scrollTo("today.header", anchor: .top)
                         }
                     }
@@ -167,81 +163,59 @@ struct TodayView: View {
         }
     }
 
-    @ViewBuilder
-    private func completedTasksSection(tasks: [TodoTask]) -> some View {
-        if !tasks.isEmpty {
-            Section {
-                taskSectionHeader(title: "今日完成", count: tasks.count)
-
-                ForEach(tasks) { task in
-                    completedRow(for: task, isFirst: task.id == tasks.first?.id, isLast: task.id == tasks.last?.id)
-                }
+    private func listItems(incomplete: [TodoTask], completed: [TodoTask]) -> [TodayListItem] {
+        var items: [TodayListItem] = []
+        if !incomplete.isEmpty {
+            items.append(.heading("未完成", count: incomplete.count))
+            items += incomplete.map { .task($0, isFirst: true, isLast: true) }
+        }
+        if !completed.isEmpty {
+            items.append(.heading("今日完成", count: completed.count))
+            items += completed.map { task in
+                .task(task, isFirst: task.id == completed.first?.id, isLast: task.id == completed.last?.id)
             }
         }
+        return items
     }
 
     private func taskSectionHeader(title: String, count: Int) -> some View {
         // Every task has its own floating card, so the section title sits on the page.
         ZJSectionHeader(title: title, count: count)
-            .listRowInsets(EdgeInsets(top: 18, leading: ZJTheme.pagePadding + 4,
+            .listRowInsets(EdgeInsets(top: 34, leading: ZJTheme.pagePadding + 4,
                                      bottom: 8, trailing: ZJTheme.pagePadding + 4))
             .listRowBackground(Color.clear)
             .listRowSeparator(.hidden)
     }
 
-    private var taskCardBackground: some View {
-        RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(ZJTheme.surface)
-            .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 4)
-            .padding(.horizontal, ZJTheme.pagePadding)
-            .padding(.vertical, 5)
-            .allowsHitTesting(false)
-    }
-
-    /// Finished tasks share one quiet translucent card, separated by hairlines.
-    private func completedRow(for task: TodoTask, isFirst: Bool, isLast: Bool) -> some View {
-        TaskRow(
+    /// Pending and finished tasks share one row so a completed task moves instead of being replaced:
+    /// pending rows float as separate white cards, finished ones join a translucent grouped card.
+    private func taskRow(for task: TodoTask, isFirst: Bool, isLast: Bool) -> some View {
+        let isDone = task.isCompleted
+        let radius: (Bool) -> CGFloat = { isDone && !$0 ? 0 : 20 }
+        return TaskRow(
             task: task,
-            isActivelyTimed: false,
+            isActivelyTimed: !isDone && timer.activeTaskID == task.id,
             animatesCompletion: true,
             onToggleCompletion: { toggleCompletion(of: task) },
             onStartTimer: { startTimer(for: task) }
         )
-        .listRowInsets(EdgeInsets(top: 3, leading: ZJTheme.pagePadding + 12,
-                                 bottom: 3, trailing: ZJTheme.pagePadding + 16))
+        .listRowInsets(EdgeInsets(top: isDone ? 3 : 5, leading: ZJTheme.pagePadding + 12,
+                                 bottom: isDone ? 3 : 5, trailing: ZJTheme.pagePadding + (isDone ? 16 : 12)))
         .listRowSeparatorTint(ZJTheme.divider)
-        .listRowSeparator(isLast ? .hidden : .visible, edges: .bottom)
+        .listRowSeparator(.hidden, edges: .top)
+        .listRowSeparator(isDone && !isLast ? .visible : .hidden, edges: .bottom)
         .alignmentGuide(.listRowSeparatorLeading) { _ in 8 }
         .alignmentGuide(.listRowSeparatorTrailing) { dimensions in dimensions.width }
         .listRowBackground(
-            UnevenRoundedRectangle(topLeadingRadius: isFirst ? 20 : 0, bottomLeadingRadius: isLast ? 20 : 0,
-                                   bottomTrailingRadius: isLast ? 20 : 0, topTrailingRadius: isFirst ? 20 : 0,
+            UnevenRoundedRectangle(topLeadingRadius: radius(isFirst), bottomLeadingRadius: radius(isLast),
+                                   bottomTrailingRadius: radius(isLast), topTrailingRadius: radius(isFirst),
                                    style: .continuous)
-                .fill(ZJTheme.surface.opacity(0.6))
+                .fill(isDone ? ZJTheme.surface.opacity(0.6) : ZJTheme.surface)
+                .shadow(color: .black.opacity(isDone ? 0 : 0.05), radius: 10, x: 0, y: 4)
                 .padding(.horizontal, ZJTheme.pagePadding)
+                .padding(.vertical, isDone ? 0 : 5)
                 .allowsHitTesting(false)
         )
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                delete(task)
-            } label: {
-                Label("删除", systemImage: "trash")
-            }
-        }
-    }
-
-    private func row(for task: TodoTask) -> some View {
-        TaskRow(
-            task: task,
-            isActivelyTimed: timer.activeTaskID == task.id,
-            animatesCompletion: true,
-            onToggleCompletion: { toggleCompletion(of: task) },
-            onStartTimer: { startTimer(for: task) }
-        )
-        .listRowInsets(EdgeInsets(top: 5, leading: ZJTheme.pagePadding + 12,
-                                 bottom: 5, trailing: ZJTheme.pagePadding + 12))
-        .listRowSeparator(.hidden)
-        .listRowBackground(taskCardBackground)
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 delete(task)
@@ -487,4 +461,17 @@ private struct TodayHeader: View {
     TodayView(navigationPath: .constant([]))
         .environment(TimerController())
         .modelContainer(for: [Goal.self, TodoTask.self, TimingSession.self], inMemory: true)
+}
+
+/// A task keeps the same id whether it is pending or finished, so List animates it as a move.
+private enum TodayListItem: Identifiable {
+    case heading(String, count: Int)
+    case task(TodoTask, isFirst: Bool, isLast: Bool)
+
+    var id: String {
+        switch self {
+        case let .heading(title, _): "heading.\(title)"
+        case let .task(task, _, _): task.id.uuidString
+        }
+    }
 }

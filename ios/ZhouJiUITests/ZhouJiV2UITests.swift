@@ -588,7 +588,10 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertGreaterThan(add.frame.height, 100)
         XCTAssertLessThanOrEqual(add.frame.maxY, app.buttons["tab.today"].frame.minY)
         XCTAssertTrue(app.staticTexts["today.message"].label.contains("今天的事都完成了"))
-        XCTAssertFalse(app.buttons["恢复任务"].isHittable)
+        // The finished task lands in “今日完成” right under the resting card, still on screen.
+        let finished = app.staticTexts["读完一章书"]
+        XCTAssertTrue(finished.isHittable)
+        XCTAssertGreaterThan(finished.frame.minY, add.frame.maxY)
 
         add.tap()
         XCTAssertTrue(field.waitForExistence(timeout: 2))
