@@ -217,19 +217,36 @@ struct ProfileView: View {
             .background(ZJInkBlock())
             tiles {
                 metricTile(title: "累计完成", value: "\(completed) 件", symbol: "checkmark", identifier: "profile.completed")
-                metricTile(title: "任务完成率", value: "\(rate)%", symbol: "chart.pie", identifier: "profile.completionRate")
+                metricTile(title: "任务完成率", value: "\(rate)%", symbol: "chart.pie", identifier: "profile.completionRate",
+                           ring: Double(rate) / 100)
             }
         }
     }
 
-    private func metricTile(title: String, value: String, symbol: String, identifier: String) -> some View {
+    private func metricTile(title: String, value: String, symbol: String, identifier: String,
+                            ring: Double? = nil) -> some View {
         VStack(alignment: .leading, spacing: 18) {
-            Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(ZJTheme.ink)
-                .frame(width: 40, height: 40)
-                .background(ZJTheme.mutedSurface, in: Circle())
-                .accessibilityHidden(true)
+            Group {
+                if let ring {
+                    // The completion rate reads as a real ratio, so it is drawn as a ring.
+                    ZStack {
+                        Circle().stroke(ZJTheme.mutedSurface, lineWidth: 6)
+                        Circle()
+                            .trim(from: 0, to: min(1, max(0, ring)))
+                            .stroke(ZJTheme.ink, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                    }
+                    .frame(width: 42, height: 42)
+                } else {
+                    Image(systemName: symbol)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(ZJTheme.ink)
+                        .frame(width: 40, height: 40)
+                        .background(ZJTheme.mutedSurface, in: Circle())
+                }
+            }
+            .frame(height: 44)
+            .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(value)
                     .font(.system(size: 34, weight: .light, design: ZJTheme.numberDesign))
@@ -256,7 +273,6 @@ struct ProfileView: View {
                 let rate = completionRate
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        ZJPageHeader(title: "我的概况", subtitle: "每一步，都算数。", identifier: "profile.overviewHeading")
                         switch duration {
                         case .failure(let error):
                             Text(error.localizedDescription).foregroundStyle(ZJTheme.secondaryInk)
@@ -272,12 +288,8 @@ struct ProfileView: View {
                 }
             }
             .safeAreaInset(edge: .top, spacing: 0) {
-                ZJBackButton { presentedPanel = nil }
-                    .accessibilityIdentifier("profile.closePanel")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, ZJTheme.pagePadding - 6)
-                    .padding(.top, 6)
-                    .background(ZJTheme.pageBackground)
+                ZJTopBar(title: "我的概况", identifier: "profile.overviewHeading",
+                         backIdentifier: "profile.closePanel") { presentedPanel = nil }
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
@@ -304,29 +316,22 @@ private struct ProfilePreferencesView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    ZJPageHeader(title: "偏好设置", identifier: "profile.preferencesHeading")
+                VStack(alignment: .leading, spacing: 12) {
                     identityCard
                     settingsCard
-                    sectionTitle("账户")
                     AccountControls()
-                    sectionTitle("记录库")
                     LocalLibraryCard()
                     SyncSettingsCard()
                     AccountSessionActions()
                 }
-                .padding(.horizontal, ZJTheme.pagePadding)
-                .padding(.top, 16)
+                .padding(.horizontal, ZJTheme.pagePadding + 2)
+                .padding(.top, 10)
                 .padding(.bottom, 28)
             }
             .background(ZJTheme.pageBackground.ignoresSafeArea())
             .safeAreaInset(edge: .top, spacing: 0) {
-                ZJBackButton(action: dismiss.callAsFunction)
-                    .accessibilityIdentifier("profile.closePanel")
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, ZJTheme.pagePadding - 6)
-                    .padding(.top, 6)
-                    .background(ZJTheme.pageBackground)
+                ZJTopBar(title: "偏好设置", identifier: "profile.preferencesHeading",
+                         backIdentifier: "profile.closePanel", onBack: dismiss.callAsFunction)
             }
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $isAboutPresented) { AboutZhouJiView() }
@@ -342,16 +347,16 @@ private struct ProfilePreferencesView: View {
             Button {
                 isProfileEditorPresented = true
             } label: {
-                HStack(spacing: 16) {
-                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .standard)
-                    VStack(alignment: .leading, spacing: 7) {
+                HStack(spacing: 12) {
+                    ProfileAvatarView(avatar: ProfileAvatar(rawValue: profile.avatar ?? "") ?? .standard, size: 48)
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(profile.displayName)
-                            .font(.title2.weight(.semibold))
+                            .font(.headline.weight(.bold))
                             .foregroundStyle(ZJTheme.ink)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                             .accessibilityIdentifier("profile.displayName")
-                        Label(profile.providerName, systemImage: profile.providerIcon)
+                        Text("头像与昵称 · \(profile.providerName)")
                             .font(.caption)
                             .foregroundStyle(ZJTheme.secondaryInk)
                     }
@@ -360,7 +365,9 @@ private struct ProfilePreferencesView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(ZJTheme.secondaryInk)
                 }
-                .padding(16)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .frame(minHeight: 72)
                 .zjCard()
             }
             .buttonStyle(.plain)
@@ -373,23 +380,25 @@ private struct ProfilePreferencesView: View {
     }
 
     private var guestIdentityCard: some View {
-        HStack(spacing: 16) {
-            ProfileAvatarView(avatar: .standard)
+        HStack(spacing: 12) {
+            ProfileAvatarView(avatar: .standard, size: 48)
 
-            VStack(alignment: .leading, spacing: 5) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(libraries.current.scope == LibraryScope.guest ? "游客模式" : "账户记录 · 离线")
-                    .font(.title2.weight(.semibold))
+                    .font(.headline.weight(.bold))
                     .foregroundStyle(ZJTheme.ink)
 
                 Text("数据仅保存在本机，尚未进行云同步。卸载 App 或更换设备时，数据可能丢失。")
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundStyle(ZJTheme.secondaryInk)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 0)
         }
-        .padding(16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .frame(minHeight: 72)
         .zjCard()
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("profile.guestNotice")
@@ -428,14 +437,6 @@ private struct ProfilePreferencesView: View {
         Divider()
             .overlay(ZJTheme.divider)
             .padding(.horizontal, 14)
-    }
-
-    private func sectionTitle(_ title: String) -> some View {
-        Text(title)
-            .font(ZJTheme.titleFont(25, relativeTo: .title2).weight(.bold))
-            .foregroundStyle(ZJTheme.ink)
-            .padding(.top, 6)
-            .accessibilityAddTraits(.isHeader)
     }
 
     private static var appVersion: String { ZJAppVersion.display }

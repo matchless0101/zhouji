@@ -7,6 +7,7 @@ struct TodayView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(TimerController.self) private var timer
+    @Environment(AccountStore.self) private var account
 
     @Query(
         filter: #Predicate<TodoTask> { $0.deletedAt == nil },
@@ -21,9 +22,11 @@ struct TodayView: View {
     @State private var presentedError: String?
     @State private var referenceDate = Date.now
     @Binding private var navigationPath: [TodayDestination]
+    private let onOpenProfile: () -> Void
 
-    init(navigationPath: Binding<[TodayDestination]>) {
+    init(navigationPath: Binding<[TodayDestination]>, onOpenProfile: @escaping () -> Void = {}) {
         _navigationPath = navigationPath
+        self.onOpenProfile = onOpenProfile
     }
 
     private var incompleteTasks: [TodoTask] {
@@ -142,9 +145,16 @@ struct TodayView: View {
 
     private func todayHeaderContent(size: CGSize, isQuiet: Bool, hasCompletedTasks: Bool) -> some View {
         let isCompact = size.height < size.width * 1.2 + 192
+        let avatar = ProfileAvatar(rawValue: account.account?.avatar ?? "") ?? .standard
         return VStack(spacing: isCompact ? 0 : 20) {
             TodayHeader(date: referenceDate, isQuiet: isQuiet,
-                        isDayComplete: isQuiet && hasCompletedTasks)
+                        isDayComplete: isQuiet && hasCompletedTasks,
+                        avatar: avatar, onOpenProfile: onOpenProfile)
+            if !isQuiet && timer.activeSession != nil {
+                activeTimerCard
+                    .padding(.horizontal, ZJTheme.pagePadding + 2)
+                    .padding(.top, 18)
+            }
             if isQuiet {
                 firstTaskButton(isCompact: isCompact)
                     .transition(.opacity)
@@ -156,10 +166,10 @@ struct TodayView: View {
     private func completedTasksSection(tasks: [TodoTask]) -> some View {
         if !tasks.isEmpty {
             Section {
-                taskSectionHeader(title: "已完成", count: tasks.count)
+                taskSectionHeader(title: "今日完成", count: tasks.count)
 
                 ForEach(tasks) { task in
-                    row(for: task)
+                    completedRow(for: task, isFirst: task.id == tasks.first?.id, isLast: task.id == tasks.last?.id)
                 }
             }
         }
@@ -181,6 +191,38 @@ struct TodayView: View {
             .padding(.horizontal, ZJTheme.pagePadding)
             .padding(.vertical, 5)
             .allowsHitTesting(false)
+    }
+
+    /// Finished tasks share one quiet translucent card, separated by hairlines.
+    private func completedRow(for task: TodoTask, isFirst: Bool, isLast: Bool) -> some View {
+        TaskRow(
+            task: task,
+            isActivelyTimed: false,
+            animatesCompletion: true,
+            onToggleCompletion: { toggleCompletion(of: task) },
+            onStartTimer: { startTimer(for: task) }
+        )
+        .listRowInsets(EdgeInsets(top: 3, leading: ZJTheme.pagePadding + 12,
+                                 bottom: 3, trailing: ZJTheme.pagePadding + 16))
+        .listRowSeparatorTint(ZJTheme.divider)
+        .listRowSeparator(isLast ? .hidden : .visible, edges: .bottom)
+        .alignmentGuide(.listRowSeparatorLeading) { _ in 8 }
+        .alignmentGuide(.listRowSeparatorTrailing) { dimensions in dimensions.width }
+        .listRowBackground(
+            UnevenRoundedRectangle(topLeadingRadius: isFirst ? 20 : 0, bottomLeadingRadius: isLast ? 20 : 0,
+                                   bottomTrailingRadius: isLast ? 20 : 0, topTrailingRadius: isFirst ? 20 : 0,
+                                   style: .continuous)
+                .fill(ZJTheme.surface.opacity(0.6))
+                .padding(.horizontal, ZJTheme.pagePadding)
+                .allowsHitTesting(false)
+        )
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                delete(task)
+            } label: {
+                Label("删除", systemImage: "trash")
+            }
+        }
     }
 
     private func row(for task: TodoTask) -> some View {
@@ -206,22 +248,15 @@ struct TodayView: View {
 
     @ViewBuilder
     private var bottomControls: some View {
-        if undoCandidate != nil || timer.activeSession != nil {
-            VStack(spacing: 10) {
-                if let undoCandidate {
-                    TaskUndoToast(
-                        taskTitle: undoCandidate.title,
-                        onUndo: { undoDelete(undoCandidate) }
-                    )
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                }
-
-                if timer.activeSession != nil {
-                    activeTimerBar
-                }
-            }
-            .padding(.top, 8)
-            .padding(.bottom, 16)
+        if let undoCandidate {
+            TaskUndoToast(
+                taskTitle: undoCandidate.title,
+                onUndo: { undoDelete(undoCandidate) }
+            )
+            .id(undoCandidate.id)
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .padding(.top, 4)
+            .padding(.bottom, 12)
         }
     }
 
@@ -251,48 +286,70 @@ struct TodayView: View {
         .accessibilityIdentifier("today.firstTask")
     }
 
-    private var activeTimerBar: some View {
-        Button {
-            isTimerPresented = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: timer.isRunning ? "waveform" : "pause.fill")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(ZJTheme.onEmphasis)
-                    .frame(width: 32, height: 32)
-
-                VStack(alignment: .leading, spacing: 2) {
+    /// The running timer sits at the top of Today as a black card; tapping it opens the timer page.
+    private var activeTimerCard: some View {
+        HStack(alignment: .bottom, spacing: 12) {
+            Button {
+                isTimerPresented = true
+            } label: {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: 8) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(ZJTheme.onEmphasis)
+                                .frame(width: 6, height: 6)
+                                .opacity(timer.isRunning ? 1 : 0.4)
+                            Text(timer.isRunning ? "计时中" : "已暂停")
+                                .font(.caption.weight(.semibold))
+                        }
+                        .padding(.horizontal, 10)
+                        .frame(minHeight: 26)
+                        .background(ZJTheme.onEmphasis.opacity(0.12), in: Capsule())
+                        if let goal = timer.activeSession?.goalNameSnapshot {
+                            Text(goal)
+                                .font(.caption)
+                                .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                                .lineLimit(1)
+                        }
+                    }
+                    Spacer(minLength: 18)
                     Text(timer.activeSession?.taskTitleSnapshot ?? "本次计时")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(ZJTheme.onEmphasis)
+                        .font(.headline.weight(.semibold))
                         .lineLimit(1)
-
-                    Text(timer.isRunning ? "正在投入" : "已经暂停")
-                        .font(.caption)
-                        .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        Text(TimerMath.formattedDuration(timer.elapsed(at: context.date)))
+                            .font(.system(size: 38, weight: .light, design: ZJTheme.numberDesign))
+                            .monospacedDigit()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.6)
+                    }
+                    .padding(.top, 4)
                 }
-
-                Spacer()
-
-                TimelineView(.periodic(from: .now, by: 1)) { context in
-                    Text(TimerMath.formattedDuration(timer.elapsed(at: context.date)))
-                        .font(.system(.subheadline, design: ZJTheme.numberDesign, weight: .semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(ZJTheme.onEmphasis)
-                }
-
-                Image(systemName: "chevron.up")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(ZJTheme.secondaryOnEmphasis)
+                .foregroundStyle(ZJTheme.onEmphasis)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, ZJTheme.pagePadding)
-            .padding(.vertical, 10)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .accessibilityLabel("查看当前计时")
+
+            Button {
+                if timer.isRunning { _ = timer.pause() } else { _ = timer.resume() }
+                presentTimerErrorIfNeeded()
+            } label: {
+                Image(systemName: timer.isRunning ? "pause.fill" : "play.fill")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(ZJTheme.emphasisSurface)
+                    .frame(width: 48, height: 48)
+                    .background(ZJTheme.onEmphasis, in: Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(timer.isRunning ? "暂停计时" : "继续计时")
         }
-        .buttonStyle(.plain)
-        .accessibilityLabel("查看当前计时")
-        .zjEmphasisCard()
-        .padding(.horizontal, ZJTheme.pagePadding)
+        .padding(.leading, 22)
+        .padding(.trailing, 20)
+        .padding(.vertical, 20)
+        .frame(minHeight: 168)
+        .background(ZJInkBlock())
     }
 
     private func toggleCompletion(of task: TodoTask) {
@@ -359,42 +416,65 @@ enum TodayDestination: Hashable {
     case newTask
 }
 
-/// A date title; with nothing left to do, a black card carries the message.
+/// A date title with the avatar; with nothing left to do, a black card carries the message.
 private struct TodayHeader: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let date: Date
     let isQuiet: Bool
     let isDayComplete: Bool
+    let avatar: ProfileAvatar
+    let onOpenProfile: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(date.formatted(.dateTime.month(.defaultDigits).day().weekday(.wide).locale(Locale(identifier: "zh_CN"))))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(ZJTheme.secondaryInk)
-                Text("今天")
-                    .font(.largeTitle.weight(.bold))
-                    .foregroundStyle(ZJTheme.ink)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityIdentifier("today.greeting")
+            HStack(alignment: .center) {
+                titleBlock
+                Spacer(minLength: 12)
+                Button(action: onOpenProfile) {
+                    ProfileAvatarView(avatar: avatar, size: 44)
+                        .overlay { Circle().stroke(ZJTheme.surface, lineWidth: 2) }
+                        .compositingGroup()
+                        .shadow(color: .black.opacity(0.10), radius: 8, x: 0, y: 4)
+                        .frame(width: 48, height: 48)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("我的")
+                .accessibilityIdentifier("today.profile")
             }
             if isQuiet {
-                Text(isDayComplete ? "今天的事都完成了，\n给自己一点休息的时间。" : "新的一天，\n从一件小事开始。")
-                    .contentTransition(.opacity)
-                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: isDayComplete)
-                    .font(.title3.weight(.semibold))
-                    .lineSpacing(5)
-                    .foregroundStyle(ZJTheme.onEmphasis)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, minHeight: 150, alignment: .bottomLeading)
-                    .padding(22)
-                    .background(ZJInkBlock())
-                    .accessibilityIdentifier("today.message")
+                restingCard
             }
         }
         .padding(.horizontal, ZJTheme.pagePadding + 2)
         .padding(.top, 24)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(date.formatted(.dateTime.month(.defaultDigits).day().weekday(.wide).locale(Locale(identifier: "zh_CN"))))
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(ZJTheme.secondaryInk)
+            Text("今天")
+                .font(.largeTitle.weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("today.greeting")
+        }
+    }
+
+    private var restingCard: some View {
+        Text(isDayComplete ? "今天的事都完成了，\n给自己一点休息的时间。" : "新的一天，\n从一件小事开始。")
+            .contentTransition(.opacity)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.28), value: isDayComplete)
+            .font(.title3.weight(.semibold))
+            .lineSpacing(5)
+            .foregroundStyle(ZJTheme.onEmphasis)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, minHeight: 55, alignment: .bottomLeading)
+            .padding(22)
+            .background(ZJInkBlock())
+            .accessibilityIdentifier("today.message")
     }
 }
 

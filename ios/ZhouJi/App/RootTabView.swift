@@ -23,7 +23,7 @@ struct RootTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             TabView(selection: $selection) {
-                TodayView(navigationPath: $todayPath)
+                TodayView(navigationPath: $todayPath, onOpenProfile: { selection = .profile })
                     .toolbar(.hidden, for: .tabBar)
                     .tag(AppTab.today)
                     .tabItem {

@@ -75,10 +75,15 @@ struct GoalsView: View {
             }
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .top, spacing: 0) {
+                // A black card below the status bar keeps the system time readable.
                 pageHeader
-                    .padding(.horizontal, ZJTheme.pagePadding + 6)
-                    .padding(.top, 20)
-                    .padding(.bottom, 14)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 14)
+                    .padding(.bottom, 20)
+                    .background(ZJInkBlock(cornerRadius: 30))
+                    .padding(.horizontal, ZJTheme.pagePadding)
+                    .padding(.top, 6)
+                    .padding(.bottom, 10)
                     .background(ZJTheme.pageBackground)
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -124,48 +129,62 @@ struct GoalsView: View {
         }
     }
 
+    /// A black header carries the motto, the filter and the new-goal button.
     private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center) {
-                Menu {
-                    ForEach(GoalFilter.allCases, id: \.self) { filter in
-                        Button { selectedFilter = filter } label: {
-                            if selectedFilter == filter {
-                                Label(filter.title, systemImage: "checkmark")
-                            } else {
-                                Text(filter.title)
-                            }
-                        }
-                    }
-                } label: {
-                    Text("我的目标")
-                        .font(ZJTheme.titleFont(34, relativeTo: .largeTitle).weight(.bold))
-                        .foregroundStyle(ZJTheme.ink)
-                        .frame(minHeight: 44, alignment: .leading)
-                }
-                .accessibilityLabel("我的目标，筛选目标")
-                .accessibilityIdentifier("目标筛选")
-                .accessibilityValue(selectedFilter.title)
-                .accessibilityHint("轻点标题选择全部、进行中或已完成目标")
+                Text("目标 · \(visibleGoals.count)")
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(ZJTheme.secondaryOnEmphasis)
                 Spacer(minLength: 8)
                 if !isAddingGoal {
                     Button(action: beginCreatingGoal) {
                         Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(ZJTheme.ink)
+                            .frame(width: 44, height: 44)
+                            .background(ZJTheme.surface, in: Circle())
                     }
-                    .buttonStyle(ZJAddButtonStyle(diameter: 36))
-                    .frame(width: 44, height: 44)
+                    .buttonStyle(.plain)
                     .accessibilityLabel("新建目标")
+                } else {
+                    Color.clear.frame(width: 44, height: 44)
                 }
             }
-            HStack(alignment: .bottom) {
-                if !dynamicTypeSize.isAccessibilitySize {
-                    Text("慢一点，\n但一直向前。")
-                        .font(ZJTheme.titleFont(19, relativeTo: .body))
-                        .lineSpacing(4)
-                        .foregroundStyle(ZJTheme.secondaryInk)
+            Text(dynamicTypeSize.isAccessibilitySize ? "慢一点，但一直向前。" : "慢一点，\n但一直向前。")
+                .font(.title2.weight(.bold))
+                .lineSpacing(4)
+                .foregroundStyle(ZJTheme.onEmphasis)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            Menu {
+                ForEach(GoalFilter.allCases, id: \.self) { filter in
+                    Button { selectedFilter = filter } label: {
+                        if selectedFilter == filter {
+                            Label(filter.title, systemImage: "checkmark")
+                        } else {
+                            Text(filter.title)
+                        }
+                    }
                 }
-                Spacer(minLength: 8)
+            } label: {
+                HStack(spacing: 8) {
+                    Text("我的目标 · \(selectedFilter.title)")
+                        .font(.subheadline.weight(.medium))
+                    Image(systemName: "chevron.down")
+                        .font(.caption.weight(.bold))
+                }
+                .foregroundStyle(ZJTheme.onEmphasis)
+                .padding(.horizontal, 14)
+                .frame(minHeight: 36)
+                .background(ZJTheme.onEmphasis.opacity(0.12), in: Capsule())
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
             }
+            .accessibilityLabel("我的目标，筛选目标")
+            .accessibilityIdentifier("目标筛选")
+            .accessibilityValue(selectedFilter.title)
+            .accessibilityHint("选择全部、进行中或已完成目标")
         }
     }
 
@@ -173,11 +192,11 @@ struct GoalsView: View {
     private var goalGrid: some View {
         let columnCount = dynamicTypeSize.isAccessibilitySize ? 1 : 2
         return LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: columnCount), spacing: 12) {
-            ForEach(filteredGoals) { goal in
+            ForEach(Array(filteredGoals.enumerated()), id: \.element.id) { index, goal in
                 Button {
                     navigationPath.append(.tasks(goal))
                 } label: {
-                    GoalCard(goal: goal)
+                    GoalCard(goal: goal, number: index + 1)
                 }
                 .buttonStyle(.plain)
                 .contextMenu {
@@ -276,6 +295,7 @@ private enum GoalFilter: CaseIterable, Hashable {
 
 private struct GoalCard: View {
     let goal: Goal
+    let number: Int
     private var progress: GoalProgress { GoalService.progress(for: goal) }
 
     var body: some View {
@@ -292,6 +312,11 @@ private struct GoalCard: View {
                     .accessibilityHidden(true)
             }
             Spacer(minLength: 18)
+            Text(String(format: "G-%02d", number))
+                .font(.caption2.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .padding(.bottom, 4)
             Text(goal.name)
                 .font(.headline.weight(.bold))
                 .foregroundStyle(ZJTheme.ink)

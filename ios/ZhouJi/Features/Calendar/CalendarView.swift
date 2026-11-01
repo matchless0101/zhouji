@@ -60,14 +60,8 @@ struct CalendarView: View {
                         }
                     }
                     .background(ZJTheme.pageBackground.ignoresSafeArea())
-                    .navigationTitle("当天回顾")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .confirmationAction) {
-                            Button("关闭") { isDayPresented = false }
-                                .accessibilityIdentifier("calendar.closeDetails")
-                        }
-                    }
+                    .safeAreaInset(edge: .top, spacing: 0) { dayReviewHeader }
+                    .toolbar(.hidden, for: .navigationBar)
                 }
                 .tint(ZJTheme.accent)
             }
@@ -169,6 +163,42 @@ struct CalendarView: View {
         .buttonStyle(.plain)
     }
 
+    /// The selected date above a "当天回顾" title, with a round close button.
+    private var dayReviewHeader: some View {
+        let calendar = Calendar.current
+        let weekday = selectedDate.formatted(.dateTime.weekday(.wide).locale(Locale(identifier: "zh_CN")))
+        let isToday = calendar.isDateInToday(selectedDate)
+        return HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(calendar.component(.month, from: selectedDate))月\(calendar.component(.day, from: selectedDate))日 · \(weekday)\(isToday ? " · 今天" : "")")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(ZJTheme.secondaryInk)
+                    .accessibilityIdentifier("calendar.selectedDate")
+                Text("当天回顾")
+                    .font(.title2.weight(.bold))
+                    .foregroundStyle(ZJTheme.ink)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            Spacer(minLength: 12)
+            Button { isDayPresented = false } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(ZJTheme.ink)
+                    .frame(width: 44, height: 44)
+                    .background(ZJTheme.surface, in: Circle())
+                    .compositingGroup()
+                    .shadow(color: .black.opacity(0.06), radius: 8, x: 0, y: 4)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("关闭")
+            .accessibilityIdentifier("calendar.closeDetails")
+        }
+        .padding(.horizontal, ZJTheme.pagePadding + 2)
+        .padding(.top, 18)
+        .padding(.bottom, 6)
+        .background(ZJTheme.pageBackground)
+    }
+
     private func daySummary(_ facts: CalendarDayFacts, now: Date) -> some View {
         let calendar = Calendar.current
         let isToday = calendar.isDate(selectedDate, inSameDayAs: now)
@@ -239,10 +269,6 @@ struct CalendarView: View {
             ? AnyLayout(VStackLayout(spacing: 10))
             : AnyLayout(HStackLayout(spacing: 10))
         return VStack(alignment: .leading, spacing: 14) {
-            Text("\(calendar.component(.month, from: selectedDate))月\(calendar.component(.day, from: selectedDate))日的记录")
-                .font(.title2.weight(.bold))
-                .foregroundStyle(ZJTheme.ink)
-                .accessibilityIdentifier("calendar.selectedDate")
             tiles {
                 journalTile(title: "完成", value: "\(facts.completions.count) 件", isInk: true)
                     .accessibilityLabel("\(facts.completions.count) 件完成")

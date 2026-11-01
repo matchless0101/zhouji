@@ -632,7 +632,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertFalse(app.buttons["外观"].exists)
         XCTAssertTrue(app.buttons["关于粥记"].exists)
         XCTAssertTrue(app.staticTexts["游客模式"].exists)
-        XCTAssertTrue(app.staticTexts["登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。"].exists)
+        XCTAssertTrue(app.staticTexts["登录是可选的。目前任务与记录仍保存在本机，登录不会上传数据。"].exists)
         XCTAssertFalse(app.staticTexts["sync.title"].exists)
         app.buttons["profile.closePanel"].tap()
         XCTAssertTrue(app.buttons["tab.profile"].isSelected)
@@ -786,7 +786,7 @@ final class ZhouJiUITests: XCTestCase {
             app.launch()
             createGoal(named: "阅读计划", in: app)
             app.staticTexts["阅读计划"].tap()
-            let field = app.textFields["添加一个小任务"]
+            let field = app.textFields["goal.newTask"]
             XCTAssertTrue(field.waitForExistence(timeout: 3))
             field.tap()
             field.typeText("Read one page")
@@ -832,7 +832,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertTrue(heading.waitForExistence(timeout: 3))
         let initialHeading = heading.frame
         saveScreenshot("goal-task-size-before-input", app: app)
-        let field = app.textFields["添加一个小任务"]
+        let field = app.textFields["goal.newTask"]
         field.tap()
         XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 3))
         field.typeText("Read one page")
@@ -859,9 +859,9 @@ final class ZhouJiUITests: XCTestCase {
         createGoal(named: "多读书", in: app)
         app.staticTexts["多读书"].tap()
 
-        let assignment = app.staticTexts["新任务会自动归属「多读书」"]
-        XCTAssertTrue(assignment.waitForExistence(timeout: 3))
-        let field = app.textFields["添加一个小任务"]
+        let field = app.textFields["goal.newTask"]
+        XCTAssertTrue(field.waitForExistence(timeout: 3))
+        XCTAssertEqual(field.placeholderValue, "记一件事 · 自动归属「多读书」", "输入框提示新任务会归属当前目标")
         let add = app.buttons["添加"]
         XCTAssertTrue(field.isHittable)
         XCTAssertFalse(add.isEnabled)
@@ -875,7 +875,7 @@ final class ZhouJiUITests: XCTestCase {
         add.tap()
         XCTAssertTrue(app.staticTexts["读十页书"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["0/1"].exists)
-        XCTAssertEqual(field.value as? String, "添加一个小任务")
+        XCTAssertEqual(field.value as? String, "记一件事 · 自动归属「多读书」")
         app.buttons["完成任务"].tap()
         XCTAssertTrue(app.staticTexts["100%"].waitForExistence(timeout: 3))
         XCTAssertTrue(app.staticTexts["1/1"].exists)
@@ -926,7 +926,7 @@ final class ZhouJiUITests: XCTestCase {
         let goalTitle = app.staticTexts.matching(NSPredicate(format: "label == %@", name)).firstMatch
         XCTAssertTrue(goalTitle.waitForExistence(timeout: 3))
         goalTitle.tap()
-        let field = app.textFields["添加一个小任务"]
+        let field = app.textFields["goal.newTask"]
         XCTAssertTrue(field.waitForExistence(timeout: 3))
         saveScreenshot("goal-long-name-addition", app: app)
         XCTAssertTrue(field.isHittable)
@@ -948,7 +948,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launch()
         createGoal(named: "多读书", in: app)
         app.staticTexts["多读书"].tap()
-        let field = app.textFields["添加一个小任务"]
+        let field = app.textFields["goal.newTask"]
         XCTAssertTrue(field.waitForExistence(timeout: 3))
         field.tap()
         field.typeText("读十页书")
@@ -1009,7 +1009,7 @@ final class ZhouJiUITests: XCTestCase {
         app.launchArguments += ["-ZJInitialTab", "goals"]
         app.launch()
 
-        XCTAssertTrue(app.staticTexts["我的目标"].firstMatch.waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["目标筛选"].waitForExistence(timeout: 3))
         app.buttons["新建目标"].tap()
 
         let goalField = app.textFields["目标名称"]
@@ -1024,7 +1024,7 @@ final class ZhouJiUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["0%"].waitForExistence(timeout: 2))
 
-        let taskField = app.textFields["添加一个小任务"]
+        let taskField = app.textFields["goal.newTask"]
         taskField.tap()
         taskField.typeText("写摘要")
         app.buttons["添加"].tap()
@@ -1154,7 +1154,7 @@ final class ZhouJiUITests: XCTestCase {
         XCTAssertEqual(pending.count, 2)
 
         let greeting = app.staticTexts["today.greeting"]
-        let completedHeader = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "已完成，")).firstMatch
+        let completedHeader = app.otherElements.matching(NSPredicate(format: "label BEGINSWITH %@", "今日完成，")).firstMatch
         XCTAssertTrue(completedHeader.exists)
         let remaining = app.cells.containing(.staticText, identifier: "练习 SwiftUI").element
         let beforeGap = completedHeader.frame.minY - remaining.frame.maxY
@@ -1761,7 +1761,7 @@ final class ZhouJiUITests: XCTestCase {
 
     @MainActor
     private func createTask(named name: String, in app: XCUIApplication) {
-        let field = app.textFields["添加一个小任务"]
+        let field = app.textFields["goal.newTask"]
         XCTAssertTrue(field.waitForExistence(timeout: 2))
         field.tap()
         field.typeText(name)

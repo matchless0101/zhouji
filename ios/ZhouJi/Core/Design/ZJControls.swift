@@ -77,3 +77,30 @@ struct ZJSecondaryButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }
+
+/// A centered page title with a round back button on the left.
+struct ZJTopBar: View {
+    let title: String
+    var identifier = ""
+    var backLabel = "关闭"
+    var backIdentifier = ""
+    let onBack: () -> Void
+
+    var body: some View {
+        ZStack {
+            Text(title)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .lineLimit(1)
+                .padding(.horizontal, 56)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(identifier)
+            ZJBackButton(label: backLabel, action: onBack)
+                .accessibilityIdentifier(backIdentifier)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, ZJTheme.pagePadding)
+        .padding(.vertical, 6)
+        .background(ZJTheme.pageBackground)
+    }
+}

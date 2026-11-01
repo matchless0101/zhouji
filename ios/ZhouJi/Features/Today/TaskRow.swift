@@ -8,7 +8,6 @@ struct TaskRow: View {
     let task: TodoTask
     let isActivelyTimed: Bool
     var showsGoal = true
-    var presentation: Presentation = .standard
     var animatesCompletion = false
     let onToggleCompletion: () -> Void
     let onStartTimer: () -> Void
@@ -48,30 +47,23 @@ struct TaskRow: View {
                 Text(task.title)
                     .font(.system(.body, design: .default, weight: .medium))
                     .foregroundStyle(task.isCompleted ? ZJTheme.secondaryInk : ZJTheme.ink)
-                    .strikethrough(presentation == .goal && task.isCompleted, color: ZJTheme.secondaryInk)
                     .lineLimit(3)
 
                 if showsGoal, !task.isCompleted, let goal = task.goal, goal.deletedAt == nil {
-                    let goalColor = ZJTheme.goalAccent(for: goal.displayIconName)
-
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(goalColor)
-                            .frame(width: 6, height: 6)
-                        Text(goal.name)
-                            .lineLimit(1)
-                    }
-                    .font(.caption)
-                    .foregroundStyle(goalColor)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(ZJTheme.goalSoft(for: goal.displayIconName), in: Capsule())
+                    Text(isActivelyTimed ? "\(goal.name) · 计时中" : goal.name)
+                        .font(.caption)
+                        .foregroundStyle(ZJTheme.secondaryInk)
+                        .lineLimit(1)
+                } else if isActivelyTimed {
+                    Text("计时中")
+                        .font(.caption)
+                        .foregroundStyle(ZJTheme.secondaryInk)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             if task.isCompleted {
-                if presentation == .standard, let completedAt = task.completedAt {
+                if let completedAt = task.completedAt {
                     Text(completedAt, style: .time)
                         .font(.subheadline)
                         .monospacedDigit()
@@ -80,30 +72,19 @@ struct TaskRow: View {
             } else {
                 Button(action: onStartTimer) {
                     if isActivelyTimed {
-                        Label("计时中", systemImage: "waveform")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(ZJTheme.surface)
-                            .padding(.horizontal, 16)
-                            .frame(minHeight: 44)
-                            .background(ZJTheme.timerAccent, in: Capsule())
-                    } else if presentation == .goal {
-                        Image(systemName: "play.fill")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(ZJTheme.success)
+                        Image(systemName: "waveform")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(ZJTheme.onAccent)
+                            .frame(width: 40, height: 40)
+                            .background(ZJTheme.accent, in: Circle())
                             .frame(width: 44, height: 44)
                     } else {
                         Image(systemName: "play.fill")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(ZJTheme.timerAccent)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(ZJTheme.ink)
+                            .frame(width: 40, height: 40)
+                            .background(ZJTheme.mutedSurface, in: Circle())
                             .frame(width: 44, height: 44)
-                            .background(
-                                LinearGradient(colors: [ZJTheme.timerSoft.opacity(0.65), ZJTheme.timerSoft],
-                                               startPoint: .topLeading, endPoint: .bottomTrailing),
-                                in: Capsule()
-                            )
-                            .overlay { Capsule().stroke(ZJTheme.surface, lineWidth: 1.5) }
-                            .compositingGroup()
-                            .shadow(color: ZJTheme.timerAccent.opacity(0.10), radius: 8, y: 3)
                     }
                 }
                 .buttonStyle(.plain)
@@ -112,7 +93,7 @@ struct TaskRow: View {
                 .accessibilityHint(task.title)
             }
         }
-        .padding(.vertical, presentation == .goal ? 0 : (task.isCompleted ? 0 : 10))
+        .padding(.vertical, task.isCompleted ? 0 : 10)
         .contentShape(Rectangle())
     }
 
@@ -130,10 +111,5 @@ struct TaskRow: View {
                 onToggleCompletion()
             }
         }
-    }
-
-    enum Presentation {
-        case standard
-        case goal
     }
 }

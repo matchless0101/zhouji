@@ -11,53 +11,38 @@ struct AccountControls: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
+            Text("账户")
+                .font(.headline.weight(.bold))
+                .foregroundStyle(ZJTheme.ink)
+                .accessibilityAddTraits(.isHeader)
             if account.account == nil {
                 Text(contentSync.isEnabled
                      ? "登录后可使用测试云同步；未上传前数据仍仅保存在本机。"
-                     : "登录后可保留账户身份。云同步尚未上线，当前数据仍仅保存在本机。")
-                    .font(.footnote)
+                     : "登录是可选的。目前任务与记录仍保存在本机，登录不会上传数据。")
+                    .font(.caption)
                     .foregroundStyle(ZJTheme.secondaryInk)
-                Button("账号登录") { showsPasswordLogin = true }
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("账号登录 / 注册") { showsPasswordLogin = true }
                     .buttonStyle(ZJPrimaryButtonStyle())
                     .disabled(account.isBusy)
                     .accessibilityIdentifier("account.password.open")
-                if let challenge = account.challenge {
-                    TimelineView(.periodic(from: .now, by: 1)) { context in
-                        SignInWithAppleButton(.signIn) { request in
-                            account.configure(request)
-                        } onCompletion: { result in
-                            Task {
-                                await account.complete(result)
-                                if account.account == nil { await account.prepare() }
-                            }
+                // Apple and WeChat sit side by side; WeChat only appears when it is installed.
+                HStack(alignment: .top, spacing: 8) {
+                    appleLogin
+                    if account.weChatAvailability == .available {
+                        Button { Task { await account.loginWeChat() } } label: {
+                            Text("微信登录")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity, minHeight: 50)
+                                .background(Color(red: 0.027, green: 0.757, blue: 0.376), in: Capsule())
                         }
-                        .signInWithAppleButtonStyle(.black)
-                        .frame(height: 50)
-                        .clipShape(Capsule())
-                        .disabled(account.isBusy || challenge.expiresAt <= context.date.timeIntervalSince1970)
-                        .accessibilityIdentifier("account.appleLogin")
-                        if challenge.expiresAt <= context.date.timeIntervalSince1970 {
-                            Button("刷新登录请求") { Task { await account.prepare() } }
-                        }
+                        .buttonStyle(.plain)
+                        .disabled(account.isBusy)
+                        .accessibilityIdentifier("account.wechatLogin")
                     }
-                } else if account.isPreparing {
-                    ProgressView("正在准备登录…")
-                } else {
-                    Button("准备 Apple 登录") { Task { await account.prepare() } }
-                        .buttonStyle(ZJSecondaryButtonStyle())
-                        .accessibilityIdentifier("account.retry")
                 }
-                if account.weChatAvailability == .available {
-                    Button { Task { await account.loginWeChat() } } label: {
-                    Label("微信登录", systemImage: "message.fill")
-                        .font(.body.weight(.medium))
-                        .frame(maxWidth: .infinity, minHeight: 50)
-                }
-                .foregroundStyle(.white)
-                .background(Color(red: 0.03, green: 0.65, blue: 0.28), in: RoundedRectangle(cornerRadius: 8))
-                .disabled(account.isBusy)
-                .accessibilityIdentifier("account.wechatLogin")
-                } else if let message = account.weChatAvailability.loginMessage {
+                if account.weChatAvailability != .available, let message = account.weChatAvailability.loginMessage {
                     Text(message)
                         .font(.footnote)
                         .foregroundStyle(ZJTheme.secondaryInk)
@@ -93,6 +78,40 @@ struct AccountControls: View {
         .sheet(isPresented: $showsPasswordLogin) { PasswordLoginView() }
         .sheet(isPresented: $showsSecurity) { AccountSecurityView(flow: securityFlow) }
         .task { account.refreshWeChatAvailability(); await account.prepare() }
+    }
+
+    @ViewBuilder
+    private var appleLogin: some View {
+        if let challenge = account.challenge {
+            TimelineView(.periodic(from: .now, by: 1)) { context in
+                VStack(spacing: 6) {
+                    SignInWithAppleButton(.signIn) { request in
+                        account.configure(request)
+                    } onCompletion: { result in
+                        Task {
+                            await account.complete(result)
+                            if account.account == nil { await account.prepare() }
+                        }
+                    }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 50)
+                    .clipShape(Capsule())
+                    .disabled(account.isBusy || challenge.expiresAt <= context.date.timeIntervalSince1970)
+                    .accessibilityIdentifier("account.appleLogin")
+                    if challenge.expiresAt <= context.date.timeIntervalSince1970 {
+                        Button("刷新登录请求") { Task { await account.prepare() } }
+                            .font(.footnote)
+                    }
+                }
+            }
+        } else if account.isPreparing {
+            ProgressView("正在准备…")
+                .frame(maxWidth: .infinity, minHeight: 50)
+        } else {
+            Button("准备 Apple 登录") { Task { await account.prepare() } }
+                .buttonStyle(ZJSecondaryButtonStyle())
+                .accessibilityIdentifier("account.retry")
+        }
     }
 }
 

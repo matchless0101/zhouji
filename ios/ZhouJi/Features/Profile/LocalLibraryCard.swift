@@ -7,21 +7,23 @@ struct LocalLibraryCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top, spacing: 14) {
-                Image(systemName: "folder.fill")
-                    .font(.system(size: 30))
-                    .foregroundStyle(ZJTheme.success)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(isGuest ? "当前：游客记录" : "当前：账户的本机记录")
-                        .font(ZJTheme.titleFont(19, relativeTo: .headline).weight(.bold))
-                        .accessibilityIdentifier("library.current")
-                    Text(isGuest ? "升级前的记录保留在游客记录中。不同账户各自保存，切换不会合并。" : "不同账户各自保存，切换不会合并。")
-                        .font(ZJTheme.titleFont(15, relativeTo: .footnote))
-                        .foregroundStyle(ZJTheme.secondaryInk)
-                }
-                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .center, spacing: 12) {
+                Text("记录库")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(ZJTheme.ink)
+                Spacer(minLength: 8)
+                Text(isGuest ? "当前：游客记录" : "当前：账户的本机记录")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(ZJTheme.onAccent)
+                    .padding(.horizontal, 12)
+                    .frame(minHeight: 28)
+                    .background(ZJTheme.accent, in: Capsule())
+                    .accessibilityIdentifier("library.current")
             }
+            Text(isGuest ? "升级前的记录保留在游客记录中。不同账户各自保存，切换不会合并。" : "不同账户各自保存，切换不会合并。")
+                .font(.caption)
+                .foregroundStyle(ZJTheme.secondaryInk)
+                .fixedSize(horizontal: false, vertical: true)
             if isGuest, libraries.authenticatedScope != nil {
                 Button("打开此账户的记录") { libraries.showAccount() }
                     .buttonStyle(ZJSecondaryButtonStyle())
